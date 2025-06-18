@@ -98,21 +98,23 @@ end
 local dimColor = {}
 for i = 1, #ssvt.dimData do
     dimColor[i] = { COLOR.HEX(ssvt.dimData[i].color) }
+    dimColor[i][4] = .62
 end
 
 function scene.draw()
     GC.setColor(COLOR.L)
     FONT.set(30)
-    GC.print(srcCount - #srcLib .. "/" .. srcCount - 1, 10, 10)
+    GC.print(srcCount - #srcLib, 10, 10)
+    GC.print(srcCount - 1, 62, 10)
 
     GC.replaceTransform(SCR.xOy_u)
-    GC.translate(-200, 360)
+    GC.translate(0, 360)
 
     GC.setLineWidth(26)
     GC.setColor(dimColor[2])
-    GC.line(-520, 0, 900, 0)
+    GC.line(-610, 0, 610, 0)
     GC.setColor(dimColor[3])
-    GC.line(0, -300, 0, 200)
+    GC.line(0, -340, 0, 220)
 
     GC.setLineWidth(4)
     GC.setColor(COLOR.L)
@@ -121,13 +123,13 @@ function scene.draw()
         for x = 1, #mat[y] do
             local char = mat[y][x]
             local pos = map[char]
-            local x, y = pos[1] * 110, -pos[2] * 110
+            local x, y = pos[1] * 130, -pos[2] * 130
             if activeSrc[char] then
                 GC.setColor(1, 1, 1, .42)
-                GC.circle('fill', x, y, 50)
+                GC.circle('fill', x, y, 60)
                 GC.setColor(COLOR.L)
             end
-            GC.circle('line', x, y, 50)
+            GC.circle('line', x, y, 60)
             GC.mStr(char, x, y - 45)
         end
     end
