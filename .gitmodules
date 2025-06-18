@@ -1,0 +1,6 @@
+[submodule "shasavistic-chord-diagram"]
+	path = shasavistic-chord-diagram
+	url = https://github.com/MrZ626/shasavistic-chord-diagram.git
+[submodule "Zenitha"]
+	path = Zenitha
+	url = https://github.com/26F-Studio/Zenitha.git
