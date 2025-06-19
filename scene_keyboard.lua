@@ -22,6 +22,8 @@ do
     snd:release()
 end
 
+local ins, rem = table.insert, table.remove
+
 ---@type Map<love.Source>
 local activeSrc = {}
 
@@ -33,7 +35,7 @@ local function startNote(freq, key)
     for i = 2, #srcLib do
         local s = srcLib[i]
         if not s:isPlaying() then
-            table.remove(srcLib, i)
+            rem(srcLib, i)
             activeSrc[key] = s
             s:setPitch(freq)
             s:play()
@@ -46,10 +48,35 @@ local function stopNote(key)
     local s = activeSrc[key]
     if s then
         s:stop()
-        table.insert(srcLib, s)
+        ins(srcLib, s)
         activeSrc[key] = nil
     end
 end
+
+local chordList = {}
+local edit = {
+    cursor = 0,
+}
+
+local function drawChord(chord)
+    local data = ssvt.drawChord(chord)
+    for _, shape in next, data do
+        shape.colorT = { COLOR.HEX(shape.color) }
+    end
+    return data
+end
+
+local function newChord()
+    local chord = {
+        data = { d = 0 },
+    }
+    chord.drawData = drawChord(chord.data)
+
+    ins(chordList, edit.cursor + 1, chord)
+    edit.cursor = edit.cursor + 1
+end
+
+newChord()
 
 ---@type Zenitha.Scene
 local scene = {}
@@ -81,6 +108,7 @@ local function getPitch(pos)
     while pitch < .5 do pitch = pitch * 4 end
     return pitch
 end
+
 function scene.keyDown(key, isRep)
     if isRep then return end
     if map[key] then
@@ -90,9 +118,6 @@ end
 
 function scene.keyUp(key)
     stopNote(key)
-end
-
-function scene.update(dt)
 end
 
 local dimColor = {}
@@ -131,6 +156,21 @@ function scene.draw()
             end
             GC.circle('line', x, y, 60)
             GC.mStr(char, x, y - 45)
+        end
+    end
+
+    GC.replaceTransform(SCR.xOy_d)
+    GC.translate(-600, -50)
+    GC.scale(260, -420)
+
+    for i = 1, #chordList do
+        local drawData = chordList[i].drawData
+        for j = 1, #drawData do
+            local shape = drawData[j]
+            GC.setColor(shape.colorT)
+            if shape.mode == 'polygon' then
+                GC.polygon('fill', shape.points)
+            end
         end
     end
 end
