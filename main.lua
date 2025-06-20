@@ -1,6 +1,6 @@
 require 'Zenitha'
 
-ZENITHA.setFirstScene("main")
+ZENITHA.setFirstScene('main')
 ZENITHA.setShowFPS(false)
 ZENITHA.setVersionText("")
 ZENITHA.globalEvent.drawCursor = NULL
@@ -45,6 +45,10 @@ local function startNote(freq, key)
         local s = srcLib[i]
         if not s:isPlaying() then
             rem(srcLib, i)
+            if activeSrc[key] then
+                activeSrc[key]:stop()
+                ins(srcLib, activeSrc[key])
+            end
             activeSrc[key] = s
             s:setPitch(freq)
             s:play()
@@ -64,25 +68,32 @@ end
 
 local chordList = {}
 local edit = {
-    cursor = 0,
+    editing = 0,
+    cursor = {},
+    curFreq = 1,
 }
 
-local function drawChord(chord)
-    local data = ssvt.drawChord(chord)
+local function redrawChord(chord)
+    local data = ssvt.drawChord(chord.tree)
     for _, shape in next, data do
         shape.colorT = { COLOR.HEX(shape.color) }
     end
-    return data
+    chord.drawData = data
+    chord.text = ssvt.encode(chord.tree)
 end
 
 local function newChord()
     local chord = {
-        data = { d = 0 },
+        tree = { d = 0 },
+        text = "0",
     }
-    chord.drawData = drawChord(chord.data)
+    redrawChord(chord)
 
-    ins(chordList, edit.cursor + 1, chord)
-    edit.cursor = edit.cursor + 1
+    edit.editing = edit.editing + 1
+    ins(chordList, edit.editing, chord)
+    edit.cursor = {}
+
+    edit.curFreq = 1
 end
 
 newChord()
@@ -96,43 +107,71 @@ end
 function scene.mouseDown(x, y, k)
 end
 
-local map = {}
-local mat = {
-    STRING.atomize "123456789",
-    STRING.atomize "qwertyuio",
-    STRING.atomize "asdfghjkl",
-    STRING.atomize "zxcvbnm,.",
+local map = {
+    a = 3,
+    z = -3,
+    s = 2,
+    x = -2,
+    d = 4,
+    c = -4,
+    f = 1,
+    v = -1,
+    g = 5,
+    b = -5,
+    -- h = 6,
+    -- n = -6,
+    -- j = 7,
+    -- m = -7,
 }
-for y = 1, 4 do
-    for x = 1, #mat[y] do
-        local char = mat[y][x]
-        map[char] = { x - 5, 3 - y }
-    end
-end
-local function getPitch(pos)
-    local pitch =
-        (6 / 4) ^ pos[1] *
-        (5 / 4) ^ pos[2]
-    while pitch > 4 do pitch = pitch / 4 end
-    while pitch < .5 do pitch = pitch * 4 end
-    return pitch
-end
 
 function scene.keyDown(key, isRep)
     if isRep then return end
-    if map[key] then
-        startNote(getPitch(map[key]), key)
+    if key == 'backspace' then
+        rem(chordList, edit.editing)
+        if edit.editing > #chordList then edit.editing = #chordList end
+        if #chordList == 0 then newChord() end
+    elseif key == 'return' then
+        newChord()
+    elseif key == 'left' then
+        if #edit.cursor == 0 then return end
+        local chord = chordList[edit.editing]
+        local curLevel = TABLE.listIndex(chord.tree, edit.cursor)
+        curLevel.bias = curLevel.bias ~= 'l' and 'l' or nil
+        redrawChord(chord)
+    elseif key == 'right' then
+        if #edit.cursor == 0 then return end
+        local chord = chordList[edit.editing]
+        local curLevel = TABLE.listIndex(chord.tree, edit.cursor)
+        curLevel.bias = curLevel.bias ~= 'r' and 'r' or nil
+        redrawChord(chord)
+    elseif key == 'down' then
+        -- TODO
+    elseif key == 'up' then
+        -- TODO
+    elseif key == 'space' then
+        startNote(edit.curFreq, 'space')
+    elseif map[key] then
+        local step = map[key]
+        local pitch = edit.curFreq * ssvt.dimData[step].freq
+        local chord = chordList[edit.editing]
+        local curLevel = TABLE.listIndex(chord.tree, edit.cursor)
+        local exist
+        for i = 1, #curLevel do
+            if curLevel[i].d == step then
+                exist = i
+                break
+            end
+        end
+        if not exist then
+            ins(curLevel, { d = step })
+            redrawChord(chord)
+        end
+        startNote(pitch, key)
     end
 end
 
 function scene.keyUp(key)
     stopNote(key)
-end
-
-local dimColor = {}
-for i = 1, #ssvt.dimData do
-    dimColor[i] = { COLOR.HEX(ssvt.dimData[i].color) }
-    dimColor[i][4] = .62
 end
 
 function scene.draw()
@@ -141,36 +180,9 @@ function scene.draw()
     GC.print(srcCount - #srcLib, 10, 10)
     GC.print(srcCount - 1, 62, 10)
 
-    GC.replaceTransform(SCR.xOy_u)
-    GC.translate(0, 360)
-
-    GC.setLineWidth(26)
-    GC.setColor(dimColor[2])
-    GC.line(-610, 0, 610, 0)
-    GC.setColor(dimColor[3])
-    GC.line(0, -340, 0, 220)
-
-    GC.setLineWidth(4)
-    GC.setColor(COLOR.L)
-    FONT.set(70)
-    for y = 1, 4 do
-        for x = 1, #mat[y] do
-            local char = mat[y][x]
-            local pos = map[char]
-            local x, y = pos[1] * 130, -pos[2] * 130
-            if activeSrc[char] then
-                GC.setColor(1, 1, 1, .42)
-                GC.circle('fill', x, y, 60)
-                GC.setColor(COLOR.L)
-            end
-            GC.circle('line', x, y, 60)
-            GC.mStr(char, x, y - 45)
-        end
-    end
-
-    GC.replaceTransform(SCR.xOy_d)
-    GC.translate(-600, -50)
-    GC.scale(260, -420)
+    GC.replaceTransform(SCR.xOy_l)
+    GC.translate(100, 260)
+    GC.scale(260, -260)
 
     for i = 1, #chordList do
         local drawData = chordList[i].drawData
@@ -181,7 +193,15 @@ function scene.draw()
                 GC.polygon('fill', shape.points)
             end
         end
+        if edit.editing == i then
+            GC.setColor(COLOR.R)
+            GC.setLineWidth(0.01)
+            GC.rectangle('line', -.1, math.log(edit.curFreq, 2) - .05, 1.2, .1)
+        end
+        GC.setColor(COLOR.L)
+        GC.print(chordList[i].text, 0, -.1, 0, .005, -.005)
+        GC.translate(1.2, 0)
     end
 end
 
-SCN.add("main", scene)
+SCN.add('main', scene)
