@@ -68,6 +68,7 @@ end
 
 ---@class wrappedChord
 ---@field tree SSVT.Chord
+---@field drawData table
 ---@field text string
 
 ---@type wrappedChord[]
@@ -130,39 +131,11 @@ local function pitchSorter(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < 
 local function levelSorter(a, b) return a.d < b.d end
 function scene.keyDown(key, isRep)
     if isRep then return end
-    if key == 'delete' then
-        rem(chordList, edit.editing)
-        if edit.editing > #chordList then edit.editing = #chordList end
-        if #chordList == 0 then newChord() end
-    elseif key == 'backspace' then
-        if #edit.cursor == 0 then return end
-        local n = rem(edit.cursor, #edit.cursor)
-        local chord, curNote = edit:getChord(), edit:getNote()
-        rem(curNote, n)
-        redrawChord(chord)
-        edit.curPitch = curNote.pitch
-        edit:refreshText()
-    elseif key == 'return' then
-        newChord()
-    elseif key == 'left' or key == 'right' then
-        if KBisDown('lctrl', 'rctrl') then
-            local newEditing = MATH.clamp(edit.editing + (key == 'left' and -1 or 1), 1, #chordList)
-            if newEditing ~= edit.editing then
-                edit.editing = newEditing
-                edit.cursor = {}
-                edit.curPitch = 1
-                edit:refreshText()
-            end
-        else
-            if #edit.cursor == 0 then return end
-            local chord, curNote = edit:getChord(), edit:getNote()
-            local tar = key == 'left' and 'l' or 'r'
-            if curNote.bias ~= tar then
-                curNote.bias = not curNote.bias and tar or nil
-                redrawChord(chord)
-            end
-        end
+    if key == 'space' then
+        -- Preview selected note
+        startNote(edit.curPitch, 'space')
     elseif key == 'down' or key == 'up' then
+        -- Select note
         local allInfo = TABLE.flatten(TABLE.copyAll(chordList[edit.editing].tree))
         local pitches = {}
         for k, v in next, allInfo do
@@ -177,10 +150,11 @@ function scene.keyDown(key, isRep)
                 curPos = i; break
             end
         end
+        local ctrl = KBisDown('lctrl', 'rctrl')
         if key == 'up' then
-            while curPos < #pitches and pitches[curPos][1] <= edit.curPitch do curPos = curPos + 1 end
+            while curPos < #pitches and (ctrl or pitches[curPos][1] <= edit.curPitch) do curPos = curPos + 1 end
         else
-            while curPos > 1 and pitches[curPos][1] >= edit.curPitch do curPos = curPos - 1 end
+            while curPos > 1 and (ctrl or pitches[curPos][1] >= edit.curPitch) do curPos = curPos - 1 end
         end
         edit.curPitch = pitches[curPos][1]
         edit.cursor = STRING.split(pitches[curPos][2], ".")
@@ -188,7 +162,45 @@ function scene.keyDown(key, isRep)
             edit.cursor[i] = tonumber(edit.cursor[i])
         end
         edit:refreshText()
+    elseif key == 'return' then
+        -- Create new chord
+        newChord()
+    elseif key == 'backspace' then
+        -- Delete selected note
+        if #edit.cursor == 0 then return end
+        local n = rem(edit.cursor, #edit.cursor)
+        local chord, curNote = edit:getChord(), edit:getNote()
+        rem(curNote, n)
+        redrawChord(chord)
+        edit.curPitch = curNote.pitch
+        edit:refreshText()
+    elseif key == 'delete' then
+        -- Delete current chord
+        rem(chordList, edit.editing)
+        if edit.editing > #chordList then edit.editing = #chordList end
+        if #chordList == 0 then newChord() end
+    elseif key == 'left' or key == 'right' then
+        if KBisDown('lctrl', 'rctrl') then
+            -- Move editing cursor
+            local newEditing = MATH.clamp(edit.editing + (key == 'left' and -1 or 1), 1, #chordList)
+            if newEditing ~= edit.editing then
+                edit.editing = newEditing
+                edit.cursor = {}
+                edit.curPitch = 1
+                edit:refreshText()
+            end
+        else
+            -- Change bias
+            if #edit.cursor == 0 then return end
+            local chord, curNote = edit:getChord(), edit:getNote()
+            local tar = key == 'left' and 'l' or 'r'
+            if curNote.bias ~= tar then
+                curNote.bias = not curNote.bias and tar or nil
+                redrawChord(chord)
+            end
+        end
     elseif key == '.' then
+        -- Mark selected note as fake note
         local chord, curNote = edit:getChord(), edit:getNote()
         if curNote.note then
             curNote.note = nil
@@ -197,12 +209,12 @@ function scene.keyDown(key, isRep)
         end
         redrawChord(chord)
     elseif key == '/' then
+        -- Mark selected note as bass
         local chord, curNote = edit:getChord(), edit:getNote()
         curNote.bass = not curNote.bass or nil
         redrawChord(chord)
-    elseif key == 'space' then
-        startNote(edit.curPitch, 'space')
     elseif #key == 1 and tonumber(key) and MATH.between(tonumber(key), 1, 5) then
+        -- Add note
         local step = tonumber(key)
         if KBisDown('lshift', 'rshift') then step = -step end
         local pitch = edit.curPitch * ssvt.dimData[step].freq
