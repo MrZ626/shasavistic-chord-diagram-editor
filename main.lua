@@ -125,12 +125,7 @@ newChord()
 ---@type Zenitha.Scene
 local scene = {}
 
-function scene.load()
-end
-
-function scene.mouseDown(x, y, k)
-end
-
+local KBisDown = love.keyboard.isDown
 local function pitchSorter(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2]) end
 local function levelSorter(a, b) return a.d < b.d end
 function scene.keyDown(key, isRep)
@@ -150,12 +145,22 @@ function scene.keyDown(key, isRep)
     elseif key == 'return' then
         newChord()
     elseif key == 'left' or key == 'right' then
-        if #edit.cursor == 0 then return end
-        local chord, curNote = edit:getChord(), edit:getNote()
-        local tar = key == 'left' and 'l' or 'r'
-        if curNote.bias ~= tar then
-            curNote.bias = not curNote.bias and tar or nil
-            redrawChord(chord)
+        if KBisDown('lctrl', 'rctrl') then
+            local newEditing = MATH.clamp(edit.editing + (key == 'left' and -1 or 1), 1, #chordList)
+            if newEditing ~= edit.editing then
+                edit.editing = newEditing
+                edit.cursor = {}
+                edit.curPitch = 1
+                edit:refreshText()
+            end
+        else
+            if #edit.cursor == 0 then return end
+            local chord, curNote = edit:getChord(), edit:getNote()
+            local tar = key == 'left' and 'l' or 'r'
+            if curNote.bias ~= tar then
+                curNote.bias = not curNote.bias and tar or nil
+                redrawChord(chord)
+            end
         end
     elseif key == 'down' or key == 'up' then
         local allInfo = TABLE.flatten(TABLE.copyAll(chordList[edit.editing].tree))
@@ -199,7 +204,7 @@ function scene.keyDown(key, isRep)
         startNote(edit.curPitch, 'space')
     elseif #key == 1 and tonumber(key) and MATH.between(tonumber(key), 1, 5) then
         local step = tonumber(key)
-        if love.keyboard.isDown('lshift', 'rshift') then step = -step end
+        if KBisDown('lshift', 'rshift') then step = -step end
         local pitch = edit.curPitch * ssvt.dimData[step].freq
         local chord, curNote = edit:getChord(), edit:getNote()
         local exist
@@ -209,7 +214,7 @@ function scene.keyDown(key, isRep)
                 break
             end
         end
-        if exist and love.keyboard.isDown('lctrl', 'rctrl') then
+        if exist and KBisDown('lctrl', 'rctrl') then
             rem(curNote, exist)
             redrawChord(chord)
         else
