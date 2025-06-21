@@ -144,10 +144,22 @@ function scene.keyDown(key, isRep)
         local curLevel = TABLE.listIndex(chord.tree, edit.cursor)
         curLevel.bias = curLevel.bias ~= 'r' and 'r' or nil
         redrawChord(chord)
-    elseif key == 'down' then
+    elseif key == 'down' or key == 'up' then
         -- TODO
-    elseif key == 'up' then
-        -- TODO
+    elseif key == '.' then
+        local chord = chordList[edit.editing]
+        local curLevel = TABLE.listIndex(chord.tree, edit.cursor)
+        if curLevel.note then
+            curLevel.note = nil
+        else
+            curLevel.note = math.abs(curLevel.d) == 1 and 'skip' or 'dotted'
+        end
+        redrawChord(chord)
+    elseif key == '/' then
+        local chord = chordList[edit.editing]
+        local curLevel = TABLE.listIndex(chord.tree, edit.cursor)
+        curLevel.bass = not curLevel.bass or nil
+        redrawChord(chord)
     elseif key == 'space' then
         startNote(edit.curFreq, 'space')
     elseif map[key] then
@@ -162,11 +174,16 @@ function scene.keyDown(key, isRep)
                 break
             end
         end
-        if not exist then
-            ins(curLevel, { d = step })
+        if exist and love.keyboard.isDown('lctrl', 'rctrl') then
+            rem(curLevel, exist)
             redrawChord(chord)
+        else
+            if not exist then
+                ins(curLevel, { d = step })
+                redrawChord(chord)
+            end
+            startNote(pitch, key)
         end
-        startNote(pitch, key)
     end
 end
 
@@ -185,6 +202,7 @@ function scene.draw()
     GC.scale(260, -260)
 
     for i = 1, #chordList do
+        -- Polygons
         local drawData = chordList[i].drawData
         for j = 1, #drawData do
             local shape = drawData[j]
@@ -193,13 +211,18 @@ function scene.draw()
                 GC.polygon('fill', shape.points)
             end
         end
-        if edit.editing == i then
-            GC.setColor(COLOR.R)
-            GC.setLineWidth(0.01)
-            GC.rectangle('line', -.1, math.log(edit.curFreq, 2) - .05, 1.2, .1)
-        end
+
+        -- Text
         GC.setColor(COLOR.L)
         GC.print(chordList[i].text, 0, -.1, 0, .005, -.005)
+
+        -- Cursor
+        if edit.editing == i then
+            GC.setColor(1, .6, .6, .5 + .26 * math.sin(love.timer.getTime() * 6.2))
+            GC.setLineWidth(.01)
+            GC.rectangle('line', -.04, math.log(edit.curFreq, 2) - .03, 1.08, .06)
+        end
+
         GC.translate(1.2, 0)
     end
 end
