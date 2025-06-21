@@ -74,19 +74,26 @@ end
 local chordList = {}
 local edit = {
     editing = 0,
-    cursor = {},
+    cursor = {}, ---@type number[]
     cursorText = "0",
-    curFreq = 1,
+    curPitch = 1,
 }
+function edit:getChord()
+    return chordList[self.editing]
+end
 
-local function refreshCursorText()
+function edit:getNote()
+    return TABLE.listIndex(chordList[self.editing].tree, self.cursor)
+end
+
+function edit:refreshText()
     local buffer = "0"
-    local chord = chordList[edit.editing].tree
-    for i = 1, #edit.cursor do
-        chord = chord[edit.cursor[i]]
-        buffer = buffer .. (chord.d > 0 and '+' or '') .. chord.d
+    local tree = self:getChord().tree
+    for i = 1, #self.cursor do
+        tree = tree[self.cursor[i]]
+        buffer = buffer .. (tree.d > 0 and '+' or '') .. tree.d
     end
-    edit.cursorText = buffer
+    self.cursorText = buffer
 end
 
 local function redrawChord(chord)
@@ -108,9 +115,9 @@ local function newChord()
     edit.editing = edit.editing + 1
     ins(chordList, edit.editing, chord)
     edit.cursor = {}
-    refreshCursorText()
+    edit:refreshText()
 
-    edit.curFreq = 1
+    edit.curPitch = 1
 end
 
 newChord()
@@ -128,19 +135,26 @@ local function pitchSorter(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < 
 local function levelSorter(a, b) return a.d < b.d end
 function scene.keyDown(key, isRep)
     if isRep then return end
-    if key == 'backspace' then
+    if key == 'delete' then
         rem(chordList, edit.editing)
         if edit.editing > #chordList then edit.editing = #chordList end
         if #chordList == 0 then newChord() end
+    elseif key == 'backspace' then
+        if #edit.cursor == 0 then return end
+        local n = rem(edit.cursor, #edit.cursor)
+        local chord, curNote = edit:getChord(), edit:getNote()
+        rem(curNote, n)
+        redrawChord(chord)
+        edit.curPitch = curNote.pitch
+        edit:refreshText()
     elseif key == 'return' then
         newChord()
     elseif key == 'left' or key == 'right' then
         if #edit.cursor == 0 then return end
-        local chord = chordList[edit.editing]
-        local curLevel = TABLE.listIndex(chord.tree, edit.cursor)
+        local chord, curNote = edit:getChord(), edit:getNote()
         local tar = key == 'left' and 'l' or 'r'
-        if curLevel.bias ~= tar then
-            curLevel.bias = not curLevel.bias and tar or nil
+        if curNote.bias ~= tar then
+            curNote.bias = not curNote.bias and tar or nil
             redrawChord(chord)
         end
     elseif key == 'down' or key == 'up' then
@@ -154,57 +168,54 @@ function scene.keyDown(key, isRep)
         table.sort(pitches, pitchSorter)
         local curPos
         for i = 1, #pitches do
-            if pitches[i][1] == edit.curFreq then
+            if pitches[i][1] == edit.curPitch then
                 curPos = i; break
             end
         end
         if key == 'up' then
-            while curPos < #pitches and pitches[curPos][1] <= edit.curFreq do curPos = curPos + 1 end
+            while curPos < #pitches and pitches[curPos][1] <= edit.curPitch do curPos = curPos + 1 end
         else
-            while curPos > 1 and pitches[curPos][1] >= edit.curFreq do curPos = curPos - 1 end
+            while curPos > 1 and pitches[curPos][1] >= edit.curPitch do curPos = curPos - 1 end
         end
-        edit.curFreq = pitches[curPos][1]
+        edit.curPitch = pitches[curPos][1]
         edit.cursor = STRING.split(pitches[curPos][2], ".")
         for i = 1, #edit.cursor do
             edit.cursor[i] = tonumber(edit.cursor[i])
         end
-        refreshCursorText()
+        edit:refreshText()
     elseif key == '.' then
-        local chord = chordList[edit.editing]
-        local curLevel = TABLE.listIndex(chord.tree, edit.cursor)
-        if curLevel.note then
-            curLevel.note = nil
+        local chord, curNote = edit:getChord(), edit:getNote()
+        if curNote.note then
+            curNote.note = nil
         else
-            curLevel.note = math.abs(curLevel.d) == 1 and 'skip' or 'dotted'
+            curNote.note = math.abs(curNote.d) == 1 and 'skip' or 'dotted'
         end
         redrawChord(chord)
     elseif key == '/' then
-        local chord = chordList[edit.editing]
-        local curLevel = TABLE.listIndex(chord.tree, edit.cursor)
-        curLevel.bass = not curLevel.bass or nil
+        local chord, curNote = edit:getChord(), edit:getNote()
+        curNote.bass = not curNote.bass or nil
         redrawChord(chord)
     elseif key == 'space' then
-        startNote(edit.curFreq, 'space')
+        startNote(edit.curPitch, 'space')
     elseif #key == 1 and tonumber(key) and MATH.between(tonumber(key), 1, 5) then
         local step = tonumber(key)
         if love.keyboard.isDown('lshift', 'rshift') then step = -step end
-        local pitch = edit.curFreq * ssvt.dimData[step].freq
-        local chord = chordList[edit.editing]
-        local curLevel = TABLE.listIndex(chord.tree, edit.cursor)
+        local pitch = edit.curPitch * ssvt.dimData[step].freq
+        local chord, curNote = edit:getChord(), edit:getNote()
         local exist
-        for i = 1, #curLevel do
-            if curLevel[i].d == step then
+        for i = 1, #curNote do
+            if curNote[i].d == step then
                 exist = i
                 break
             end
         end
         if exist and love.keyboard.isDown('lctrl', 'rctrl') then
-            rem(curLevel, exist)
+            rem(curNote, exist)
             redrawChord(chord)
         else
             if not exist and pitch ~= 1 then
-                ins(curLevel, { d = step, pitch = pitch })
-                table.sort(curLevel, levelSorter)
+                ins(curNote, { d = step, pitch = pitch })
+                table.sort(curNote, levelSorter)
                 redrawChord(chord)
             end
             startNote(pitch, key)
@@ -219,8 +230,7 @@ end
 function scene.draw()
     GC.setColor(COLOR.L)
     FONT.set(30)
-    GC.print(srcCount - #srcLib, 10, 10)
-    GC.print(srcCount - 1, 62, 10)
+    GC.print(srcCount - #srcLib .. "   /  " .. srcCount - 1, 10, 10)
 
     GC.replaceTransform(SCR.xOy_l)
     GC.translate(100, 260)
@@ -243,15 +253,15 @@ function scene.draw()
 
         -- Cursor
         if edit.editing == i then
-            local y = math.log(edit.curFreq, 2)
+            local y = math.log(edit.curPitch, 2)
             GC.setColor(.4, .6, 1, .5 + .26 * math.sin(love.timer.getTime() * 6.2))
             GC.setLineWidth(.01)
             GC.rectangle('line', -.04, y - .03, 1.08, .06)
             GC.strokePrint(
                 'corner', .00626,
-                COLOR.D, COLOR.lS,
+                COLOR.D, COLOR.LS,
                 edit.cursorText,
-                0, y - .02, nil, 'left',
+                -.04, y + .16, nil, 'left',
                 0, .0035, -.0035
             )
         end
