@@ -15,12 +15,11 @@ local srcLib = {}
 do
     local sampleRate = 44100
     local baseFreq = 440
-    local volume = .26
     local loopCount = 62
     local snd = love.sound.newSoundData(math.floor(sampleRate / baseFreq * loopCount), sampleRate, 16, 1)
     for i = 0, snd:getSampleCount() - 1 do
         local t = i / sampleRate
-        local v = volume * math.sin(6.283185307179586 * baseFreq * t)
+        local v = math.sin(6.283185307179586 * baseFreq * t)
         snd:setSample(i, v)
     end
 
@@ -36,7 +35,7 @@ local ins, rem = table.insert, table.remove
 ---@type Map<love.Source>
 local activeSrc = {}
 
-local function startNote(freq, key)
+local function startNote(freq, key, volume)
     if #srcLib == 1 then
         srcLib[2] = srcLib[1]:clone()
         srcCount = srcCount + 1
@@ -50,6 +49,7 @@ local function startNote(freq, key)
                 ins(srcLib, activeSrc[key])
             end
             activeSrc[key] = s
+            s:setVolume(volume or .26)
             s:setPitch(freq)
             s:play()
             return
