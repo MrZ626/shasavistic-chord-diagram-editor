@@ -66,12 +66,28 @@ local function stopNote(key)
     end
 end
 
+---@class wrappedChord
+---@field tree SSVT.Chord
+---@field text string
+
+---@type wrappedChord[]
 local chordList = {}
 local edit = {
     editing = 0,
     cursor = {},
+    cursorText = "0",
     curFreq = 1,
 }
+
+local function refreshCursorText()
+    local buffer = "0"
+    local chord = chordList[edit.editing].tree
+    for i = 1, #edit.cursor do
+        chord = chord[edit.cursor[i]]
+        buffer = buffer .. (chord.d > 0 and '+' or '') .. chord.d
+    end
+    edit.cursorText = buffer
+end
 
 local function redrawChord(chord)
     local data = ssvt.drawChord(chord.tree)
@@ -84,7 +100,7 @@ end
 
 local function newChord()
     local chord = {
-        tree = { d = 0 },
+        tree = { d = 0, pitch = 1 },
         text = "0",
     }
     redrawChord(chord)
@@ -92,6 +108,7 @@ local function newChord()
     edit.editing = edit.editing + 1
     ins(chordList, edit.editing, chord)
     edit.cursor = {}
+    refreshCursorText()
 
     edit.curFreq = 1
 end
@@ -107,23 +124,8 @@ end
 function scene.mouseDown(x, y, k)
 end
 
-local map = {
-    a = 3,
-    z = -3,
-    s = 2,
-    x = -2,
-    d = 4,
-    c = -4,
-    f = 1,
-    v = -1,
-    g = 5,
-    b = -5,
-    -- h = 6,
-    -- n = -6,
-    -- j = 7,
-    -- m = -7,
-}
-
+local function pitchSorter(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2]) end
+local function levelSorter(a, b) return a.d < b.d end
 function scene.keyDown(key, isRep)
     if isRep then return end
     if key == 'backspace' then
@@ -132,20 +134,41 @@ function scene.keyDown(key, isRep)
         if #chordList == 0 then newChord() end
     elseif key == 'return' then
         newChord()
-    elseif key == 'left' then
+    elseif key == 'left' or key == 'right' then
         if #edit.cursor == 0 then return end
         local chord = chordList[edit.editing]
         local curLevel = TABLE.listIndex(chord.tree, edit.cursor)
-        curLevel.bias = curLevel.bias ~= 'l' and 'l' or nil
-        redrawChord(chord)
-    elseif key == 'right' then
-        if #edit.cursor == 0 then return end
-        local chord = chordList[edit.editing]
-        local curLevel = TABLE.listIndex(chord.tree, edit.cursor)
-        curLevel.bias = curLevel.bias ~= 'r' and 'r' or nil
-        redrawChord(chord)
+        local tar = key == 'left' and 'l' or 'r'
+        if curLevel.bias ~= tar then
+            curLevel.bias = not curLevel.bias and tar or nil
+            redrawChord(chord)
+        end
     elseif key == 'down' or key == 'up' then
-        -- TODO
+        local allInfo = TABLE.flatten(TABLE.copyAll(chordList[edit.editing].tree))
+        local pitches = {}
+        for k, v in next, allInfo do
+            if k:sub(-5) == 'pitch' then
+                ins(pitches, { v, k:sub(1, -7) })
+            end
+        end
+        table.sort(pitches, pitchSorter)
+        local curPos
+        for i = 1, #pitches do
+            if pitches[i][1] == edit.curFreq then
+                curPos = i; break
+            end
+        end
+        if key == 'up' then
+            while curPos < #pitches and pitches[curPos][1] <= edit.curFreq do curPos = curPos + 1 end
+        else
+            while curPos > 1 and pitches[curPos][1] >= edit.curFreq do curPos = curPos - 1 end
+        end
+        edit.curFreq = pitches[curPos][1]
+        edit.cursor = STRING.split(pitches[curPos][2], ".")
+        for i = 1, #edit.cursor do
+            edit.cursor[i] = tonumber(edit.cursor[i])
+        end
+        refreshCursorText()
     elseif key == '.' then
         local chord = chordList[edit.editing]
         local curLevel = TABLE.listIndex(chord.tree, edit.cursor)
@@ -162,8 +185,9 @@ function scene.keyDown(key, isRep)
         redrawChord(chord)
     elseif key == 'space' then
         startNote(edit.curFreq, 'space')
-    elseif map[key] then
-        local step = map[key]
+    elseif #key == 1 and tonumber(key) and MATH.between(tonumber(key), 1, 5) then
+        local step = tonumber(key)
+        if love.keyboard.isDown('lshift', 'rshift') then step = -step end
         local pitch = edit.curFreq * ssvt.dimData[step].freq
         local chord = chordList[edit.editing]
         local curLevel = TABLE.listIndex(chord.tree, edit.cursor)
@@ -178,8 +202,9 @@ function scene.keyDown(key, isRep)
             rem(curLevel, exist)
             redrawChord(chord)
         else
-            if not exist then
-                ins(curLevel, { d = step })
+            if not exist and pitch ~= 1 then
+                ins(curLevel, { d = step, pitch = pitch })
+                table.sort(curLevel, levelSorter)
                 redrawChord(chord)
             end
             startNote(pitch, key)
@@ -215,6 +240,7 @@ function scene.draw()
         -- Text
         GC.setColor(COLOR.L)
         GC.print(chordList[i].text, 0, -.1, 0, .005, -.005)
+        GC.print(edit.cursorText, 0, -.26, 0, .005, -.005)
 
         -- Cursor
         if edit.editing == i then
