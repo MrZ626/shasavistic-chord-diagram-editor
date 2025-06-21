@@ -240,13 +240,20 @@ function scene.draw()
         -- Text
         GC.setColor(COLOR.L)
         GC.print(chordList[i].text, 0, -.1, 0, .005, -.005)
-        GC.print(edit.cursorText, 0, -.26, 0, .005, -.005)
 
         -- Cursor
         if edit.editing == i then
-            GC.setColor(1, .6, .6, .5 + .26 * math.sin(love.timer.getTime() * 6.2))
+            local y = math.log(edit.curFreq, 2)
+            GC.setColor(.4, .6, 1, .5 + .26 * math.sin(love.timer.getTime() * 6.2))
             GC.setLineWidth(.01)
-            GC.rectangle('line', -.04, math.log(edit.curFreq, 2) - .03, 1.08, .06)
+            GC.rectangle('line', -.04, y - .03, 1.08, .06)
+            GC.strokePrint(
+                'corner', .00626,
+                COLOR.D, COLOR.lS,
+                edit.cursorText,
+                0, y - .02, nil, 'left',
+                0, .0035, -.0035
+            )
         end
 
         GC.translate(1.2, 0)
