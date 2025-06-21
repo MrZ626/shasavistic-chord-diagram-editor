@@ -237,6 +237,30 @@ function scene.keyDown(key, isRep)
             end
             startNote(pitch, key)
         end
+    elseif key == 'c' then
+        if KBisDown('lctrl', 'rctrl') then
+            local buffer = {}
+            for i = 1, #chordList do
+                buffer[i] = '"' .. chordList[i].text .. '"'
+            end
+            CLIPBOARD.set(table.concat(buffer, ' '))
+            MSG('info', 'Copied ' .. #chordList .. ' chords to clipboard.')
+        end
+    elseif key == 'v' then
+        if KBisDown('lctrl', 'rctrl') then
+            local count = 0
+            local buffer = CLIPBOARD.get()
+            for str in buffer:gmatch('"(.-)"') do
+                local chord = {
+                    tree = ssvt.decode(str),
+                    text = str,
+                }
+                redrawChord(chord)
+                ins(chordList, edit.editing + 1, chord)
+                count = count + 1
+            end
+            MSG('info', 'Imported ' .. count .. ' chords from clipboard.')
+        end
     end
 end
 
