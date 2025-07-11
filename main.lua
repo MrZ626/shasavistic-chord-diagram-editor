@@ -6,8 +6,46 @@ ZENITHA.setVersionText("")
 ZENITHA.globalEvent.drawCursor = NULL
 ZENITHA.globalEvent.clickFX = NULL
 SCR.setSize(1600, 1000)
-
-local ssvt = require('shasavistic-chord-diagram.chordGen')
+do
+    TEX = {
+        bright = {}, ---@type SSVT.Texture
+        dark = {}, ---@type SSVT.Texture
+    }
+    ---@class SSVT.Texture
+    local images = {
+        pitch = "pitch-line.png",
+        pitch_dotted = "pitch-line-dotted.png",
+        -- pitch_canceled = "pitch-line-canceled.png",
+        line_1d = "1d-ascent-group.png",
+        line_2d = "2d-line.png",
+        line_3d = "3d-line.png",
+        line_4d = "4d-line.png",
+        line_5d = "5d-line.png",
+        line_6d = "6d-line.png",
+        line_7d = "7d-line.png",
+        base = "base-symbol.png",
+        node = "node.png",
+        -- keyboard_segment = "keyboard-segment.png",
+        -- symbol_1d = "1d-symbol.png",
+        -- symbol_2d = "2d-symbol.png",
+        -- symbol_3d = "3d-symbol.png",
+        -- symbol_4d = "4d-symbol.png",
+        -- symbol_5d = "5d-symbol.png",
+        -- symbol_6d = "6d-symbol.png",
+        -- ascent_group = "1d-ascent-group.png",
+        -- ascent_triangle = "1d-ascent-triangle.png",
+        -- descent_group = "1d-descent-group.png",
+        -- descent_triangle = "1d-descent-triangle.png",
+        -- ascent_symbol = "ascent-symbol.png",
+        -- descent_symbol = "descent-symbol.png",
+    }
+    for k, v in next, images do
+        TEX.bright[k] = 'components/bright/' .. v
+        TEX.dark[k] = 'components/dark/' .. v
+    end
+    TEX = IMG.init(TEX, true)
+end
+local ssvt = require('chordGen')
 
 local srcCount = 0
 ---@type love.Source[]
@@ -99,9 +137,6 @@ end
 
 local function redrawChord(chord)
     local data = ssvt.drawChord(chord.tree)
-    for _, shape in next, data do
-        shape.colorT = { COLOR.HEX(shape.color) }
-    end
     chord.drawData = data
     chord.text = ssvt.encode(chord.tree)
 end
@@ -213,7 +248,7 @@ function scene.keyDown(key, isRep)
         local chord, curNote = edit:getChord(), edit:getNote()
         curNote.bass = not curNote.bass or nil
         redrawChord(chord)
-    elseif #key == 1 and tonumber(key) and MATH.between(tonumber(key), 1, 5) then
+    elseif #key == 1 and tonumber(key) and MATH.between(tonumber(key), 1, 7) then
         -- Add note
         local step = tonumber(key)
         if KBisDown('lshift', 'rshift') then step = -step end
@@ -268,7 +303,13 @@ function scene.keyUp(key)
     stopNote(key)
 end
 
+local bgColor = {
+    bright = { COLOR.HEX 'FFFFFF' },
+    dark = { COLOR.HEX '65647F' },
+}
+local mode = 'dark'
 function scene.draw()
+    GC.clear(bgColor[mode])
     GC.setColor(COLOR.L)
     FONT.set(30)
     GC.print(srcCount - #srcLib .. "   /  " .. srcCount - 1, 10, 10)
@@ -278,14 +319,14 @@ function scene.draw()
     GC.scale(260, -260)
 
     for i = 1, #chordList do
-        -- Polygons
+        -- Chord Textures
+        GC.setColor(1, 1, 1)
+        local texSrc = TEX[mode]
         local drawData = chordList[i].drawData
         for j = 1, #drawData do
-            local shape = drawData[j]
-            GC.setColor(shape.colorT)
-            if shape.mode == 'polygon' then
-                GC.polygon('fill', shape.points)
-            end
+            local d = drawData[j]
+            local tex = texSrc[d.texture]
+            GC.draw(tex, d.x, d.y, 0, d.w / tex:getWidth(), d.h / tex:getHeight())
         end
 
         -- Text
