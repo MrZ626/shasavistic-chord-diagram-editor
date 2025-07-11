@@ -170,11 +170,17 @@ newChord()
 local palette = {
     bright = {
         bg = { COLOR.HEX 'F1EAE0' },
+        cursor = COLOR.R,
         text = COLOR.D,
+        line_1d = { COLOR.HEX 'AAAAAA42' },
+        line_2d = { COLOR.HEX 'FF000026' },
     },
     dark = {
         bg = { COLOR.HEX '65647F' },
+        cursor = COLOR.Y,
         text = COLOR.L,
+        line_1d = { COLOR.HEX 'FFFFFF26' },
+        line_2d = { COLOR.HEX 'FF808026' },
     },
 }
 local mode = 'dark'
@@ -322,6 +328,7 @@ function scene.keyDown(key, isRep)
                 edit.editing = edit.editing + 1
                 count = count + 1
             end
+            edit.editing = edit.editing - count
             MSG('info', 'Imported ' .. count .. ' chords from clipboard.')
         end
     end
@@ -343,10 +350,10 @@ function scene.draw()
     GC.scale(260, -260)
 
     GC.setLineWidth(.01)
-    GC.setColor(1, 1, 1, .1)
-    for y = -1, 2.6 do GC.line(-1, y, 6.26, y) end
-    GC.setColor(1, .62, .62, .26)
-    for y = -.585, 2.6, .585 do if y % 1 ~= 0 then GC.line(-1, y, 6.26, y) end end
+    GC.setColor(palette[mode].line_2d)
+    for y = -0.5849625007211562 * 2, 4.2, 0.5849625007211562 do GC.line(-1, y, 6.26, y) end
+    GC.setColor(palette[mode].line_1d)
+    for y = -2, 4.2 do GC.line(-1, y, 6.26, y) end
 
     for i = 1, #chordList do
         -- Chord Textures
@@ -366,7 +373,8 @@ function scene.draw()
         -- Cursor
         if edit.editing == i then
             local y = math.log(edit.curPitch, 2)
-            GC.setColor(.42, .62, 1, .7 + .3 * math.sin(love.timer.getTime() * 6.2))
+            GC.setColor(palette[mode].cursor)
+            GC.setAlpha(.7 + .3 * math.sin(love.timer.getTime() * 6.2))
             GC.setLineWidth(.01)
             GC.rectangle('line', -.04, y - .03, 1.08, .06)
             GC.strokePrint(
