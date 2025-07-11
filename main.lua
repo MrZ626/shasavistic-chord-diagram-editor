@@ -25,7 +25,7 @@ do
         line_7d = "7d-line.png",
         base = "base-symbol.png",
         node = "node.png",
-        -- keyboard_segment = "keyboard-segment.png",
+        keyboard = "keyboard-segment.png",
         -- symbol_1d = "1d-symbol.png",
         -- symbol_2d = "2d-symbol.png",
         -- symbol_3d = "3d-symbol.png",
@@ -344,13 +344,16 @@ function scene.keyUp(key)
     stopNote(key)
 end
 
+local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 6, TEX.dark.keyboard)
+TEX.dark.keyboard:setWrap('clampzero', 'repeat')
+TEX.bright.keyboard:setWrap('clampzero', 'repeat')
 function scene.draw()
     GC.clear(palette[mode].bg)
 
     GC.setColor(palette[mode].text)
     GC.setAlpha(.1)
     FONT.set(30)
-    GC.print("Audio Count   " .. srcCount - #srcLib .. "   /  " .. srcCount - 1, 10, 10)
+    GC.print("Audio Count   " .. srcCount - #srcLib .. "   /  " .. srcCount - 1, 80, 10)
 
     GC.replaceTransform(SCR.xOy_l)
     GC.translate(100, 260)
@@ -361,6 +364,9 @@ function scene.draw()
     for y = -0.5849625007211562 * 2, 4.2, 0.5849625007211562 do GC.line(-1, y, 26, y) end
     GC.setColor(palette[mode].line_1d)
     for y = -2, 4.2 do GC.line(-1, y, 26, y) end
+
+    GC.setColor(1, 1, 1)
+    GC.draw(TEX[mode].keyboard, keyboardQuad, -.36, 5.655, 0, .002, -.002)
 
     for i = 1, #chordList do
         -- Chord Textures
