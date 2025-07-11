@@ -196,7 +196,7 @@ local scene = {}
 function scene.mouseMove(_, _, dx, dy)
     if love.mouse.isDown(1) then
         scrollX = MATH.clamp(scrollX - dx / 260, 0, (math.max(#chordList, 5) - 5) * 1.2)
-        scrollY = MATH.clamp(scrollY + dy / 260, -2.6, 4.2)
+        scrollY = MATH.clamp(scrollY + dy / 260, -2, 2)
     end
 end
 
@@ -204,7 +204,7 @@ function scene.wheelMove(_, dy)
     if KBisDown('lshift', 'rshift') then
         scrollX = MATH.clamp(scrollX - dy / 2.6, 0, (math.max(#chordList, 5) - 5) * 1.2)
     else
-        scrollY = MATH.clamp(scrollY + dy / 2.6, -2.6, 4.2)
+        scrollY = MATH.clamp(scrollY + dy / 2.6, -2, 2)
     end
 end
 
@@ -363,19 +363,19 @@ function scene.keyUp(key)
     stopNote(key)
 end
 
-local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 8, TEX.dark.keyboard)
+local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 6, TEX.dark.keyboard)
 TEX.dark.keyboard:setWrap('clampzero', 'repeat')
 TEX.bright.keyboard:setWrap('clampzero', 'repeat')
 function scene.draw()
     GC.clear(palette[mode].bg)
 
     GC.setColor(palette[mode].text)
-    GC.setAlpha(.1)
+    GC.setAlpha(.16)
     FONT.set(30)
     GC.print("Audio Count   " .. srcCount - #srcLib .. "   /  " .. srcCount - 1, 80, 10)
 
     GC.replaceTransform(SCR.xOy_l)
-    GC.translate(100, 260)
+    GC.translate(100, 0)
     GC.scale(260, -260)
     GC.translate(-scrollX, -scrollY)
 
@@ -399,7 +399,7 @@ function scene.draw()
 
         -- Text
         GC.setColor(palette[mode].text)
-        GC.print(chordList[i].text, 0, -.62 + scrollY, 0, .005, -.005)
+        GC.print(chordList[i].text, 0, -1.626 + scrollY, 0, .005, -.005)
 
         -- Cursor
         if edit.editing == i then
@@ -422,7 +422,7 @@ function scene.draw()
     GC.pop()
 
     GC.setColor(1, 1, 1)
-    GC.draw(TEX[mode].keyboard, keyboardQuad, -.36, 5.655, 0, .002, -.002)
+    GC.draw(TEX[mode].keyboard, keyboardQuad, -.36, 3.206, 0, .00184, -.00184)
 end
 
 SCN.add('main', scene)
