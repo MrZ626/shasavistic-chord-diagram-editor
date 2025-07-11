@@ -193,29 +193,34 @@ local scrollY = 0
 ---@type Zenitha.Scene
 local scene = {}
 
+local function scroll(dx, dy)
+    scrollX = MATH.clamp(scrollX + dx, 0, (math.max(#chordList, 5) - 5) * 1.2)
+    scrollY = MATH.clamp(scrollY + dy, -2, 2)
+end
+
 function scene.mouseMove(_, _, dx, dy)
     if love.mouse.isDown(1) then
-        scrollX = MATH.clamp(scrollX - dx / 260, 0, (math.max(#chordList, 5) - 5) * 1.2)
-        scrollY = MATH.clamp(scrollY + dy / 260, -2, 2)
+        scroll(-dx / 260, dy / 260)
     end
 end
 
 function scene.wheelMove(_, dy)
     if KBisDown('lshift', 'rshift') then
-        scrollX = MATH.clamp(scrollX - dy / 2.6, 0, (math.max(#chordList, 5) - 5) * 1.2)
+        scroll(-dy / 2.6, 0)
     else
-        scrollY = MATH.clamp(scrollY + dy / 2.6, -2, 2)
+        scroll(0, dy / 2.6)
     end
 end
 
 local function pitchSorter(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2]) end
 local function levelSorter(a, b) return a.d < b.d end
 function scene.keyDown(key, isRep)
-    if isRep then return end
     if key == 'space' then
+        if isRep then return end
         -- Preview selected note
         startNote(edit.curPitch, 'space')
     elseif key == 'down' or key == 'up' then
+        if KBisDown('lctrl', 'rctrl') then return end
         -- Select note
         local allInfo = TABLE.flatten(TABLE.copyAll(chordList[edit.editing].tree))
         local pitches = {}
@@ -231,11 +236,10 @@ function scene.keyDown(key, isRep)
                 curPos = i; break
             end
         end
-        local ctrl = KBisDown('lctrl', 'rctrl')
         if key == 'up' then
-            while curPos < #pitches and (ctrl or pitches[curPos][1] <= edit.curPitch) do curPos = curPos + 1 end
+            while curPos < #pitches and (pitches[curPos][1] <= edit.curPitch) do curPos = curPos + 1 end
         else
-            while curPos > 1 and (ctrl or pitches[curPos][1] >= edit.curPitch) do curPos = curPos - 1 end
+            while curPos > 1 and (pitches[curPos][1] >= edit.curPitch) do curPos = curPos - 1 end
         end
         edit.curPitch = pitches[curPos][1]
         edit.cursor = STRING.split(pitches[curPos][2], ".")
@@ -243,25 +247,9 @@ function scene.keyDown(key, isRep)
             edit.cursor[i] = tonumber(edit.cursor[i])
         end
         edit:refreshText()
-    elseif key == 'return' then
-        -- Create new chord
-        newChord()
-    elseif key == 'backspace' then
-        -- Delete selected note
-        if #edit.cursor == 0 then return end
-        local n = rem(edit.cursor, #edit.cursor)
-        local chord, curNote = edit:getChord(), edit:getNote()
-        rem(curNote, n)
-        redrawChord(chord)
-        edit.curPitch = curNote.pitch
-        edit:refreshText()
-    elseif key == 'delete' then
-        -- Delete current chord
-        rem(chordList, edit.editing)
-        if edit.editing > #chordList then edit.editing = #chordList end
-        if #chordList == 0 then newChord() end
     elseif key == 'left' or key == 'right' then
-        if KBisDown('lctrl', 'rctrl') then
+        if KBisDown('lctrl', 'rctrl') then return end
+        if KBisDown('lalt', 'ralt') then
             -- Change bias
             if #edit.cursor == 0 then return end
             local chord, curNote = edit:getChord(), edit:getNote()
@@ -280,7 +268,28 @@ function scene.keyDown(key, isRep)
                 edit:refreshText()
             end
         end
+    elseif key == 'return' then
+        if isRep then return end
+        -- Create new chord
+        newChord()
+    elseif key == 'backspace' then
+        if isRep then return end
+        -- Delete selected note
+        if #edit.cursor == 0 then return end
+        local n = rem(edit.cursor, #edit.cursor)
+        local chord, curNote = edit:getChord(), edit:getNote()
+        rem(curNote, n)
+        redrawChord(chord)
+        edit.curPitch = curNote.pitch
+        edit:refreshText()
+    elseif key == 'delete' then
+        if isRep then return end
+        -- Delete current chord
+        rem(chordList, edit.editing)
+        if edit.editing > #chordList then edit.editing = #chordList end
+        if #chordList == 0 then newChord() end
     elseif key == '.' then
+        if isRep then return end
         -- Mark selected note as fake note
         local chord, curNote = edit:getChord(), edit:getNote()
         if curNote.note then
@@ -290,11 +299,13 @@ function scene.keyDown(key, isRep)
         end
         redrawChord(chord)
     elseif key == '/' then
+        if isRep then return end
         -- Mark selected note as bass
         local chord, curNote = edit:getChord(), edit:getNote()
         curNote.bass = not curNote.bass or nil
         redrawChord(chord)
     elseif #key == 1 and tonumber(key) and MATH.between(tonumber(key), 1, 7) then
+        if isRep then return end
         -- Add note
         local step = tonumber(key)
         if KBisDown('lshift', 'rshift') then step = -step end
@@ -321,8 +332,10 @@ function scene.keyDown(key, isRep)
             startNote(pitch, key)
         end
     elseif key == 'tab' then
+        if isRep then return end
         mode = mode == 'bright' and 'dark' or 'bright'
     elseif key == 'c' then
+        if isRep then return end
         if KBisDown('lctrl', 'rctrl') then
             local buffer = {}
             for i = 1, #chordList do
@@ -332,6 +345,7 @@ function scene.keyDown(key, isRep)
             MSG('info', 'Copied ' .. #chordList .. ' chords to clipboard.')
         end
     elseif key == 'v' then
+        if isRep then return end
         if KBisDown('lctrl', 'rctrl') then
             local count = 0
             local buffer = CLIPBOARD.get()
@@ -361,6 +375,15 @@ end
 
 function scene.keyUp(key)
     stopNote(key)
+end
+
+function scene.update(dt)
+    if KBisDown('lctrl', 'rctrl') then
+        if KBisDown('left') then scroll(-dt * 6.2, 0) end
+        if KBisDown('right') then scroll(dt * 6.2, 0) end
+        if KBisDown('up') then scroll(0, dt * 6.2) end
+        if KBisDown('down') then scroll(0, -dt * 6.2) end
+    end
 end
 
 local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 6, TEX.dark.keyboard)
