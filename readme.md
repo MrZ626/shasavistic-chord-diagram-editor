@@ -2,13 +2,27 @@
 
 > An editor for creating and editing chord diagrams
 
-Original Design from **LΛMPLIGHT**:
+Original Theory & Design from **LΛMPLIGHT**:
 [YouTube](https://www.youtube.com/@L4MPLIGHT)
 [Website](https://lamplight0.sakura.ne.jp/a/)
 
-Diagram Code made by MrZ_26
+Diagram Code (experimental) made by MrZ_26
 
-## Usage
+## Installation
+
+### Windows
+
+1. Clone/Download this repository
+2. Download love2d engine from https://love2d.org/
+3. Drag the project folder onto `love.exe`
+
+### Linux
+
+1. Clone/Download this repository
+2. Get love2d engine from your package manager
+3. Run `love .` in the project folder
+
+## Manual
 
 ### Edit
 
@@ -27,7 +41,7 @@ Hold `Ctrl` to delete note
 `Arrow Up/Down`: move cursor up/down (to next note)  
 Hold `ctrl` to move to to top/bottom note
 
-`Arrow Left/Right`: move cursor to previous/next chord
+`Arrow Left/Right`: move cursor to previous/next chord  
 Hold `ctrl` to set selected note bias to left/right
 
 `Enter`: add a new chord to the right of the current chord
