@@ -423,6 +423,8 @@ function scene.draw()
         -- Text
         GC.setColor(palette[mode].text)
         GC.print(chordList[i].text, 0, -1.626 + scrollY, 0, .005, -.005)
+        GC.setAlpha(.26)
+        GC.print(i, 0, -1.52 + scrollY, 0, .003, -.003)
 
         -- Cursor
         if edit.editing == i then
