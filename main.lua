@@ -193,6 +193,13 @@ local scrollY = 0
 ---@type Zenitha.Scene
 local scene = {}
 
+function scene.mouseMove(_, _, dx, dy)
+    if love.mouse.isDown(1) then
+        scrollX = MATH.clamp(scrollX - dx / 260, 0, (math.max(#chordList, 5) - 5) * 1.2)
+        scrollY = MATH.clamp(scrollY + dy / 260, -2.6, 4.2)
+    end
+end
+
 function scene.wheelMove(_, dy)
     if KBisDown('lshift', 'rshift') then
         scrollX = MATH.clamp(scrollX - dy / 2.6, 0, (math.max(#chordList, 5) - 5) * 1.2)

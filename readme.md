@@ -49,7 +49,8 @@ Hold `Ctrl` to set selected note bias to left/right
 `Delete`: delete current chord
 
 `Mouse Wheel Up/Down`: scroll the view  
-Hold `Shift` to scroll horizontally
+Hold `Shift` to scroll horizontally  
+Or use mouse drag to scroll
 
 ### Copy & Paste
 
