@@ -158,6 +158,18 @@ end
 
 newChord()
 
+local palette = {
+    bright = {
+        bg = { COLOR.HEX 'F1EAE0' },
+        text = COLOR.D,
+    },
+    dark = {
+        bg = { COLOR.HEX '65647F' },
+        text = COLOR.L,
+    },
+}
+local mode = 'dark'
+
 ---@type Zenitha.Scene
 local scene = {}
 
@@ -272,6 +284,8 @@ function scene.keyDown(key, isRep)
             end
             startNote(pitch, key)
         end
+    elseif key == 'tab' then
+        mode = mode == 'bright' and 'dark' or 'bright'
     elseif key == 'c' then
         if KBisDown('lctrl', 'rctrl') then
             local buffer = {}
@@ -303,14 +317,10 @@ function scene.keyUp(key)
     stopNote(key)
 end
 
-local bgColor = {
-    bright = { COLOR.HEX 'FFFFFF' },
-    dark = { COLOR.HEX '65647F' },
-}
-local mode = 'dark'
 function scene.draw()
-    GC.clear(bgColor[mode])
-    GC.setColor(COLOR.L)
+    GC.clear(palette[mode].bg)
+
+    GC.setColor(palette[mode].text)
     FONT.set(30)
     GC.print(srcCount - #srcLib .. "   /  " .. srcCount - 1, 10, 10)
 
@@ -330,7 +340,7 @@ function scene.draw()
         end
 
         -- Text
-        GC.setColor(COLOR.L)
+        GC.setColor(palette[mode].text)
         GC.print(chordList[i].text, 0, -.1, 0, .005, -.005)
 
         -- Cursor
