@@ -199,7 +199,6 @@ function scene.keyDown(key, isRep)
     elseif key == 'down' or key == 'up' then
         -- Select note
         local allInfo = TABLE.flatten(TABLE.copyAll(chordList[edit.editing].tree))
-        print(TABLE.dump(allInfo))
         local pitches = {}
         for k, v in next, allInfo do
             if k:sub(-5) == 'pitch' then
