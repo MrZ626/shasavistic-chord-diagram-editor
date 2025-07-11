@@ -72,13 +72,13 @@ end
 local function drawNote(mode, x1, x2)
     if mode == 'dotted' then
         -- Dotted line
-        addShape('pitch_dotted', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
+        addShape('note_skip', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     elseif mode == 'skip' then
         -- Nothing
-        -- addShape('pitch', 0, (x1 + x2) / 2 - .1, -env.noteW / 2, .2, env.noteW) -- Short line
+        -- addShape('note', 0, (x1 + x2) / 2 - .1, -env.noteW / 2, .2, env.noteW) -- Short line
     else
         -- Line
-        addShape('pitch', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
+        addShape('note', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     end
 end
 
@@ -89,19 +89,19 @@ local function drawBody(d, x1, y1, x2, y2)
     if abs(d) == 1 then
         local m = (x1 + x2) / 2
         if flip then y1, y2 = y2, y1 end
-        addShape('line_1d', 1, m - .1, y1, .2, y2 - y1)
+        addShape('body_1d', 1, m - .1, y1, .2, y2 - y1)
     elseif abs(d) == 2 then
-        addShape('line_2d', 2, x1, y1, .1, y2 - y1)
+        addShape('body_2d', 2, x1, y1, .1, y2 - y1)
     elseif abs(d) == 3 then
-        addShape('line_3d', 2, x2, y1, -.1, y2 - y1)
+        addShape('body_3d', 2, x2, y1, -.1, y2 - y1)
     elseif abs(d) == 4 then
-        addShape('line_4d', 3, x1, y1, x2 - x1, y2 - y1)
+        addShape('body_4d', 3, x1, y1, x2 - x1, y2 - y1)
     elseif abs(d) == 5 then
-        addShape('line_5d', 3, x1, y1, x2 - x1, y2 - y1)
+        addShape('body_5d', 3, x1, y1, x2 - x1, y2 - y1)
     elseif abs(d) == 6 then
-        addShape('line_6d', 4, x1 - .15, y1, .2, y2 - y1)
+        addShape('body_6d', 4, x1 - .15, y1, .2, y2 - y1)
     elseif abs(d) == 7 then
-        addShape('line_7d', 4, x2 - .05, y1, .22, y2 - y1)
+        addShape('body_7d', 4, x2 - .05, y1, .22, y2 - y1)
     end
 end
 

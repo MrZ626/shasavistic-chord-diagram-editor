@@ -48,6 +48,8 @@ Hold `ctrl` to set selected note bias to left/right
 
 `Delete`: delete current chord
 
+`Mouse Wheel Up/Down`: scroll the view
+
 ### Copy & Paste
 
 `Ctrl+C`: copy all chord codes to clipboard

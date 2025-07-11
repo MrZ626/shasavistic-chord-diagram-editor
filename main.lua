@@ -6,23 +6,23 @@ ZENITHA.setVersionText("")
 ZENITHA.globalEvent.drawCursor = NULL
 ZENITHA.globalEvent.clickFX = NULL
 SCR.setSize(1600, 1000)
-do
+do -- Texture
     TEX = {
         bright = {}, ---@type SSVT.Texture
         dark = {}, ---@type SSVT.Texture
     }
     ---@class SSVT.Texture
     local images = {
-        pitch = "pitch-line.png",
-        pitch_dotted = "pitch-line-dotted.png",
+        note = "pitch-line.png",
+        note_skip = "pitch-line-dotted.png",
         -- pitch_canceled = "pitch-line-canceled.png",
-        line_1d = "1d-ascent-group.png",
-        line_2d = "2d-line.png",
-        line_3d = "3d-line.png",
-        line_4d = "4d-line.png",
-        line_5d = "5d-line.png",
-        line_6d = "6d-line.png",
-        line_7d = "7d-line.png",
+        body_1d = "1d-ascent-group.png",
+        body_2d = "2d-line.png",
+        body_3d = "3d-line.png",
+        body_4d = "4d-line.png",
+        body_5d = "5d-line.png",
+        body_6d = "6d-line.png",
+        body_7d = "7d-line.png",
         base = "base-symbol.png",
         node = "node.png",
         keyboard = "keyboard-segment.png",
@@ -45,8 +45,8 @@ do
     end
     TEX = IMG.init(TEX, true)
 end
-local ssvt = require('chordGen')
 
+-- Audio
 local srcCount = 0
 ---@type love.Source[]
 local srcLib = {}
@@ -108,6 +108,8 @@ end
 ---@field tree SSVT.Chord
 ---@field drawData table
 ---@field text string
+
+local ssvt = require('chord')
 
 ---@type wrappedChord[]
 local chordList = {}
@@ -172,15 +174,15 @@ local palette = {
         bg = { COLOR.HEX 'F1EAE0' },
         cursor = COLOR.R,
         text = COLOR.D,
-        line_1d = { COLOR.HEX 'AAAAAA42' },
-        line_2d = { COLOR.HEX 'FF000026' },
+        body_1d = { COLOR.HEX 'AAAAAA42' },
+        body_2d = { COLOR.HEX 'FF000026' },
     },
     dark = {
         bg = { COLOR.HEX '65647F' },
         cursor = COLOR.Y,
         text = COLOR.L,
-        line_1d = { COLOR.HEX 'FFFFFF26' },
-        line_2d = { COLOR.HEX 'FF808026' },
+        body_1d = { COLOR.HEX 'FFFFFF26' },
+        body_2d = { COLOR.HEX 'FF808026' },
     },
 }
 local mode = 'dark'
@@ -366,9 +368,9 @@ function scene.draw()
     GC.translate(0, -scroll)
 
     GC.setLineWidth(.01)
-    GC.setColor(palette[mode].line_2d)
+    GC.setColor(palette[mode].body_2d)
     for y = -0.5849625007211562 * 2, 4.2, 0.5849625007211562 do GC.line(-1, y, 26, y) end
-    GC.setColor(palette[mode].line_1d)
+    GC.setColor(palette[mode].body_1d)
     for y = -2, 4.2 do GC.line(-1, y, 26, y) end
 
     GC.push('transform')
