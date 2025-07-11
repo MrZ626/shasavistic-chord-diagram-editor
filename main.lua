@@ -184,9 +184,14 @@ local palette = {
     },
 }
 local mode = 'dark'
+local scroll = 0
 
 ---@type Zenitha.Scene
 local scene = {}
+
+function scene.wheelMove(_, dy)
+    scroll = MATH.clamp(scroll + dy / 2.6, -2.6, 4.2)
+end
 
 local KBisDown = love.keyboard.isDown
 local function pitchSorter(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2]) end
@@ -344,7 +349,7 @@ function scene.keyUp(key)
     stopNote(key)
 end
 
-local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 6, TEX.dark.keyboard)
+local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 8, TEX.dark.keyboard)
 TEX.dark.keyboard:setWrap('clampzero', 'repeat')
 TEX.bright.keyboard:setWrap('clampzero', 'repeat')
 function scene.draw()
@@ -358,6 +363,7 @@ function scene.draw()
     GC.replaceTransform(SCR.xOy_l)
     GC.translate(100, 260)
     GC.scale(260, -260)
+    GC.translate(0, -scroll)
 
     GC.setLineWidth(.01)
     GC.setColor(palette[mode].line_2d)
@@ -365,9 +371,7 @@ function scene.draw()
     GC.setColor(palette[mode].line_1d)
     for y = -2, 4.2 do GC.line(-1, y, 26, y) end
 
-    GC.setColor(1, 1, 1)
-    GC.draw(TEX[mode].keyboard, keyboardQuad, -.36, 5.655, 0, .002, -.002)
-
+    GC.push('transform')
     for i = 1, #chordList do
         -- Chord Textures
         GC.setColor(1, 1, 1)
@@ -381,7 +385,7 @@ function scene.draw()
 
         -- Text
         GC.setColor(palette[mode].text)
-        GC.print(chordList[i].text, 0, -.1, 0, .005, -.005)
+        GC.print(chordList[i].text, 0, -.62 + scroll, 0, .005, -.005)
 
         -- Cursor
         if edit.editing == i then
@@ -401,6 +405,10 @@ function scene.draw()
 
         GC.translate(1.2, 0)
     end
+    GC.pop()
+
+    GC.setColor(1, 1, 1)
+    GC.draw(TEX[mode].keyboard, keyboardQuad, -.36, 5.655, 0, .002, -.002)
 end
 
 SCN.add('main', scene)
