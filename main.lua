@@ -330,7 +330,14 @@ function scene.keyDown(key, isRep)
             edit.editing = edit.editing - count
             MSG('info', 'Imported ' .. count .. ' chords from clipboard.')
         end
+    elseif key == 'escape' then
+        if TASK.lock('quit_sure', 1) then
+            MSG('info', 'Press again to quit')
+        else
+            ZENITHA._quit()
+        end
     end
+    return true
 end
 
 function scene.keyUp(key)
@@ -341,8 +348,9 @@ function scene.draw()
     GC.clear(palette[mode].bg)
 
     GC.setColor(palette[mode].text)
+    GC.setAlpha(.1)
     FONT.set(30)
-    GC.print(srcCount - #srcLib .. "   /  " .. srcCount - 1, 10, 10)
+    GC.print("Audio Count   " .. srcCount - #srcLib .. "   /  " .. srcCount - 1, 10, 10)
 
     GC.replaceTransform(SCR.xOy_l)
     GC.translate(100, 260)
@@ -350,9 +358,9 @@ function scene.draw()
 
     GC.setLineWidth(.01)
     GC.setColor(palette[mode].line_2d)
-    for y = -0.5849625007211562 * 2, 4.2, 0.5849625007211562 do GC.line(-1, y, 6.26, y) end
+    for y = -0.5849625007211562 * 2, 4.2, 0.5849625007211562 do GC.line(-1, y, 26, y) end
     GC.setColor(palette[mode].line_1d)
-    for y = -2, 4.2 do GC.line(-1, y, 6.26, y) end
+    for y = -2, 4.2 do GC.line(-1, y, 26, y) end
 
     for i = 1, #chordList do
         -- Chord Textures
