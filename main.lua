@@ -283,9 +283,11 @@ function scene.keyDown(key, isRep)
                 break
             end
         end
-        if exist and KBisDown('lctrl', 'rctrl') then
-            rem(curNote, exist)
-            redrawChord(chord)
+        if KBisDown('lctrl', 'rctrl') then
+            if exist then
+                rem(curNote, exist)
+                redrawChord(chord)
+            end
         else
             if not exist and pitch ~= 1 then
                 ins(curNote, { d = step, pitch = pitch })
