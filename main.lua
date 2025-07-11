@@ -58,7 +58,7 @@ do
     for i = 0, snd:getSampleCount() - 1 do
         local t = i / sampleRate
         local v = math.sin(6.283185307179586 * baseFreq * t)
-        snd:setSample(i, v)
+        snd:setSample(i, MATH.sign(v) * math.abs(v) ^ .8)
     end
 
     srcLib[1] = love.audio.newSource(snd, "static")
