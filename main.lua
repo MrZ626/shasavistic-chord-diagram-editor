@@ -328,6 +328,12 @@ function scene.draw()
     GC.translate(100, 260)
     GC.scale(260, -260)
 
+    GC.setLineWidth(.01)
+    GC.setColor(1, 1, 1, .1)
+    for y = -1, 2.6 do GC.line(-1, y, 6.26, y) end
+    GC.setColor(1, .62, .62, .26)
+    for y = -.585, 2.6, .585 do if y % 1 ~= 0 then GC.line(-1, y, 6.26, y) end end
+
     for i = 1, #chordList do
         -- Chord Textures
         GC.setColor(1, 1, 1)
@@ -346,7 +352,7 @@ function scene.draw()
         -- Cursor
         if edit.editing == i then
             local y = math.log(edit.curPitch, 2)
-            GC.setColor(.4, .6, 1, .5 + .26 * math.sin(love.timer.getTime() * 6.2))
+            GC.setColor(.42, .62, 1, .7 + .3 * math.sin(love.timer.getTime() * 6.2))
             GC.setLineWidth(.01)
             GC.rectangle('line', -.04, y - .03, 1.08, .06)
             GC.strokePrint(

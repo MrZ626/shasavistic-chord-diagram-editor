@@ -72,13 +72,13 @@ end
 local function drawNote(mode, x1, x2)
     if mode == 'dotted' then
         -- Dotted line
-        addShape('pitch_dotted', 0, x1, -env.noteW / 2, x2 - x1, env.noteW)
+        addShape('pitch_dotted', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     elseif mode == 'skip' then
         -- Nothing
         -- addShape('pitch', 0, (x1 + x2) / 2 - .1, -env.noteW / 2, .2, env.noteW) -- Short line
     else
         -- Line
-        addShape('pitch', 0, x1, -env.noteW / 2, x2 - x1, env.noteW)
+        addShape('pitch', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     end
 end
 
