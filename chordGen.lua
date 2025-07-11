@@ -74,9 +74,8 @@ local function drawNote(mode, x1, x2)
         -- Dotted line
         addShape('pitch_dotted', 0, x1, -env.noteW / 2, x2 - x1, env.noteW)
     elseif mode == 'skip' then
-        -- Short line
-        -- TODO
-        addShape('pitch_dotted', 0, x1, -env.noteW / 2, x2 - x1, env.noteW)
+        -- Nothing
+        -- addShape('pitch', 0, (x1 + x2) / 2 - .1, -env.noteW / 2, .2, env.noteW) -- Short line
     else
         -- Line
         addShape('pitch', 0, x1, -env.noteW / 2, x2 - x1, env.noteW)
