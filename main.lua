@@ -69,6 +69,7 @@ do
 end
 
 local ins, rem = table.insert, table.remove
+local KBisDown = love.keyboard.isDown
 
 ---@type Map<love.Source>
 local activeSrc = {}
@@ -186,16 +187,20 @@ local palette = {
     },
 }
 local mode = 'dark'
-local scroll = 0
+local scrollX = 0
+local scrollY = 0
 
 ---@type Zenitha.Scene
 local scene = {}
 
 function scene.wheelMove(_, dy)
-    scroll = MATH.clamp(scroll + dy / 2.6, -2.6, 4.2)
+    if KBisDown('lshift', 'rshift') then
+        scrollX = MATH.clamp(scrollX - dy / 2.6, 0, (math.max(#chordList, 5) - 5) * 1.2)
+    else
+        scrollY = MATH.clamp(scrollY + dy / 2.6, -2.6, 4.2)
+    end
 end
 
-local KBisDown = love.keyboard.isDown
 local function pitchSorter(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2]) end
 local function levelSorter(a, b) return a.d < b.d end
 function scene.keyDown(key, isRep)
@@ -365,7 +370,7 @@ function scene.draw()
     GC.replaceTransform(SCR.xOy_l)
     GC.translate(100, 260)
     GC.scale(260, -260)
-    GC.translate(0, -scroll)
+    GC.translate(-scrollX, -scrollY)
 
     GC.setLineWidth(.01)
     GC.setColor(palette[mode].body_2d)
@@ -387,7 +392,7 @@ function scene.draw()
 
         -- Text
         GC.setColor(palette[mode].text)
-        GC.print(chordList[i].text, 0, -.62 + scroll, 0, .005, -.005)
+        GC.print(chordList[i].text, 0, -.62 + scrollY, 0, .005, -.005)
 
         -- Cursor
         if edit.editing == i then

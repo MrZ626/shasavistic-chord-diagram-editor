@@ -39,16 +39,17 @@ Hold `Ctrl` to delete note
 `Space`: play selected note
 
 `Arrow Up/Down`: move cursor up/down (to next note)  
-Hold `ctrl` to move to to top/bottom note
+Hold `Ctrl` to move to to top/bottom note
 
 `Arrow Left/Right`: move cursor to previous/next chord  
-Hold `ctrl` to set selected note bias to left/right
+Hold `Ctrl` to set selected note bias to left/right
 
 `Enter`: add a new chord to the right of the current chord
 
 `Delete`: delete current chord
 
-`Mouse Wheel Up/Down`: scroll the view
+`Mouse Wheel Up/Down`: scroll the view  
+Hold `Shift` to scroll horizontally
 
 ### Copy & Paste
 
