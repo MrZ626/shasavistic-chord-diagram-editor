@@ -135,6 +135,15 @@ function edit:refreshText()
     self.cursorText = buffer
 end
 
+local function reCalculatePitch(tree, curPitch)
+    for _, v in next, tree do
+        if type(v) == 'table' then
+            reCalculatePitch(v, curPitch * ssvt.dimData[v.d].freq)
+        end
+    end
+    tree.pitch = curPitch
+end
+
 local function redrawChord(chord)
     local data = ssvt.drawChord(chord.tree)
     chord.drawData = data
@@ -184,6 +193,7 @@ function scene.keyDown(key, isRep)
     elseif key == 'down' or key == 'up' then
         -- Select note
         local allInfo = TABLE.flatten(TABLE.copyAll(chordList[edit.editing].tree))
+        print(TABLE.dump(allInfo))
         local pitches = {}
         for k, v in next, allInfo do
             if k:sub(-5) == 'pitch' then
@@ -304,8 +314,10 @@ function scene.keyDown(key, isRep)
                     tree = ssvt.decode(str),
                     text = str,
                 }
+                reCalculatePitch(chord.tree, 1)
                 redrawChord(chord)
                 ins(chordList, edit.editing + 1, chord)
+                edit.editing = edit.editing + 1
                 count = count + 1
             end
             MSG('info', 'Imported ' .. count .. ' chords from clipboard.')
