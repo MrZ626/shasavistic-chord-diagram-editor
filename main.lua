@@ -243,15 +243,6 @@ function scene.keyDown(key, isRep)
         if #chordList == 0 then newChord() end
     elseif key == 'left' or key == 'right' then
         if KBisDown('lctrl', 'rctrl') then
-            -- Move editing cursor
-            local newEditing = MATH.clamp(edit.editing + (key == 'left' and -1 or 1), 1, #chordList)
-            if newEditing ~= edit.editing then
-                edit.editing = newEditing
-                edit.cursor = {}
-                edit.curPitch = 1
-                edit:refreshText()
-            end
-        else
             -- Change bias
             if #edit.cursor == 0 then return end
             local chord, curNote = edit:getChord(), edit:getNote()
@@ -259,6 +250,15 @@ function scene.keyDown(key, isRep)
             if curNote.bias ~= tar then
                 curNote.bias = not curNote.bias and tar or nil
                 redrawChord(chord)
+            end
+        else
+            -- Move editing cursor
+            local newEditing = MATH.clamp(edit.editing + (key == 'left' and -1 or 1), 1, #chordList)
+            if newEditing ~= edit.editing then
+                edit.editing = newEditing
+                edit.cursor = {}
+                edit.curPitch = 1
+                edit:refreshText()
             end
         end
     elseif key == '.' then
