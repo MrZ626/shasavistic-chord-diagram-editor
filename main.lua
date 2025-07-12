@@ -501,16 +501,20 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         -- Mark selected note as base
         local chord, curNote = editor:getChord(), editor:getNote()
-        for k in next, TABLE.flatten(TABLE.copyAll(chord.tree)) do
-            if k:find('base') then
-                local index = STRING.split(k, '.')
-                for i = 1, #index do
-                    index[i] = tonumber(index[i]) or index[i]
+        if curNote.base then
+            curNote.base = nil
+        else
+            for k in next, TABLE.flatten(TABLE.copyAll(chord.tree)) do
+                if k:find('base') then
+                    local index = STRING.split(k, '.')
+                    for i = 1, #index do
+                        index[i] = tonumber(index[i]) or index[i]
+                    end
+                    TABLE.listIndexSet(chord.tree, index, nil)
                 end
-                TABLE.listIndexSet(chord.tree, index, nil)
             end
+            curNote.base = true
         end
-        curNote.base = not curNote.base or nil
         editor:redrawChord(chord)
     elseif #key == 1 and MATH.between(tonumber(key) or 0, 1, 7) then
         if isRep then return true end
