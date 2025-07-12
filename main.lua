@@ -81,7 +81,9 @@ local KBisDown = love.keyboard.isDown
 ---@type Map<love.Source>
 local activeSrc = {}
 
-local function startNote(freq, key, volume)
+local audio = {}
+
+function audio.playNote(freq, key, volume)
     if #srcLib == 1 then
         srcLib[2] = srcLib[1]:clone()
         srcCount = srcCount + 1
@@ -102,7 +104,8 @@ local function startNote(freq, key, volume)
         end
     end
 end
-local function stopNote(key)
+
+function audio.stopNote(key)
     local s = activeSrc[key]
     if s then
         s:stop()
@@ -118,24 +121,37 @@ end
 
 local ssvt = require('chord')
 
----@type wrappedChord[]
-local chordList = {}
-local edit = {
+local editor = {
+    chordList = {}, ---@type wrappedChord[]
     editing = 0,
     selMark = false,
     cursor = {}, ---@type number[]
     cursorText = "0",
     curPitch = 1,
+    combo = '', ---@type '' | 'C' | 'S' | 'A'
+    scrX = 0,  -- Actual scroll position
+    scrY = 0,
+    scrX1 = 0, -- Smooth scroll position, follow {scrollX, editor.scrY} by time
+    scrY1 = 0,
+    theme = 'dark',
+    customGrid = 2,
 }
-function edit:getChord()
-    return chordList[self.editing]
+
+-- Scroll
+function editor:scroll(dx, dy)
+    self.scrX = MATH.clamp(self.scrX + dx, 0, (math.max(#self.chordList, 4.8) - 4.8) * 1.2)
+    self.scrY = MATH.clamp(self.scrY + dy, -2, 2)
 end
 
-function edit:getNote()
-    return TABLE.listIndex(chordList[self.editing].tree, self.cursor)
+function editor:getChord()
+    return self.chordList[self.editing]
 end
 
-function edit:refreshText()
+function editor:getNote()
+    return TABLE.listIndex(self.chordList[self.editing].tree, self.cursor)
+end
+
+function editor:refreshText()
     local buffer = "0"
     local tree = self:getChord().tree
     for i = 1, #self.cursor do
@@ -145,37 +161,97 @@ function edit:refreshText()
     self.cursorText = buffer
 end
 
-local function reCalculatePitch(tree, curPitch)
+function editor:reCalculatePitch(tree, curPitch)
     for _, v in next, tree do
         if type(v) == 'table' then
-            reCalculatePitch(v, curPitch * ssvt.dimData[v.d].freq)
+            self:reCalculatePitch(v, curPitch * ssvt.dimData[v.d].freq)
         end
     end
     tree.pitch = curPitch
 end
 
-local function redrawChord(chord)
+function editor:redrawChord(chord)
     local data = ssvt.drawChord(chord.tree)
     chord.drawData = data
     chord.text = ssvt.encode(chord.tree)
 end
 
-local function newChord()
+function editor:newChord()
     local chord = {
         tree = { d = 0, pitch = 1 },
         text = "0",
     }
-    redrawChord(chord)
-
-    edit.editing = edit.editing + 1
-    ins(chordList, edit.editing, chord)
-    edit.cursor = {}
-    edit:refreshText()
-
-    edit.curPitch = 1
+    self:redrawChord(chord)
+    ins(self.chordList, self.editing + 1, chord)
+    self:moveCursor(1)
 end
 
-newChord()
+function editor:moveCursor(offset)
+    local newPos = MATH.clamp(self.editing + offset, 1, #self.chordList)
+    if self.combo == 'S' then
+        if not self.selMark then self.selMark = self.editing end
+    elseif self.selMark then
+        if math.abs(offset) == 1 then
+            newPos = (offset == -1 and math.min or math.max)(self.editing, self.selMark)
+        end
+        self.selMark = false
+    end
+    if newPos ~= self.editing then
+        self.editing = newPos
+        TABLE.clear(self.cursor)
+        self.curPitch = self:getChord().tree.pitch
+        self:refreshText()
+    end
+    self.scrX = MATH.clamp(self.scrX, (self.editing - 4.8) * 1.2, (self.editing - 1) * 1.2)
+end
+
+function editor:moveChord(chord, step)
+    self:reCalculatePitch(chord.tree, chord.tree.pitch * ssvt.dimData[step].freq)
+    if chord == self.chordList[self.editing] then
+        self.curPitch = chord.tree.pitch
+    end
+end
+
+function editor:deleteChord(s, e)
+    if s > e then s, e = e, s end
+    for i = e, s, -1 do
+        rem(self.chordList, i)
+    end
+    if self.editing > #self.chordList then self.editing = #self.chordList end
+    if #self.chordList == 0 then self:newChord() end
+end
+
+function editor:switchTheme()
+    self.theme = self.theme == 'bright' and 'dark' or 'bright'
+end
+
+function editor:dumpChords(s, e)
+    if s > e then s, e = e, s end
+    local buffer = {}
+    for i = s, e do
+        ins(buffer, '"' .. self.chordList[i].text .. '"')
+    end
+    return buffer
+end
+
+function editor:pasteChords(buffer, after)
+    local s = after or self.editing
+    local count = 0
+    for str in buffer:gmatch('"(.-)"') do
+        local chord = {
+            tree = ssvt.decode(str),
+            text = str,
+        }
+        self:reCalculatePitch(chord.tree, 1)
+        self:redrawChord(chord)
+        count = count + 1
+        ins(self.chordList, s + count, chord)
+    end
+    return count
+end
+
+editor:newChord()
+
 
 local themes = {
     bright = {
@@ -217,10 +293,6 @@ local themes = {
         },
     },
 }
-local mode = 'dark'
-local customGrid = 2
-local scrollX, scrollY = 0, 0 -- Actual scroll position
-local scrX1, scrY1 = 0, 0     -- Smooth scroll position, follow {scrollX, scrollY} by time
 
 local preview = {
     playing = false,
@@ -230,11 +302,8 @@ local preview = {
     timer = 0,
 }
 
----@type Zenitha.Scene
-local scene = {}
-
 function preview:stopChord(stopAll)
-    for i = 1, self.count do stopNote('chord' .. i) end
+    for i = 1, self.count do audio.stopNote('chord' .. i) end
     if stopAll then
         self.start, self.stop = false, false
         self.playing = false
@@ -257,7 +326,7 @@ function preview:startChord()
 
     self.coun = 0
     self.timer = self.timer0
-    local chord = chordList[self.playing]
+    local chord = editor.chordList[self.playing]
     local allInfo = TABLE.flatten(TABLE.copyAll(chord.tree))
     local basePitch = -1e99
     for k in next, allInfo do
@@ -270,117 +339,50 @@ function preview:startChord()
     TABLE.clear(temp)
     for k, v in next, allInfo do
         if k:sub(-5) == 'pitch' then
-            if v < basePitch then
-                repeat
-                    v = v * 2
-                until v >= basePitch
-            end
+            if v < basePitch then repeat v = v * 2 until v > basePitch end
             if not temp[v] and not allInfo[k:sub(1, -6) .. 'note'] then
                 self.count = self.count + 1
                 temp[v] = true
-                startNote(v, 'chord' .. self.count, .26)
+                audio.playNote(v, 'chord' .. self.count, .26)
             end
         end
     end
 end
 
-local function scroll(dx, dy)
-    scrollX = MATH.clamp(scrollX + dx, 0, (math.max(#chordList, 4.8) - 4.8) * 1.2)
-    scrollY = MATH.clamp(scrollY + dy, -2, 2)
-end
+---@type Zenitha.Scene
+local scene = {}
 
 function scene.mouseMove(_, _, dx, dy)
     if love.mouse.isDown(1) then
-        scroll(-dx / 260, dy / 260)
+        editor:scroll(-dx / 260, dy / 260)
     end
 end
 
 function scene.wheelMove(_, dy)
     if KBisDown('lshift', 'rshift') then
-        scroll(-dy / 2.6, 0)
+        editor:scroll(-dy / 2.6, 0)
     else
-        scroll(0, dy / 2.6)
+        editor:scroll(0, dy / 2.6)
     end
 end
-
-local combo = ''
 
 local function pitchSorter(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2]) end
 local function levelSorter(a, b) return a.d < b.d end
-local function moveCursor(offset)
-    local newPos = MATH.clamp(edit.editing + offset, 1, #chordList)
-    if combo == 'S' then
-        if not edit.selMark then edit.selMark = edit.editing end
-    elseif edit.selMark then
-        if math.abs(offset) == 1 then
-            newPos = (offset == -1 and math.min or math.max)(edit.editing, edit.selMark)
-        end
-        edit.selMark = false
-    end
-    if newPos ~= edit.editing then
-        edit.editing = newPos
-        edit.cursor = {}
-        edit.curPitch = edit:getChord().tree.pitch
-        edit:refreshText()
-    end
-    scrollX = MATH.clamp(scrollX, (edit.editing - 4.8) * 1.2, (edit.editing - 1) * 1.2)
-end
-local function moveChord(chord, step)
-    reCalculatePitch(chord.tree, chord.tree.pitch * ssvt.dimData[step].freq)
-    if chord == chordList[edit.editing] then
-        edit.curPitch = chord.tree.pitch
-    end
-end
-local function deleteChord(s, e)
-    if s > e then s, e = e, s end
-    for i = e, s, -1 do
-        rem(chordList, i)
-    end
-    if edit.editing > #chordList then edit.editing = #chordList end
-    if #chordList == 0 then newChord() end
-end
-local function switchTheme()
-    mode = mode == 'bright' and 'dark' or 'bright'
-end
-local function dumpChords(s, e)
-    if s > e then s, e = e, s end
-    local buffer = {}
-    for i = s, e do
-        ins(buffer, '"' .. chordList[i].text .. '"')
-    end
-    return buffer
-end
-local function pasteChords(buffer, after)
-    local s = after or edit.editing
-    local count = 0
-    for str in buffer:gmatch('"(.-)"') do
-        local chord = {
-            tree = ssvt.decode(str),
-            text = str,
-        }
-        reCalculatePitch(chord.tree, 1)
-        redrawChord(chord)
-        count = count + 1
-        ins(chordList, s + count, chord)
-    end
-    return count
-end
-
 function scene.keyDown(key, isRep)
     if key == 'lctrl' or key == 'rctrl' or key == 'lshift' or key == 'rshift' or key == 'lalt' or key == 'ralt' then
-        if combo == '' then combo = key:sub(2, 2):upper() end
+        if editor.combo == '' then editor.combo = key:sub(2, 2):upper() end
         return true
     end
 
     if key == 'space' then
         if isRep then return true end
         if preview.playing then preview:stopChord(true) end
-        if combo == 'C' then
+        if editor.combo == 'C' then
             -- Preview selected note
-            startNote(edit.curPitch, 'space')
+            audio.playNote(editor.curPitch, 'space')
         else
             -- Preview selected chords
-            preview.start, preview.stop = edit.editing, edit.selMark or edit.editing
+            preview.start, preview.stop = editor.editing, editor.selMark or editor.editing
             if preview.start > preview.stop then preview.start, preview.stop = preview.stop, preview.start end
             preview.playing = preview.start
             -- preview.timer0 = .5 + .5 / (preview.stop - preview.start + 1)
@@ -388,13 +390,13 @@ function scene.keyDown(key, isRep)
             preview:startChord()
         end
     elseif key == 'down' or key == 'up' then
-        if combo == 'C' then return true end
-        if combo == 'A' then
+        if editor.combo == 'C' then return true end
+        if editor.combo == 'A' then
             -- Move chord
-            moveChord(edit:getChord(), key == 'up' and customGrid or -customGrid)
+            editor:moveChord(editor:getChord(), key == 'up' and editor.customGrid or -editor.customGrid)
         else
             -- Select note
-            local allInfo = TABLE.flatten(TABLE.copyAll(chordList[edit.editing].tree))
+            local allInfo = TABLE.flatten(TABLE.copyAll(editor.chordList[editor.editing].tree))
             local pitches = {}
             for k, v in next, allInfo do
                 if k:sub(-5) == 'pitch' then
@@ -404,88 +406,88 @@ function scene.keyDown(key, isRep)
             table.sort(pitches, pitchSorter)
             local curPos
             for i = 1, #pitches do
-                if pitches[i][1] == edit.curPitch then
+                if pitches[i][1] == editor.curPitch then
                     curPos = i; break
                 end
             end
             if key == 'up' then
-                while curPos < #pitches and (pitches[curPos][1] <= edit.curPitch) do curPos = curPos + 1 end
+                while curPos < #pitches and (pitches[curPos][1] <= editor.curPitch) do curPos = curPos + 1 end
             else
-                while curPos > 1 and (pitches[curPos][1] >= edit.curPitch) do curPos = curPos - 1 end
+                while curPos > 1 and (pitches[curPos][1] >= editor.curPitch) do curPos = curPos - 1 end
             end
-            edit.curPitch = pitches[curPos][1]
-            edit.cursor = STRING.split(pitches[curPos][2], ".")
-            for i = 1, #edit.cursor do
-                edit.cursor[i] = tonumber(edit.cursor[i])
+            editor.curPitch = pitches[curPos][1]
+            editor.cursor = STRING.split(pitches[curPos][2], ".")
+            for i = 1, #editor.cursor do
+                editor.cursor[i] = tonumber(editor.cursor[i])
             end
-            edit:refreshText()
+            editor:refreshText()
         end
     elseif key == 'left' or key == 'right' then
-        if combo == 'C' then return true end
-        if combo == 'A' then
+        if editor.combo == 'C' then return true end
+        if editor.combo == 'A' then
             -- Bias note
-            if #edit.cursor == 0 then return true end
-            local chord, curNote = edit:getChord(), edit:getNote()
+            if #editor.cursor == 0 then return true end
+            local chord, curNote = editor:getChord(), editor:getNote()
             local tar = key == 'left' and 'l' or 'r'
             if curNote.bias ~= tar then
                 curNote.bias = not curNote.bias and tar or nil
-                redrawChord(chord)
+                editor:redrawChord(chord)
             end
         else
             -- Move cursor (normally)
-            moveCursor(key == 'left' and -1 or 1)
+            editor:moveCursor(key == 'left' and -1 or 1)
         end
     elseif key == 'pageup' then
         if isRep then return true end
-        moveCursor(-4)
+        editor:moveCursor(-4)
     elseif key == 'pagedown' then
         if isRep then return true end
-        moveCursor(4)
+        editor:moveCursor(4)
     elseif key == 'home' then
         if isRep then return true end
-        moveCursor(-1e99)
+        editor:moveCursor(-1e99)
     elseif key == 'end' then
         if isRep then return true end
-        moveCursor(1e99)
+        editor:moveCursor(1e99)
     elseif key == 'return' then
         if isRep then return true end
         -- Create new chord
-        newChord()
+        editor:newChord()
     elseif key == 'backspace' then
         if isRep then return true end
-        if combo == 'A' then
-            local chord = edit:getChord()
-            reCalculatePitch(chord.tree, 1)
-            edit.curPitch = 1
+        if editor.combo == 'A' then
+            local chord = editor:getChord()
+            editor:reCalculatePitch(chord.tree, 1)
+            editor.curPitch = 1
         else
             -- Delete selected note
-            if #edit.cursor == 0 then return true end
-            local n = rem(edit.cursor, #edit.cursor)
-            local chord, curNote = edit:getChord(), edit:getNote()
+            if #editor.cursor == 0 then return true end
+            local n = rem(editor.cursor, #editor.cursor)
+            local chord, curNote = editor:getChord(), editor:getNote()
             rem(curNote, n)
-            redrawChord(chord)
-            edit.curPitch = curNote.pitch
-            edit:refreshText()
+            editor:redrawChord(chord)
+            editor.curPitch = curNote.pitch
+            editor:refreshText()
         end
     elseif key == 'delete' then
         if isRep then return true end
         -- Delete current chord
-        deleteChord(edit.editing, edit.selMark or edit.editing)
-        edit.selMark = false
+        editor:deleteChord(editor.editing, editor.selMark or editor.editing)
+        editor.selMark = false
     elseif key == '.' then
         if isRep then return true end
         -- Mark selected note as fake note
-        local chord, curNote = edit:getChord(), edit:getNote()
+        local chord, curNote = editor:getChord(), editor:getNote()
         if curNote.note then
             curNote.note = nil
         else
             curNote.note = math.abs(curNote.d) == 1 and 'skip' or 'mute'
         end
-        redrawChord(chord)
+        editor:redrawChord(chord)
     elseif key == '/' then
         if isRep then return true end
         -- Mark selected note as base
-        local chord, curNote = edit:getChord(), edit:getNote()
+        local chord, curNote = editor:getChord(), editor:getNote()
         for k in next, TABLE.flatten(TABLE.copyAll(chord.tree)) do
             if k:find('base') then
                 local index = STRING.split(k, '.')
@@ -496,21 +498,21 @@ function scene.keyDown(key, isRep)
             end
         end
         curNote.base = not curNote.base or nil
-        redrawChord(chord)
+        editor:redrawChord(chord)
     elseif #key == 1 and MATH.between(tonumber(key) or 0, 1, 7) then
         if isRep then return true end
 
         local keyNum = tonumber(key)
         ---@cast keyNum number
 
-        if combo == 'A' then
+        if editor.combo == 'A' then
             -- Set custom grid step
-            customGrid = keyNum
+            editor.customGrid = keyNum
         else
             -- Add/Remove note
             local step = keyNum
-            if combo == 'S' then step = -step end
-            local chord, curNote = edit:getChord(), edit:getNote()
+            if editor.combo == 'S' then step = -step end
+            local chord, curNote = editor:getChord(), editor:getNote()
             local exist
             for i = 1, #curNote do
                 if curNote[i].d == step then
@@ -519,50 +521,49 @@ function scene.keyDown(key, isRep)
                 end
             end
 
-            if combo == 'C' then
+            if editor.combo == 'C' then
                 if exist then
                     rem(curNote, exist)
-                    redrawChord(chord)
+                    editor:redrawChord(chord)
                 end
             else
-                local pitch = edit.curPitch * ssvt.dimData[step].freq
+                local pitch = editor.curPitch * ssvt.dimData[step].freq
                 if not exist then
                     ins(curNote, { d = step, pitch = pitch })
                     table.sort(curNote, levelSorter)
-                    redrawChord(chord)
+                    editor:redrawChord(chord)
                 end
-                startNote(pitch, key)
+                audio.playNote(pitch, key)
             end
         end
     elseif key == 'tab' then
         if isRep then return true end
-        switchTheme()
+        editor:switchTheme()
     elseif key == 'a' then
-        if combo == 'C' then
+        if editor.combo == 'C' then
             -- Select all
-            edit.selMark = 1
-            edit.editing = #chordList
-            scroll(1e99, 0)
+            editor:moveCursor(1e99)
+            editor.selMark = 1
         end
     elseif key == 'c' then
         if isRep then return true end
-        if combo == 'C' then
+        if editor.combo == 'C' then
             -- Copy
-            local res = dumpChords(edit.editing, edit.selMark or edit.editing)
+            local res = editor:dumpChords(editor.editing, editor.selMark or editor.editing)
             CLIPBOARD.set(table.concat(res, ' '))
             MSG('info', 'Copied ' .. #res .. ' chords to clipboard.')
         end
     elseif key == 'v' then
         if isRep then return true end
-        if combo == 'C' then
+        if editor.combo == 'C' then
             -- Paste
-            local count = pasteChords(CLIPBOARD.get())
+            local count = editor:pasteChords(CLIPBOARD.get())
             MSG('info', 'Imported ' .. count .. ' chords from clipboard.')
         end
     elseif key == 'escape' then
-        if edit.selMark then
+        if editor.selMark then
             -- Clear selection
-            edit.selMark = false
+            editor.selMark = false
         elseif TASK.lock('quit_sure', 1) then
             -- Sure to quit?
             MSG('info', 'Press again to quit')
@@ -576,13 +577,13 @@ end
 
 function scene.keyUp(key)
     if key == 'lctrl' or key == 'rctrl' then
-        if combo == 'C' then combo = '' end
+        if editor.combo == 'C' then editor.combo = '' end
     elseif key == 'lshift' or key == 'rshift' then
-        if combo == 'S' then combo = '' end
+        if editor.combo == 'S' then editor.combo = '' end
     elseif key == 'lalt' or key == 'ralt' then
-        if combo == 'A' then combo = '' end
+        if editor.combo == 'A' then editor.combo = '' end
     end
-    stopNote(key)
+    audio.stopNote(key)
 end
 
 function scene.update(dt)
@@ -594,13 +595,13 @@ function scene.update(dt)
         end
     end
     if dt == 0 then return end
-    scrX1 = MATH.expApproach(scrX1, scrollX, dt * 20)
-    scrY1 = MATH.expApproach(scrY1, scrollY, dt * 20)
+    editor.scrX1 = MATH.expApproach(editor.scrX1, editor.scrX, dt * 20)
+    editor.scrY1 = MATH.expApproach(editor.scrY1, editor.scrY, dt * 20)
     if KBisDown('lctrl', 'rctrl') then
-        if KBisDown('left') then scroll(-dt * 6.2, 0) end
-        if KBisDown('right') then scroll(dt * 6.2, 0) end
-        if KBisDown('up') then scroll(0, dt * 6.2) end
-        if KBisDown('down') then scroll(0, -dt * 6.2) end
+        if KBisDown('left') then editor:scroll(-dt * 6.2, 0) end
+        if KBisDown('right') then editor:scroll(dt * 6.2, 0) end
+        if KBisDown('up') then editor:scroll(0, dt * 6.2) end
+        if KBisDown('down') then editor:scroll(0, -dt * 6.2) end
     end
 end
 
@@ -608,7 +609,7 @@ local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 6, TEX.dark.keyboard)
 TEX.dark.keyboard:setWrap('clampzero', 'repeat')
 TEX.bright.keyboard:setWrap('clampzero', 'repeat')
 function scene.draw()
-    local theme = themes[mode]
+    local theme = themes[editor.theme]
     GC.clear(theme.bgbase)
 
     GC.replaceTransform(SCR.xOy)
@@ -624,16 +625,16 @@ function scene.draw()
     GC.replaceTransform(SCR.xOy_l)
     GC.translate(100, 0)
     GC.scale(260, -260)
-    GC.translate(-scrX1, -scrY1)
+    GC.translate(-editor.scrX1, -editor.scrY1)
 
-    GC.setColor(1, 1, 1, MATH.clampInterpolate(.1, 1, .26, .26, scrX1))
-    GC.draw(TEX[mode].keyboard, keyboardQuad, scrX1 - .36, 3.206, 0, .00184, -.00184)
+    GC.setColor(1, 1, 1, MATH.clampInterpolate(.1, 1, .26, .26, editor.scrX1))
+    GC.draw(TEX[editor.theme].keyboard, keyboardQuad, editor.scrX1 - .36, 3.206, 0, .00184, -.00184)
 
     -- Grid line
     do
         GC.setLineWidth(.01)
-        GC.setColor(theme.dim[customGrid])
-        local dist = math.log(ssvt.dimData[customGrid].freq, 2)
+        GC.setColor(theme.dim[editor.customGrid])
+        local dist = math.log(ssvt.dimData[editor.customGrid].freq, 2)
         local y = 0
         while y < 3.5 do
             GC.line(-1, y, 26, y)
@@ -649,12 +650,12 @@ function scene.draw()
     -- Selection
     do
         ---@type number, number
-        local s, e = edit.editing, edit.selMark or edit.editing
+        local s, e = editor.editing, editor.selMark or editor.editing
         if s > e then s, e = e, s end
         s, e = (s - 1) * 1.2, e * 1.2
         GC.setColor(theme.select)
         GC.rectangle('fill', s, -6, e - s, 12)
-        if edit.selMark then
+        if editor.selMark then
             GC.setColor(theme.cursor)
             GC.draw(TEX.transition, s, 0, 0, .2 / 128, 12, 0, .5)
             GC.draw(TEX.transition, e, 0, 0, -.2 / 128, 12, 0, .5)
@@ -672,22 +673,22 @@ function scene.draw()
         GC.setColor(theme.playline)
         local progress = preview.playing + (1 - preview.timer / preview.timer0)
         local x = MATH.interpolate(preview.start, s, preview.stop + 1, e, progress)
-        GC.line(x, scrY1 - 6, x, scrY1 + 6)
+        GC.line(x, editor.scrY1 - 6, x, editor.scrY1 + 6)
     end
 
     GC.push('transform')
 
-    for i = 1, #chordList do
+    for i = 1, #editor.chordList do
         -- Separator line
         GC.setColor(theme.sepLine)
         GC.setLineWidth(.01)
-        GC.line(1.2, scrY1 - 6, 1.2, scrY1 + 6)
+        GC.line(1.2, editor.scrY1 - 6, 1.2, editor.scrY1 + 6)
 
         -- Chord textures
         GC.setColor(1, 1, 1)
-        local texSrc = TEX[mode]
-        local drawData = chordList[i].drawData
-        local move = math.log(chordList[i].tree.pitch, 2)
+        local texSrc = TEX[editor.theme]
+        local drawData = editor.chordList[i].drawData
+        local move = math.log(editor.chordList[i].tree.pitch, 2)
 
         GC.translate(.1, move)
         for j = 1, #drawData do
@@ -699,13 +700,13 @@ function scene.draw()
 
         -- Text
         GC.setColor(theme.text)
-        GC.print(chordList[i].text, 0, -1.626 + scrY1, 0, .005, -.005)
+        GC.print(editor.chordList[i].text, 0, -1.626 + editor.scrY1, 0, .005, -.005)
         GC.setAlpha(.26)
-        GC.print(i, 0, -1.52 + scrY1, 0, .003, -.003)
+        GC.print(i, 0, -1.52 + editor.scrY1, 0, .003, -.003)
 
         -- Cursor
-        if edit.editing == i then
-            local y = math.log(edit.curPitch, 2)
+        if editor.editing == i then
+            local y = math.log(editor.curPitch, 2)
             GC.setColor(theme.cursor)
             GC.setAlpha(.7 + .3 * math.sin(love.timer.getTime() * 6.2))
             GC.setLineWidth(.01)
@@ -713,7 +714,7 @@ function scene.draw()
             GC.strokePrint(
                 'corner', .00626,
                 COLOR.D, COLOR.LS,
-                edit.cursorText,
+                editor.cursorText,
                 -.04, y + .16, nil, 'left',
                 0, .0035, -.0035
             )
