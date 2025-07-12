@@ -61,6 +61,14 @@ do -- Texture
     TEX.transition = GC.load(transition)
 end
 
+function ZENITHA.globalEvent.keyDown(key, isRep)
+    if isRep then return end
+    if KBisDown('lctrl', 'rctrl') then return end
+    if key == 'f11' then
+        love.window.setFullscreen(not love.window.getFullscreen())
+    end
+end
+
 -- Audio Source
 local srcCount = 0
 ---@type love.Source[]
