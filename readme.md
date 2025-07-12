@@ -42,7 +42,7 @@ Hold `Ctrl` to delete note
 
 `Arrow Up/Down`: move cursor up/down (to next note)  
 Hold `Ctrl` to scroll vertically  
-Hold `Alt` to move current chord up/down, (default to 1d move, hold 1~7 to change move distance)
+Hold `Alt` to move current chord up/down, (default to 2d move, hold 1~7 to change move distance)
 
 `Arrow Left/Right`: move cursor to previous/next chord  
 Hold `Ctrl` to scroll horizontally  

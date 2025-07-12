@@ -172,21 +172,36 @@ newChord()
 
 local palette = {
     bright = {
-        bg = { COLOR.HEX 'F1EAE0' },
+        bg = { COLOR.HEX 'E0D7CA' },
         cursor = COLOR.R,
         text = COLOR.D,
-        body_1d = { COLOR.HEX 'AAAAAA42' },
-        body_2d = { COLOR.HEX 'FF000026' },
+        dim = {
+            { COLOR.HEX 'AAAAAA62' },
+            { COLOR.HEX 'F2799262' },
+            { COLOR.HEX '6CD98562' },
+            { COLOR.HEX 'B598EE62' },
+            { COLOR.HEX 'FFC24762' },
+            { COLOR.HEX 'B5B50062' },
+            { COLOR.HEX 'ED987762' },
+        },
     },
     dark = {
         bg = { COLOR.HEX '65647F' },
         cursor = COLOR.Y,
         text = COLOR.L,
-        body_1d = { COLOR.HEX 'FFFFFF26' },
-        body_2d = { COLOR.HEX 'FF808026' },
+        dim = {
+            { COLOR.HEX 'AAAAAA42' },
+            { COLOR.HEX 'F2799226' },
+            { COLOR.HEX '2FD65626' },
+            { COLOR.HEX 'AA88EE26' },
+            { COLOR.HEX 'FFAA0126' },
+            { COLOR.HEX 'B5B50026' },
+            { COLOR.HEX 'ED987726' },
+        },
     },
 }
 local mode = 'dark'
+local customGrid = 2
 local scrollX = 0
 local scrollY = 0
 
@@ -222,8 +237,9 @@ function scene.keyDown(key, isRep)
     elseif key == 'down' or key == 'up' then
         if KBisDown('lctrl', 'rctrl') then return end
         if KBisDown('lalt', 'ralt') then
+            -- Move chord
             local chord = edit:getChord()
-            local mul = 2
+            local mul = 6 / 4
             for i = 1, 7 do
                 if KBisDown(tostring(i)) then
                     mul = ssvt.dimData[i].freq
@@ -232,7 +248,7 @@ function scene.keyDown(key, isRep)
             end
             if key == 'down' then mul = 1 / mul end
             reCalculatePitch(chord.tree, chord.tree.pitch * mul)
-            edit.curPitch = edit.curPitch * mul
+            edit.curPitch = chord.tree.pitch
         else
             -- Select note
             local allInfo = TABLE.flatten(TABLE.copyAll(chordList[edit.editing].tree))
@@ -264,7 +280,7 @@ function scene.keyDown(key, isRep)
     elseif key == 'left' or key == 'right' then
         if KBisDown('lctrl', 'rctrl') then return end
         if KBisDown('lalt', 'ralt') then
-            -- Change bias
+            -- Bias note
             if #edit.cursor == 0 then return end
             local chord, curNote = edit:getChord(), edit:getNote()
             local tar = key == 'left' and 'l' or 'r'
@@ -278,7 +294,7 @@ function scene.keyDown(key, isRep)
             if newEditing ~= edit.editing then
                 edit.editing = newEditing
                 edit.cursor = {}
-                edit.curPitch = 1
+                edit.curPitch = edit:getChord().tree.pitch
                 edit:refreshText()
             end
         end
@@ -288,14 +304,20 @@ function scene.keyDown(key, isRep)
         newChord()
     elseif key == 'backspace' then
         if isRep then return end
-        -- Delete selected note
-        if #edit.cursor == 0 then return end
-        local n = rem(edit.cursor, #edit.cursor)
-        local chord, curNote = edit:getChord(), edit:getNote()
-        rem(curNote, n)
-        redrawChord(chord)
-        edit.curPitch = curNote.pitch
-        edit:refreshText()
+        if KBisDown('lalt', 'ralt') then
+            local chord = edit:getChord()
+            reCalculatePitch(chord.tree, 1)
+            edit.curPitch = 1
+        else
+            -- Delete selected note
+            if #edit.cursor == 0 then return end
+            local n = rem(edit.cursor, #edit.cursor)
+            local chord, curNote = edit:getChord(), edit:getNote()
+            rem(curNote, n)
+            redrawChord(chord)
+            edit.curPitch = curNote.pitch
+            edit:refreshText()
+        end
     elseif key == 'delete' then
         if isRep then return end
         -- Delete current chord
@@ -319,32 +341,38 @@ function scene.keyDown(key, isRep)
         curNote.bass = not curNote.bass or nil
         redrawChord(chord)
     elseif #key == 1 and tonumber(key) and MATH.between(tonumber(key), 1, 7) then
-        if KBisDown('lalt', 'ralt') then return end
         if isRep then return end
-        -- Add note
-        local step = tonumber(key)
-        if KBisDown('lshift', 'rshift') then step = -step end
-        local pitch = edit.curPitch * ssvt.dimData[step].freq
-        local chord, curNote = edit:getChord(), edit:getNote()
-        local exist
-        for i = 1, #curNote do
-            if curNote[i].d == step then
-                exist = i
-                break
-            end
-        end
-        if KBisDown('lctrl', 'rctrl') then
-            if exist then
-                rem(curNote, exist)
-                redrawChord(chord)
+        if KBisDown('lalt', 'ralt') then
+            -- Adjust custom grid step
+            if key ~= '1' then
+                customGrid = tonumber(key)
             end
         else
-            if not exist and pitch ~= 1 then
-                ins(curNote, { d = step, pitch = pitch })
-                table.sort(curNote, levelSorter)
-                redrawChord(chord)
+            -- Add note
+            local step = tonumber(key)
+            if KBisDown('lshift', 'rshift') then step = -step end
+            local pitch = edit.curPitch * ssvt.dimData[step].freq
+            local chord, curNote = edit:getChord(), edit:getNote()
+            local exist
+            for i = 1, #curNote do
+                if curNote[i].d == step then
+                    exist = i
+                    break
+                end
             end
-            startNote(pitch, key)
+            if KBisDown('lctrl', 'rctrl') then
+                if exist then
+                    rem(curNote, exist)
+                    redrawChord(chord)
+                end
+            else
+                if not exist and pitch ~= 1 then
+                    ins(curNote, { d = step, pitch = pitch })
+                    table.sort(curNote, levelSorter)
+                    redrawChord(chord)
+                end
+                startNote(pitch, key)
+            end
         end
     elseif key == 'tab' then
         if isRep then return end
@@ -418,10 +446,22 @@ function scene.draw()
     GC.translate(-scrollX, -scrollY)
 
     GC.setLineWidth(.01)
-    GC.setColor(palette[mode].body_2d)
-    for y = -0.5849625007211562 * 2, 4.2, 0.5849625007211562 do GC.line(-1, y, 26, y) end
-    GC.setColor(palette[mode].body_1d)
+    GC.setColor(palette[mode].dim[1])
     for y = -2, 4.2 do GC.line(-1, y, 26, y) end
+    do
+        GC.setColor(palette[mode].dim[customGrid])
+        local dist = math.log(ssvt.dimData[customGrid].freq, 2)
+        local y = dist
+        while y < 3.5 do
+            GC.line(-1, y, 26, y)
+            y = y + dist
+        end
+        y = -dist
+        while y > -2.6 do
+            GC.line(-1, y, 26, y)
+            y = y - dist
+        end
+    end
 
     GC.push('transform')
     for i = 1, #chordList do
