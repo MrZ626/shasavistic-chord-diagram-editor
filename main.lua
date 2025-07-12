@@ -289,10 +289,21 @@ function scene.wheelMove(_, dy)
     end
 end
 
+local combo = ''
+
 local function pitchSorter(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2]) end
 local function levelSorter(a, b) return a.d < b.d end
 local function moveCursor(offset)
-    edit.editing = MATH.clamp(edit.editing + offset, 1, #chordList)
+    local newPos = MATH.clamp(edit.editing + offset, 1, #chordList)
+    if combo == 'S' then
+        if not edit.selMark then edit.selMark = edit.editing end
+    elseif edit.selMark then
+        if math.abs(offset) == 1 then
+            newPos = (offset == -1 and math.min or math.max)(edit.editing, edit.selMark)
+        end
+        edit.selMark = false
+    end
+    edit.editing = newPos
     edit.cursor = {}
     edit.curPitch = edit:getChord().tree.pitch
     edit:refreshText()
@@ -338,7 +349,6 @@ local function pasteChords(buffer, after)
     return count
 end
 
-local combo = ''
 function scene.keyDown(key, isRep)
     if key == 'lctrl' or key == 'rctrl' or key == 'lshift' or key == 'rshift' or key == 'lalt' or key == 'ralt' then
         if combo == '' then combo = key:sub(2, 2):upper() end
@@ -395,14 +405,7 @@ function scene.keyDown(key, isRep)
         end
     elseif key == 'left' or key == 'right' then
         if combo == 'C' then return true end
-        if combo == 'S' then
-            -- Select
-            local newPos = MATH.clamp(edit.editing + (key == 'left' and -1 or 1), 1, #chordList)
-            if newPos ~= edit.editing then
-                if not edit.selMark then edit.selMark = edit.editing end
-                edit.editing = newPos
-            end
-        elseif combo == 'A' then
+        if combo == 'A' then
             -- Bias note
             if #edit.cursor == 0 then return true end
             local chord, curNote = edit:getChord(), edit:getNote()
@@ -411,10 +414,6 @@ function scene.keyDown(key, isRep)
                 curNote.bias = not curNote.bias and tar or nil
                 redrawChord(chord)
             end
-        elseif edit.selMark then
-            -- Move cursor (when select)
-            edit.editing = (key == 'left' and math.min or math.max)(edit.editing, edit.selMark)
-            edit.selMark = false
         else
             -- Move cursor (normally)
             moveCursor(key == 'left' and -1 or 1)
