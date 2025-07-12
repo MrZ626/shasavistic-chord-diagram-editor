@@ -226,9 +226,15 @@ local preview = {
 ---@type Zenitha.Scene
 local scene = {}
 
-function preview:stopChord(force)
+function preview:stopChord(stopAll)
     for i = 1, self.count do stopNote('chord' .. i) end
-    if force then return end
+    if stopAll then
+        self.start, self.stop = false, false
+        self.playing = false
+    end
+end
+
+function preview:playNextChord()
     if self.playing >= self.stop then
         self.start, self.stop = false, false
     else
@@ -237,12 +243,8 @@ function preview:stopChord(force)
     end
 end
 
-function preview:startChord(s, e)
-    if s then
-        preview.start, preview.stop = s, e
-        preview.playing = s
-    end
-    if self.timer > 0 then self:stopChord(true) end
+function preview:startChord()
+    if self.timer > 0 then self:stopChord() end
 
     self.count, self.timer = 0, .5 + .5 / (preview.stop - preview.start + 1)
     local chord = chordList[self.playing]
@@ -324,14 +326,16 @@ function scene.keyDown(key, isRep)
     local alt = KBisDown('lalt', 'ralt')
     if key == 'space' then
         if isRep then return end
-        if alt then
+        if preview.playing then preview:stopChord(true) end
+        if ctrl then
             -- Preview selected note
             startNote(edit.curPitch, 'space')
         else
             -- Preview selected chords
-            local s, e = edit.editing, edit.selMark or edit.editing
-            if s > e then s, e = e, s end
-            preview:startChord(s, e)
+            preview.start, preview.stop = edit.editing, edit.selMark or edit.editing
+            if preview.start > preview.stop then preview.start, preview.stop = preview.stop, preview.start end
+            preview.playing = preview.start
+            preview:startChord()
         end
     elseif key == 'down' or key == 'up' then
         if ctrl then return end
@@ -385,8 +389,12 @@ function scene.keyDown(key, isRep)
                 curNote.bias = not curNote.bias and tar or nil
                 redrawChord(chord)
             end
+        elseif edit.selMark then
+            -- Move cursor (when select)
+            edit.editing = (key == 'left' and math.min or math.max)(edit.editing, edit.selMark)
+            edit.selMark = false
         else
-            -- Move editing cursor
+            -- Move cursor (normally)
             local newEditing = MATH.clamp(edit.editing + (key == 'left' and -1 or 1), 1, #chordList)
             if newEditing ~= edit.editing then
                 edit.editing = newEditing
@@ -394,7 +402,6 @@ function scene.keyDown(key, isRep)
                 edit.curPitch = edit:getChord().tree.pitch
                 edit:refreshText()
             end
-            edit.selMark = false
         end
     elseif key == 'return' then
         if isRep then return end
@@ -439,12 +446,16 @@ function scene.keyDown(key, isRep)
         redrawChord(chord)
     elseif #key == 1 and MATH.between(tonumber(key) or 0, 1, 7) then
         if isRep then return end
+
+        local keyNum = tonumber(key)
+        ---@cast keyNum number
+
         if alt then
             -- Set custom grid step
-            customGrid = tonumber(key)
+            customGrid = keyNum
         else
             -- Add/Remove note
-            local step = tonumber(key)
+            local step = keyNum
             if shift then step = -step end
             local chord, curNote = edit:getChord(), edit:getNote()
             local exist
@@ -473,6 +484,13 @@ function scene.keyDown(key, isRep)
     elseif key == 'tab' then
         if isRep then return end
         switchTheme()
+    elseif key == 'a' then
+        if ctrl then
+            -- Select All
+            edit.selMark = 1
+            edit.editing = #chordList
+            scroll(1e99, 0)
+        end
     elseif key == 'c' then
         if isRep then return end
         if ctrl then
@@ -512,6 +530,7 @@ function scene.update(dt)
         preview.timer = preview.timer - dt
         if preview.timer <= 0 then
             preview:stopChord()
+            preview:playNextChord()
         end
     end
     if dt == 0 then return end

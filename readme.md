@@ -38,8 +38,8 @@ Hold `Ctrl` to delete note
 
 ### Navigation
 
-`Space`: play current chord  
-Hold `Alt` to only play selected note
+`Space`: play current select chord(s)  
+Hold `Ctrl` to only play selected note
 
 `Arrow Up/Down`: move cursor up/down (to next note)  
 Hold `Ctrl` to scroll vertically  
@@ -58,7 +58,9 @@ Hold `Shift` to select multiple chords
 Hold `Shift` to scroll horizontally  
 Or use mouse drag to scroll
 
-### Copy & Paste
+### Other
+
+`Ctrl+A`: select all
 
 `Ctrl+C`: copy all chord codes to clipboard
 
