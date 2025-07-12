@@ -102,13 +102,36 @@ local function startNote(freq, key, volume)
         end
     end
 end
-
 local function stopNote(key)
     local s = activeSrc[key]
     if s then
         s:stop()
         ins(srcLib, s)
         activeSrc[key] = nil
+    end
+end
+
+local previewCount = 0
+local previewTimer = 0
+local function stopChord()
+    for i = 1, previewCount do
+        stopNote('chord' .. i)
+    end
+end
+local function startChord(chord)
+    if previewTimer > 0 then
+        stopChord()
+    end
+
+    previewCount = 0
+    previewTimer = 1
+    local allInfo = TABLE.flatten(TABLE.copyAll(chord.tree))
+    for k, v in next, allInfo do
+        if k:sub(-5) == 'pitch' then
+            -- TODO: filter skipped notes
+            previewCount = previewCount + 1
+            startNote(v, 'chord' .. previewCount, .26)
+        end
     end
 end
 
@@ -287,8 +310,13 @@ function scene.keyDown(key, isRep)
     local alt = KBisDown('lalt', 'ralt')
     if key == 'space' then
         if isRep then return end
-        -- Preview selected note
-        startNote(edit.curPitch, 'space')
+        if alt then
+            -- Preview selected note
+            startNote(edit.curPitch, 'space')
+        else
+            -- Preview chord
+            startChord(edit:getChord())
+        end
     elseif key == 'down' or key == 'up' then
         if ctrl then return end
         if alt then
@@ -464,6 +492,13 @@ function scene.keyUp(key)
 end
 
 function scene.update(dt)
+    if previewTimer > 0 then
+        previewTimer = previewTimer - dt
+        if previewTimer <= 0 then
+            stopChord()
+        end
+    end
+    if dt == 0 then return end
     if KBisDown('lctrl', 'rctrl') then
         if KBisDown('left') then scroll(-dt * 6.2, 0) end
         if KBisDown('right') then scroll(dt * 6.2, 0) end
@@ -508,18 +543,17 @@ function scene.draw()
 
     GC.push('transform')
 
-    -- Selected area
+    -- Selection
     ---@type number, number
     local s, e = edit.editing, edit.selMark or edit.editing
     if s > e then s, e = e, s end
-    s, e = (s - 1) * 1.2 - .1 + .05, e * 1.2 - .1
+    s, e = (s - 1) * 1.2 - .05, e * 1.2 - .15
     GC.setColor(palette[mode].select)
     GC.rectangle('fill', s, -6, e - s, 12)
     if edit.selMark then
         GC.setColor(palette[mode].cursor)
         GC.draw(TEX.transition, s, 0, 0, .2 / 128, 12, 0, .5)
         GC.draw(TEX.transition, e, 0, 0, -.2 / 128, 12, 0, .5)
-        -- GC.rectangle('line', s, -6, e, 12)
     end
 
     for i = 1, #chordList do

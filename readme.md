@@ -38,7 +38,8 @@ Hold `Ctrl` to delete note
 
 ### Navigation
 
-`Space`: play selected note
+`Space`: play current chord  
+Hold `Alt` to only play selected note
 
 `Arrow Up/Down`: move cursor up/down (to next note)  
 Hold `Ctrl` to scroll vertically  
