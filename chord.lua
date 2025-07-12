@@ -25,7 +25,7 @@ local ins = table.insert
 
 ---@class SSVT.Chord
 ---@field d? SSVT.Dim
----@field note? 'skip' | 'dotted'
+---@field note? 'skip' | 'mute'
 ---@field bias? 'l' | 'r'
 ---@field base? true
 ---@field [number] SSVT.Chord
@@ -70,7 +70,7 @@ local function drawbase(mode, x1, x2)
     end
 end
 local function drawNote(mode, x1, x2)
-    if mode == 'dotted' then
+    if mode == 'mute' then
         -- Dotted line
         addShape('note_skip', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     elseif mode == 'skip' then
@@ -165,7 +165,7 @@ local function decode(str)
             if math.abs(buf.d) == 1 then
                 buf.note = 'skip'
             else
-                buf.note = 'dotted'
+                buf.note = 'mute'
             end
         elseif char == 'l' or char == 'r' then
             buf.bias = char

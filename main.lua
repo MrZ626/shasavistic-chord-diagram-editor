@@ -479,7 +479,7 @@ function scene.keyDown(key, isRep)
         if curNote.note then
             curNote.note = nil
         else
-            curNote.note = math.abs(curNote.d) == 1 and 'skip' or 'dotted'
+            curNote.note = math.abs(curNote.d) == 1 and 'skip' or 'mute'
         end
         redrawChord(chord)
     elseif key == '/' then
