@@ -501,7 +501,7 @@ function scene.keyDown(key, isRep)
                 end
             else
                 local pitch = edit.curPitch * ssvt.dimData[step].freq
-                if not exist and pitch ~= 1 then
+                if not exist then
                     ins(curNote, { d = step, pitch = pitch })
                     table.sort(curNote, levelSorter)
                     redrawChord(chord)
