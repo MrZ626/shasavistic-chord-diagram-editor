@@ -27,7 +27,7 @@ local ins = table.insert
 ---@field d? SSVT.Dim
 ---@field note? 'skip' | 'dotted'
 ---@field bias? 'l' | 'r'
----@field bass? true
+---@field base? true
 ---@field [number] SSVT.Chord
 
 ---@class SSVT.Shape
@@ -62,7 +62,7 @@ local function addShape(texture, layer, x, y, w, h)
     })
 end
 
-local function drawBass(mode, x1, x2)
+local function drawbase(mode, x1, x2)
     if mode == 'l' then
         addShape('base', 99, x1 - 0.12, -.04, 0.07, .08)
     else
@@ -115,9 +115,9 @@ local function DrawBranch(chord, x1, x2)
 
     moveOrigin(0, nData.yStep)
 
-    -- Bass
-    if chord.bass then
-        drawBass(chord.bias or 'l', x1, x2)
+    -- base
+    if chord.base then
+        drawbase(chord.bias or 'l', x1, x2)
     end
 
     -- Note
@@ -170,7 +170,7 @@ local function decode(str)
         elseif char == 'l' or char == 'r' then
             buf.bias = char
         elseif char == 'x' then
-            buf.bass = true
+            buf.base = true
         else
             break
         end
@@ -207,7 +207,7 @@ end
 local function encode(chord)
     local str = {}
     if chord.d then ins(str, chord.d) end
-    if chord.bass then ins(str, "x") end
+    if chord.base then ins(str, "x") end
     if chord.bias then ins(str, chord.bias) end
     if chord.note then ins(str, ".") end
     if chord[1] then

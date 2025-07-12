@@ -259,9 +259,22 @@ function preview:startChord()
     self.timer = self.timer0
     local chord = chordList[self.playing]
     local allInfo = TABLE.flatten(TABLE.copyAll(chord.tree))
+    local basePitch = -1e99
+    for k in next, allInfo do
+        if k:sub(-4) == 'base' then
+            basePitch = allInfo[k:sub(1, -5) .. 'pitch']
+            break
+        end
+    end
+
     TABLE.clear(temp)
     for k, v in next, allInfo do
         if k:sub(-5) == 'pitch' then
+            if v < basePitch then
+                repeat
+                    v = v * 2
+                until v >= basePitch
+            end
             if not temp[v] and not allInfo[k:sub(1, -6) .. 'note'] then
                 self.count = self.count + 1
                 temp[v] = true
@@ -471,10 +484,10 @@ function scene.keyDown(key, isRep)
         redrawChord(chord)
     elseif key == '/' then
         if isRep then return true end
-        -- Mark selected note as bass
+        -- Mark selected note as base
         local chord, curNote = edit:getChord(), edit:getNote()
         for k in next, TABLE.flatten(TABLE.copyAll(chord.tree)) do
-            if k:find('bass') then
+            if k:find('base') then
                 local index = STRING.split(k, '.')
                 for i = 1, #index do
                     index[i] = tonumber(index[i]) or index[i]
@@ -482,7 +495,7 @@ function scene.keyDown(key, isRep)
                 TABLE.listIndexSet(chord.tree, index, nil)
             end
         end
-        curNote.bass = not curNote.bass or nil
+        curNote.base = not curNote.base or nil
         redrawChord(chord)
     elseif #key == 1 and MATH.between(tonumber(key) or 0, 1, 7) then
         if isRep then return true end
