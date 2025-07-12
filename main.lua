@@ -51,7 +51,7 @@ local srcCount = 0
 ---@type love.Source[]
 local srcLib = {}
 do
-    local sampleRate = 44100
+    local sampleRate = 48000
     local baseFreq = 440
     local loopCount = 62
     local snd = love.sound.newSoundData(math.floor(sampleRate / baseFreq * loopCount), sampleRate, 16, 1)
