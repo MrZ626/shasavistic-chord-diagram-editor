@@ -221,32 +221,46 @@ function scene.keyDown(key, isRep)
         startNote(edit.curPitch, 'space')
     elseif key == 'down' or key == 'up' then
         if KBisDown('lctrl', 'rctrl') then return end
-        -- Select note
-        local allInfo = TABLE.flatten(TABLE.copyAll(chordList[edit.editing].tree))
-        local pitches = {}
-        for k, v in next, allInfo do
-            if k:sub(-5) == 'pitch' then
-                ins(pitches, { v, k:sub(1, -7) })
+        if KBisDown('lalt', 'ralt') then
+            local chord = edit:getChord()
+            local mul = 2
+            for i = 1, 7 do
+                if KBisDown(tostring(i)) then
+                    mul = ssvt.dimData[i].freq
+                    break
+                end
             end
-        end
-        table.sort(pitches, pitchSorter)
-        local curPos
-        for i = 1, #pitches do
-            if pitches[i][1] == edit.curPitch then
-                curPos = i; break
-            end
-        end
-        if key == 'up' then
-            while curPos < #pitches and (pitches[curPos][1] <= edit.curPitch) do curPos = curPos + 1 end
+            if key == 'down' then mul = 1 / mul end
+            reCalculatePitch(chord.tree, chord.tree.pitch * mul)
+            edit.curPitch = edit.curPitch * mul
         else
-            while curPos > 1 and (pitches[curPos][1] >= edit.curPitch) do curPos = curPos - 1 end
+            -- Select note
+            local allInfo = TABLE.flatten(TABLE.copyAll(chordList[edit.editing].tree))
+            local pitches = {}
+            for k, v in next, allInfo do
+                if k:sub(-5) == 'pitch' then
+                    ins(pitches, { v, k:sub(1, -7) })
+                end
+            end
+            table.sort(pitches, pitchSorter)
+            local curPos
+            for i = 1, #pitches do
+                if pitches[i][1] == edit.curPitch then
+                    curPos = i; break
+                end
+            end
+            if key == 'up' then
+                while curPos < #pitches and (pitches[curPos][1] <= edit.curPitch) do curPos = curPos + 1 end
+            else
+                while curPos > 1 and (pitches[curPos][1] >= edit.curPitch) do curPos = curPos - 1 end
+            end
+            edit.curPitch = pitches[curPos][1]
+            edit.cursor = STRING.split(pitches[curPos][2], ".")
+            for i = 1, #edit.cursor do
+                edit.cursor[i] = tonumber(edit.cursor[i])
+            end
+            edit:refreshText()
         end
-        edit.curPitch = pitches[curPos][1]
-        edit.cursor = STRING.split(pitches[curPos][2], ".")
-        for i = 1, #edit.cursor do
-            edit.cursor[i] = tonumber(edit.cursor[i])
-        end
-        edit:refreshText()
     elseif key == 'left' or key == 'right' then
         if KBisDown('lctrl', 'rctrl') then return end
         if KBisDown('lalt', 'ralt') then
@@ -305,6 +319,7 @@ function scene.keyDown(key, isRep)
         curNote.bass = not curNote.bass or nil
         redrawChord(chord)
     elseif #key == 1 and tonumber(key) and MATH.between(tonumber(key), 1, 7) then
+        if KBisDown('lalt', 'ralt') then return end
         if isRep then return end
         -- Add note
         local step = tonumber(key)
@@ -414,11 +429,14 @@ function scene.draw()
         GC.setColor(1, 1, 1)
         local texSrc = TEX[mode]
         local drawData = chordList[i].drawData
+        local move = math.log(chordList[i].tree.pitch, 2)
+        GC.translate(0, move)
         for j = 1, #drawData do
             local d = drawData[j]
             local tex = texSrc[d.texture]
             GC.draw(tex, d.x, d.y, 0, d.w / tex:getWidth(), d.h / tex:getHeight())
         end
+        GC.translate(0, -move)
 
         -- Text
         GC.setColor(palette[mode].text)
