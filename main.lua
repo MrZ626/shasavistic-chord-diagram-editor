@@ -3,9 +3,10 @@ require 'Zenitha'
 ZENITHA.setFirstScene('main')
 ZENITHA.setShowFPS(false)
 ZENITHA.setVersionText("")
-ZENITHA.globalEvent.drawCursor = NULL
+-- ZENITHA.globalEvent.drawCursor = NULL
 ZENITHA.globalEvent.clickFX = NULL
 SCR.setSize(1600, 1000)
+love.mouse.setVisible(false)
 
 local ins, rem = table.insert, table.remove
 local max, min = math.max, math.min
@@ -66,6 +67,9 @@ function ZENITHA.globalEvent.keyDown(key, isRep)
     if KBisDown('lctrl', 'rctrl') then return end
     if key == 'f11' then
         love.window.setFullscreen(not love.window.getFullscreen())
+    elseif key == 'f8' then
+        local m = ZENITHA.getDevMode()
+        ZENITHA.setDevMode(m == false and 1)
     end
 end
 
@@ -579,16 +583,8 @@ function scene.keyDown(key, isRep)
             MSG('info', 'Imported ' .. count .. ' chords from clipboard.')
         end
     elseif key == 'escape' then
-        if editor.selMark then
-            -- Clear selection
-            editor.selMark = false
-        elseif TASK.lock('quit_sure', 1) then
-            -- Sure to quit?
-            MSG('info', 'Press again to quit')
-        else
-            -- Quit
-            ZENITHA._quit()
-        end
+        -- Clear selection
+        editor.selMark = false
     end
     return true
 end
@@ -645,11 +641,10 @@ function scene.draw()
     gc_setColor(theme.bg)
     gc_rectangle('fill', 0, 0, SCR.w0, SCR.h0)
 
-    gc_replaceTransform(SCR.xOy_ul)
-    gc_setColor(theme.text)
-    gc_setAlpha(.16)
-    FONT.set(30)
-    gc_print("Audio Count   " .. srcCount - #srcLib .. "   /  " .. srcCount - 1, 100, 10)
+    -- gc_replaceTransform(SCR.xOy_ul)
+    -- gc_setColor(theme.text)
+    -- gc_setAlpha(.16)
+    -- gc_print("Audio Count   " .. srcCount - #srcLib .. "   /  " .. srcCount - 1, 100, 10)
 
     gc_replaceTransform(SCR.xOy_l)
     gc_translate(100, 0)
@@ -708,7 +703,7 @@ function scene.draw()
     end
 
     gc_push('transform')
-
+    FONT.set(30)
     for i = 1, #editor.chordList do
         -- Separator line
         gc_setColor(theme.sepLine)
@@ -755,5 +750,79 @@ function scene.draw()
     end
     gc_pop()
 end
+
+WIDGET.setDefaultOption {
+    button = {
+        fontSize = 50,
+        lineWidth = 2,
+        cornerR = 0,
+        frameColor = COLOR.LD,
+        textColor = { .626, .626, .626 },
+        _hoverTimeMax = .0626,
+    },
+    hint = {
+        lineWidth = 2,
+        cornerR = 20,
+        floatCornerR = 20,
+        frameColor = COLOR.D,
+        textColor = { .626, .626, .626 },
+        _hoverTimeMax = .0626,
+    },
+}
+local hintText1 = [[
+Help (Edit):
+  Num1-7: add note
+  +shift: add downwards
+  +ctrl: delete note
+  +alt: switch grid step
+
+  alt + Left/Right: set note aside
+  alt + Up/Dn: move chord by grid
+
+  Bksp: delete note
+
+  Enter: add new chord
+
+  Del: delete chord(s)
+
+  '/': switch base note
+
+  '.': switch mute note
+]]
+local hintText2 = [[
+Help (Navigation):
+  Arrow: move cursor
+  +shift: create selection
+  +ctrl: view scroll
+
+  Space: play chord(s)
+  +ctrl: play note
+
+  Ctrl+A: select all
+
+  Ctrl+C: copy selected
+
+  Ctrl+V: paste after cursor
+
+  Tab: dark/light theme
+]]
+scene.widgetList = {
+    WIDGET.new {
+        type = 'hint', text = "?",
+        fontSize = 50, frameColor = COLOR.lG, textColor = { .62, .9, .62 },
+        pos = { 1, 0 }, x = -40, y = 40, w = 60,
+        labelPos = 'bottomLeft',
+        floatText = hintText1,
+        floatFillColor = { 0, 0, 0, .26 },
+    },
+    WIDGET.new {
+        type = 'hint', text = "?",
+        fontSize = 50, frameColor = COLOR.lR, textColor = { 1, .62, .62 },
+        pos = { 1, 0 }, x = -110, y = 40, w = 60,
+        labelPos = 'bottomLeft',
+        floatText = hintText2,
+        floatFillColor = { 0, 0, 0, .26 },
+    },
+}
 
 SCN.add('main', scene)
