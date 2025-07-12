@@ -473,6 +473,15 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         -- Mark selected note as bass
         local chord, curNote = edit:getChord(), edit:getNote()
+        for k in next, TABLE.flatten(TABLE.copyAll(chord.tree)) do
+            if k:find('bass') then
+                local index = STRING.split(k, '.')
+                for i = 1, #index do
+                    index[i] = tonumber(index[i]) or index[i]
+                end
+                TABLE.listIndexSet(chord.tree, index, nil)
+            end
+        end
         curNote.bass = not curNote.bass or nil
         redrawChord(chord)
     elseif #key == 1 and MATH.between(tonumber(key) or 0, 1, 7) then
