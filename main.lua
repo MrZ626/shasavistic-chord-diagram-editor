@@ -111,30 +111,6 @@ local function stopNote(key)
     end
 end
 
-local previewCount = 0
-local previewTimer = 0
-local function stopChord()
-    for i = 1, previewCount do
-        stopNote('chord' .. i)
-    end
-end
-local function startChord(chord)
-    if previewTimer > 0 then
-        stopChord()
-    end
-
-    previewCount = 0
-    previewTimer = 1
-    local allInfo = TABLE.flatten(TABLE.copyAll(chord.tree))
-    for k, v in next, allInfo do
-        if k:sub(-5) == 'pitch' then
-            -- TODO: filter skipped notes
-            previewCount = previewCount + 1
-            startNote(v, 'chord' .. previewCount, .26)
-        end
-    end
-end
-
 ---@class wrappedChord
 ---@field tree SSVT.Chord
 ---@field drawData table
@@ -239,8 +215,46 @@ local customGrid = 2
 local scrollX = 0
 local scrollY = 0
 
+local preview = {
+    playing = false,
+    start = false,
+    stop = false,
+    count = 0,
+    timer = 0,
+}
+
 ---@type Zenitha.Scene
 local scene = {}
+
+function preview:stopChord(force)
+    for i = 1, self.count do stopNote('chord' .. i) end
+    if force then return end
+    if self.playing >= self.stop then
+        self.start, self.stop = false, false
+    else
+        self.playing = self.playing + 1
+        self:startChord()
+    end
+end
+
+function preview:startChord(s, e)
+    if s then
+        preview.start, preview.stop = s, e
+        preview.playing = s
+    end
+    if self.timer > 0 then self:stopChord(true) end
+
+    self.count, self.timer = 0, .5 + .5 / (preview.stop - preview.start + 1)
+    local chord = chordList[self.playing]
+    local allInfo = TABLE.flatten(TABLE.copyAll(chord.tree))
+    for k, v in next, allInfo do
+        if k:sub(-5) == 'pitch' then
+            -- TODO: filter skipped notes
+            self.count = self.count + 1
+            startNote(v, 'chord' .. self.count, .26)
+        end
+    end
+end
 
 local function scroll(dx, dy)
     scrollX = MATH.clamp(scrollX + dx, 0, (math.max(#chordList, 5) - 5) * 1.2)
@@ -314,8 +328,10 @@ function scene.keyDown(key, isRep)
             -- Preview selected note
             startNote(edit.curPitch, 'space')
         else
-            -- Preview chord
-            startChord(edit:getChord())
+            -- Preview selected chords
+            local s, e = edit.editing, edit.selMark or edit.editing
+            if s > e then s, e = e, s end
+            preview:startChord(s, e)
         end
     elseif key == 'down' or key == 'up' then
         if ctrl then return end
@@ -492,10 +508,10 @@ function scene.keyUp(key)
 end
 
 function scene.update(dt)
-    if previewTimer > 0 then
-        previewTimer = previewTimer - dt
-        if previewTimer <= 0 then
-            stopChord()
+    if preview.timer > 0 then
+        preview.timer = preview.timer - dt
+        if preview.timer <= 0 then
+            preview:stopChord()
         end
     end
     if dt == 0 then return end
