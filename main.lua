@@ -179,6 +179,7 @@ newChord()
 
 local themes = {
     bright = {
+        bgbase = { COLOR.HEX 'DCD3C6' },
         bg = { COLOR.HEX 'E0D7CA' },
         sepLine = { COLOR.HEX '00000010' },
         select = { COLOR.HEX 'FF312618' },
@@ -197,6 +198,7 @@ local themes = {
         },
     },
     dark = {
+        bgbase = { COLOR.HEX '61607B' },
         bg = { COLOR.HEX '65647F' },
         sepLine = { COLOR.HEX '00000010' },
         select = { COLOR.HEX 'F5C40018' },
@@ -303,10 +305,13 @@ local function moveCursor(offset)
         end
         edit.selMark = false
     end
-    edit.editing = newPos
-    edit.cursor = {}
-    edit.curPitch = edit:getChord().tree.pitch
-    edit:refreshText()
+    if newPos ~= edit.editing then
+        edit.editing = newPos
+        edit.cursor = {}
+        edit.curPitch = edit:getChord().tree.pitch
+        edit:refreshText()
+    end
+    scrollX = MATH.clamp(scrollX, (edit.editing - 4.8) * 1.2, (edit.editing - 1) * 1.2)
 end
 local function moveChord(chord, step)
     reCalculatePitch(chord.tree, chord.tree.pitch * ssvt.dimData[step].freq)
@@ -583,7 +588,11 @@ TEX.dark.keyboard:setWrap('clampzero', 'repeat')
 TEX.bright.keyboard:setWrap('clampzero', 'repeat')
 function scene.draw()
     local theme = themes[mode]
-    GC.clear(theme.bg)
+    GC.clear(theme.bgbase)
+
+    GC.replaceTransform(SCR.xOy)
+    GC.setColor(theme.bg)
+    GC.rectangle('fill', 0, 0, SCR.w0, SCR.h0)
 
     GC.replaceTransform(SCR.xOy_ul)
     GC.setColor(theme.text)
