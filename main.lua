@@ -147,7 +147,7 @@ local editor = {
     scrX1 = 0, -- Smooth scroll position, follow {scrollX, editor.scrY} by time
     scrY1 = 0,
     theme = 'dark',
-    customGrid = 2,
+    gridStep = 2,
 }
 
 -- Scroll
@@ -365,8 +365,9 @@ end
 ---@type Zenitha.Scene
 local scene = {}
 
+local MSisDown = love.mouse.isDown
 function scene.mouseMove(_, _, dx, dy)
-    if love.mouse.isDown(1) then
+    if MSisDown(1) then
         editor:scroll(-dx / 260, dy / 260)
     end
 end
@@ -406,7 +407,7 @@ function scene.keyDown(key, isRep)
         if editor.combo == 'C' then return true end
         if editor.combo == 'A' then
             -- Move chord
-            editor:moveChord(editor:getChord(), key == 'up' and editor.customGrid or -editor.customGrid)
+            editor:moveChord(editor:getChord(), key == 'up' and editor.gridStep or -editor.gridStep)
         else
             -- Select note
             local allInfo = TABLE.flatten(TABLE.copyAll(editor.chordList[editor.editing].tree))
@@ -524,7 +525,7 @@ function scene.keyDown(key, isRep)
 
         if editor.combo == 'A' then
             -- Set custom grid step
-            editor.customGrid = keyNum
+            editor.gridStep = keyNum
         else
             -- Add/Remove note
             local step = keyNum
@@ -661,18 +662,20 @@ function scene.draw()
     -- Grid line
     do
         gc_setLineWidth(.01)
-        gc_setColor(theme.dim[editor.customGrid])
-        local dist = log(ssvt.dimData[editor.customGrid].freq, 2)
+        gc_setColor(theme.dim[editor.gridStep])
+        local dist = log(ssvt.dimData[editor.gridStep].freq, 2)
         local y = 0
+        gc_translate(editor.scrX1, 0)
         while y < 3.5 do
-            gc_line(-1, y, 26, y)
+            gc_line(-2.6, y, 26, y)
             y = y + dist
         end
         y = -dist
         while y > -2.6 do
-            gc_line(-1, y, 26, y)
+            gc_line(-2.6, y, 26, y)
             y = y - dist
         end
+        gc_translate(-editor.scrX1, 0)
     end
 
     -- Selection
