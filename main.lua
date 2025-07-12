@@ -6,6 +6,14 @@ ZENITHA.setVersionText("")
 ZENITHA.globalEvent.drawCursor = NULL
 ZENITHA.globalEvent.clickFX = NULL
 SCR.setSize(1600, 1000)
+
+local ins, rem = table.insert, table.remove
+local max, min = math.max, math.min
+local floor, abs = math.floor, math.abs
+local sin, log = math.sin, math.log
+
+local KBisDown = love.keyboard.isDown
+
 do -- Texture
     TEX = {
         bright = {}, ---@type SSVT.Texture
@@ -47,13 +55,13 @@ do -- Texture
 
     local transition = { w = 128, h = 1 }
     for x = 0, 127 do
-        table.insert(transition, { 'setCL', 1, 1, 1, 1 - x / 128 })
-        table.insert(transition, { 'fRect', x, 0, 1, 1 })
+        ins(transition, { 'setCL', 1, 1, 1, 1 - x / 128 })
+        ins(transition, { 'fRect', x, 0, 1, 1 })
     end
     TEX.transition = GC.load(transition)
 end
 
--- Audio
+-- Audio Source
 local srcCount = 0
 ---@type love.Source[]
 local srcLib = {}
@@ -61,11 +69,11 @@ do
     local sampleRate = 48000
     local baseFreq = 440
     local loopCount = 62
-    local snd = love.sound.newSoundData(math.floor(sampleRate / baseFreq * loopCount), sampleRate, 16, 1)
+    local snd = love.sound.newSoundData(floor(sampleRate / baseFreq * loopCount), sampleRate, 16, 1)
     for i = 0, snd:getSampleCount() - 1 do
         local t = i / sampleRate
-        local v = math.sin(6.283185307179586 * baseFreq * t)
-        snd:setSample(i, MATH.sign(v) * math.abs(v) ^ .8)
+        local v = sin(6.283185307179586 * baseFreq * t)
+        snd:setSample(i, MATH.sign(v) * abs(v) ^ .8)
     end
 
     srcLib[1] = love.audio.newSource(snd, "static")
@@ -74,9 +82,6 @@ do
 
     snd:release()
 end
-
-local ins, rem = table.insert, table.remove
-local KBisDown = love.keyboard.isDown
 
 ---@type Map<love.Source>
 local activeSrc = {}
@@ -139,7 +144,7 @@ local editor = {
 
 -- Scroll
 function editor:scroll(dx, dy)
-    self.scrX = MATH.clamp(self.scrX + dx, 0, (math.max(#self.chordList, 4.8) - 4.8) * 1.2)
+    self.scrX = MATH.clamp(self.scrX + dx, 0, (max(#self.chordList, 4.8) - 4.8) * 1.2)
     self.scrY = MATH.clamp(self.scrY + dy, -2, 2)
 end
 
@@ -191,8 +196,8 @@ function editor:moveCursor(offset)
     if self.combo == 'S' then
         if not self.selMark then self.selMark = self.editing end
     elseif self.selMark then
-        if math.abs(offset) == 1 then
-            newPos = (offset == -1 and math.min or math.max)(self.editing, self.selMark)
+        if abs(offset) == 1 then
+            newPos = (offset == -1 and min or max)(self.editing, self.selMark)
         end
         self.selMark = false
     end
@@ -481,7 +486,7 @@ function scene.keyDown(key, isRep)
         if curNote.note then
             curNote.note = nil
         else
-            curNote.note = math.abs(curNote.d) == 1 and 'skip' or 'mute'
+            curNote.note = abs(curNote.d) == 1 and 'skip' or 'mute'
         end
         editor:redrawChord(chord)
     elseif key == '/' then
@@ -605,44 +610,55 @@ function scene.update(dt)
     end
 end
 
+local gc = love.graphics
+local gc_push, gc_pop = gc.push, gc.pop
+local gc_clear, gc_replaceTransform = gc.clear, gc.replaceTransform
+local gc_translate, gc_scale = gc.translate, gc.scale
+local gc_setColor, gc_setLineWidth = gc.setColor, gc.setLineWidth
+local gc_draw, gc_line = gc.draw, gc.line
+local gc_rectangle = gc.rectangle
+local gc_print = gc.print
+local gc_setAlpha = GC.setAlpha
+local gc_strokePrint = GC.strokePrint
+
 local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 6, TEX.dark.keyboard)
 TEX.dark.keyboard:setWrap('clampzero', 'repeat')
 TEX.bright.keyboard:setWrap('clampzero', 'repeat')
 function scene.draw()
     local theme = themes[editor.theme]
-    GC.clear(theme.bgbase)
+    gc_clear(theme.bgbase)
 
-    GC.replaceTransform(SCR.xOy)
-    GC.setColor(theme.bg)
-    GC.rectangle('fill', 0, 0, SCR.w0, SCR.h0)
+    gc_replaceTransform(SCR.xOy)
+    gc_setColor(theme.bg)
+    gc_rectangle('fill', 0, 0, SCR.w0, SCR.h0)
 
-    GC.replaceTransform(SCR.xOy_ul)
-    GC.setColor(theme.text)
-    GC.setAlpha(.16)
+    gc_replaceTransform(SCR.xOy_ul)
+    gc_setColor(theme.text)
+    gc_setAlpha(.16)
     FONT.set(30)
-    GC.print("Audio Count   " .. srcCount - #srcLib .. "   /  " .. srcCount - 1, 100, 10)
+    gc_print("Audio Count   " .. srcCount - #srcLib .. "   /  " .. srcCount - 1, 100, 10)
 
-    GC.replaceTransform(SCR.xOy_l)
-    GC.translate(100, 0)
-    GC.scale(260, -260)
-    GC.translate(-editor.scrX1, -editor.scrY1)
+    gc_replaceTransform(SCR.xOy_l)
+    gc_translate(100, 0)
+    gc_scale(260, -260)
+    gc_translate(-editor.scrX1, -editor.scrY1)
 
-    GC.setColor(1, 1, 1, MATH.clampInterpolate(.1, 1, .26, .26, editor.scrX1))
-    GC.draw(TEX[editor.theme].keyboard, keyboardQuad, editor.scrX1 - .36, 3.206, 0, .00184, -.00184)
+    gc_setColor(1, 1, 1, MATH.clampInterpolate(.1, 1, .26, .26, editor.scrX1))
+    gc_draw(TEX[editor.theme].keyboard, keyboardQuad, editor.scrX1 - .36, 3.206, 0, .00184, -.00184)
 
     -- Grid line
     do
-        GC.setLineWidth(.01)
-        GC.setColor(theme.dim[editor.customGrid])
-        local dist = math.log(ssvt.dimData[editor.customGrid].freq, 2)
+        gc_setLineWidth(.01)
+        gc_setColor(theme.dim[editor.customGrid])
+        local dist = log(ssvt.dimData[editor.customGrid].freq, 2)
         local y = 0
         while y < 3.5 do
-            GC.line(-1, y, 26, y)
+            gc_line(-1, y, 26, y)
             y = y + dist
         end
         y = -dist
         while y > -2.6 do
-            GC.line(-1, y, 26, y)
+            gc_line(-1, y, 26, y)
             y = y - dist
         end
     end
@@ -653,12 +669,12 @@ function scene.draw()
         local s, e = editor.editing, editor.selMark or editor.editing
         if s > e then s, e = e, s end
         s, e = (s - 1) * 1.2, e * 1.2
-        GC.setColor(theme.select)
-        GC.rectangle('fill', s, -6, e - s, 12)
+        gc_setColor(theme.select)
+        gc_rectangle('fill', s, -6, e - s, 12)
         if editor.selMark then
-            GC.setColor(theme.cursor)
-            GC.draw(TEX.transition, s, 0, 0, .2 / 128, 12, 0, .5)
-            GC.draw(TEX.transition, e, 0, 0, -.2 / 128, 12, 0, .5)
+            gc_setColor(theme.cursor)
+            gc_draw(TEX.transition, s, 0, 0, .2 / 128, 12, 0, .5)
+            gc_draw(TEX.transition, e, 0, 0, -.2 / 128, 12, 0, .5)
         end
     end
 
@@ -666,52 +682,52 @@ function scene.draw()
     if preview.playing then
         local s, e = preview.start, preview.stop
         s, e = (s - 1) * 1.2, e * 1.2
-        GC.setColor(theme.preview)
-        GC.draw(TEX.transition, s, 0, 0, .2 / 128, 12, 0, .5)
-        GC.draw(TEX.transition, e, 0, 0, -.2 / 128, 12, 0, .5)
-        GC.setLineWidth(.026)
-        GC.setColor(theme.playline)
+        gc_setColor(theme.preview)
+        gc_draw(TEX.transition, s, 0, 0, .2 / 128, 12, 0, .5)
+        gc_draw(TEX.transition, e, 0, 0, -.2 / 128, 12, 0, .5)
+        gc_setLineWidth(.026)
+        gc_setColor(theme.playline)
         local progress = preview.playing + (1 - preview.timer / preview.timer0)
         local x = MATH.interpolate(preview.start, s, preview.stop + 1, e, progress)
-        GC.line(x, editor.scrY1 - 6, x, editor.scrY1 + 6)
+        gc_line(x, editor.scrY1 - 6, x, editor.scrY1 + 6)
     end
 
-    GC.push('transform')
+    gc_push('transform')
 
     for i = 1, #editor.chordList do
         -- Separator line
-        GC.setColor(theme.sepLine)
-        GC.setLineWidth(.01)
-        GC.line(1.2, editor.scrY1 - 6, 1.2, editor.scrY1 + 6)
+        gc_setColor(theme.sepLine)
+        gc_setLineWidth(.01)
+        gc_line(1.2, editor.scrY1 - 6, 1.2, editor.scrY1 + 6)
 
         -- Chord textures
-        GC.setColor(1, 1, 1)
+        gc_setColor(1, 1, 1)
         local texSrc = TEX[editor.theme]
         local drawData = editor.chordList[i].drawData
-        local move = math.log(editor.chordList[i].tree.pitch, 2)
+        local move = log(editor.chordList[i].tree.pitch, 2)
 
-        GC.translate(.1, move)
+        gc_translate(.1, move)
         for j = 1, #drawData do
             local d = drawData[j]
             local tex = texSrc[d.texture]
-            GC.draw(tex, d.x, d.y, 0, d.w / tex:getWidth(), d.h / tex:getHeight())
+            gc_draw(tex, d.x, d.y, 0, d.w / tex:getWidth(), d.h / tex:getHeight())
         end
-        GC.translate(-.1, -move)
+        gc_translate(-.1, -move)
 
         -- Text
-        GC.setColor(theme.text)
-        GC.print(editor.chordList[i].text, 0, -1.626 + editor.scrY1, 0, .005, -.005)
-        GC.setAlpha(.26)
-        GC.print(i, 0, -1.52 + editor.scrY1, 0, .003, -.003)
+        gc_setColor(theme.text)
+        gc_print(editor.chordList[i].text, .05, (i % 2 == 1 and -1.466 or -1.626) + editor.scrY1, 0, .005, -.005)
+        gc_setAlpha(.26)
+        gc_print(i, .05, (i % 2 == 1 and -1.4 or -1.78) + editor.scrY1, 0, .003, -.003)
 
         -- Cursor
         if editor.editing == i then
-            local y = math.log(editor.curPitch, 2)
-            GC.setColor(theme.cursor)
-            GC.setAlpha(.7 + .3 * math.sin(love.timer.getTime() * 6.2))
-            GC.setLineWidth(.01)
-            GC.rectangle('line', 0, y - .03, 1.2, .06)
-            GC.strokePrint(
+            local y = log(editor.curPitch, 2)
+            gc_setColor(theme.cursor)
+            gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
+            gc_setLineWidth(.01)
+            gc_rectangle('line', 0, y - .03, 1.2, .06)
+            gc_strokePrint(
                 'corner', .00626,
                 COLOR.D, COLOR.LS,
                 editor.cursorText,
@@ -720,9 +736,9 @@ function scene.draw()
             )
         end
 
-        GC.translate(1.2, 0)
+        gc_translate(1.2, 0)
     end
-    GC.pop()
+    gc_pop()
 end
 
 SCN.add('main', scene)
