@@ -47,6 +47,7 @@ Hold `Alt` to move current chord up/down, (default to 2d move, hold 1~7 to chang
 `Arrow Left/Right`: move cursor to previous/next chord  
 Hold `Ctrl` to scroll horizontally  
 Hold `Alt` to move selected note to left/right side
+Hold `Shift` to select multiple chords
 
 `Enter`: add a new chord to the right of the current chord
 

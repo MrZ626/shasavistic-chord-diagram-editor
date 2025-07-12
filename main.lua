@@ -116,6 +116,7 @@ local ssvt = require('chord')
 local chordList = {}
 local edit = {
     editing = 0,
+    selMark = false,
     cursor = {}, ---@type number[]
     cursorText = "0",
     curPitch = 1,
@@ -279,7 +280,15 @@ function scene.keyDown(key, isRep)
         end
     elseif key == 'left' or key == 'right' then
         if KBisDown('lctrl', 'rctrl') then return end
-        if KBisDown('lalt', 'ralt') then
+        if KBisDown('lshift', 'rshift') then
+            -- Select
+            local newPos = MATH.clamp(edit.editing + (key == 'left' and -1 or 1), 1, #chordList)
+            if newPos ~= edit.editing then
+                if not edit.selMark then edit.selMark = edit.editing end
+                edit.editing = newPos
+                if edit.selMark == edit.editing then edit.selMark = false end
+            end
+        elseif KBisDown('lalt', 'ralt') then
             -- Bias note
             if #edit.cursor == 0 then return end
             local chord, curNote = edit:getChord(), edit:getNote()
@@ -297,6 +306,7 @@ function scene.keyDown(key, isRep)
                 edit.curPitch = edit:getChord().tree.pitch
                 edit:refreshText()
             end
+            edit.selMark = false
         end
     elseif key == 'return' then
         if isRep then return end
@@ -321,9 +331,14 @@ function scene.keyDown(key, isRep)
     elseif key == 'delete' then
         if isRep then return end
         -- Delete current chord
-        rem(chordList, edit.editing)
+        local s, e = edit.editing, edit.selMark or edit.editing
+        if s > e then s, e = e, s end
+        for i = e, s, -1 do
+            rem(chordList, i)
+        end
         if edit.editing > #chordList then edit.editing = #chordList end
         if #chordList == 0 then newChord() end
+        edit.selMark = false
     elseif key == '.' then
         if isRep then return end
         -- Mark selected note as fake note
@@ -381,11 +396,13 @@ function scene.keyDown(key, isRep)
         if isRep then return end
         if KBisDown('lctrl', 'rctrl') then
             local buffer = {}
-            for i = 1, #chordList do
-                buffer[i] = '"' .. chordList[i].text .. '"'
+            local s, e = edit.editing, edit.selMark or edit.editing
+            if s > e then s, e = e, s end
+            for i = s, e do
+                ins(buffer, '"' .. chordList[i].text .. '"')
             end
             CLIPBOARD.set(table.concat(buffer, ' '))
-            MSG('info', 'Copied ' .. #chordList .. ' chords to clipboard.')
+            MSG('info', 'Copied ' .. #buffer .. ' chords to clipboard.')
         end
     elseif key == 'v' then
         if isRep then return end
@@ -407,10 +424,15 @@ function scene.keyDown(key, isRep)
             MSG('info', 'Imported ' .. count .. ' chords from clipboard.')
         end
     elseif key == 'escape' then
-        if TASK.lock('quit_sure', 1) then
-            MSG('info', 'Press again to quit')
+        if edit.selMark then
+            -- Clear selection
+            edit.selMark = false
         else
-            ZENITHA._quit()
+            if TASK.lock('quit_sure', 1) then
+                MSG('info', 'Press again to quit')
+            else
+                ZENITHA._quit()
+            end
         end
     end
     return true
@@ -464,6 +486,17 @@ function scene.draw()
     end
 
     GC.push('transform')
+    -- Selection
+    GC.setColor(palette[mode].cursor)
+    GC.setAlpha(.042 + .026 * math.sin(love.timer.getTime() * 6.2))
+    ---@type number, number
+    local s, e = edit.editing, edit.selMark or edit.editing
+    if s > e then s, e = e, s end
+    GC.rectangle('fill', (s - 1) * 1.2 - .1, -6, (e - s + 1) * 1.2, 12)
+    if s ~= e then
+        GC.setAlpha(.626)
+        GC.rectangle('line', (s - 1) * 1.2 - .1, -6, (e - s + 1) * 1.2, 12)
+    end
     for i = 1, #chordList do
         -- Chord Textures
         GC.setColor(1, 1, 1)
