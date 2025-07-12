@@ -262,8 +262,7 @@ function preview:startChord()
     TABLE.clear(temp)
     for k, v in next, allInfo do
         if k:sub(-5) == 'pitch' then
-            if not temp[v] then
-                -- TODO: filter skipped notes
+            if not temp[v] and not allInfo[k:sub(1, -6) .. 'note'] then
                 self.count = self.count + 1
                 temp[v] = true
                 startNote(v, 'chord' .. self.count, .26)
