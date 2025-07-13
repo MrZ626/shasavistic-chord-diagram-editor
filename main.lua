@@ -3,10 +3,71 @@ require 'Zenitha'
 ZENITHA.setFirstScene('main')
 ZENITHA.setShowFPS(false)
 ZENITHA.setVersionText("")
--- ZENITHA.globalEvent.drawCursor = NULL
+
 ZENITHA.globalEvent.clickFX = NULL
 SCR.setSize(1600, 1000)
 love.mouse.setVisible(false)
+
+local ssvt = require('chord')
+
+local themes = {
+    dark = {
+        bgbase = { COLOR.HEX '61607B' },
+        bg = { COLOR.HEX '65647F' },
+        sepLine = { COLOR.HEX '00000010' },
+        select = { COLOR.HEX 'F5C40018' },
+        cursor = { COLOR.HEX 'F5C400FF' },
+        preview = { COLOR.HEX '00F1F580' },
+        playline = { COLOR.HEX '00F1F5' },
+        text = COLOR.L,
+        dim = {
+            { COLOR.HEX 'AAAAAA' },
+            { COLOR.HEX 'F27992' },
+            { COLOR.HEX '6CD985' },
+            { COLOR.HEX 'B598EE' },
+            { COLOR.HEX 'FFC247' },
+            { COLOR.HEX '3C3D12' },
+            { COLOR.HEX 'ED9877' },
+        },
+        dimGridColor = {
+            { COLOR.HEX 'AAAAAA42' },
+            { COLOR.HEX 'F2799226' },
+            { COLOR.HEX '2FD65626' },
+            { COLOR.HEX 'AA88EE26' },
+            { COLOR.HEX 'FFAA0126' },
+            { COLOR.HEX 'B5B50026' },
+            { COLOR.HEX 'ED987726' },
+        },
+    },
+    bright = {
+        bgbase = { COLOR.HEX 'DCD3C6' },
+        bg = { COLOR.HEX 'E0D7CA' },
+        sepLine = { COLOR.HEX '00000010' },
+        select = { COLOR.HEX 'FF312618' },
+        cursor = { COLOR.HEX 'FF312680' },
+        preview = { COLOR.HEX '2680FF80' },
+        playline = { COLOR.HEX '2680FF' },
+        text = COLOR.D,
+        dim = {
+            { COLOR.HEX 'AAAAAA' },
+            { COLOR.HEX 'F27992' },
+            { COLOR.HEX '17AB39' },
+            { COLOR.HEX 'AA88EE' },
+            { COLOR.HEX 'EA9C02' },
+            { COLOR.HEX 'B5B500' },
+            { COLOR.HEX 'ED9877' },
+        },
+        dimGridColor = {
+            { COLOR.HEX 'AAAAAA62' },
+            { COLOR.HEX 'F2799262' },
+            { COLOR.HEX '6CD98562' },
+            { COLOR.HEX 'B598EE62' },
+            { COLOR.HEX 'FFC24762' },
+            { COLOR.HEX 'B5B50062' },
+            { COLOR.HEX 'ED987762' },
+        },
+    },
+}
 
 local ins, rem = table.insert, table.remove
 local max, min = math.max, math.min
@@ -14,6 +75,7 @@ local floor, abs = math.floor, math.abs
 local sin, log = math.sin, math.log
 
 local KBisDown = love.keyboard.isDown
+local MSisDown = love.mouse.isDown
 
 do -- Texture
     TEX = {
@@ -135,8 +197,6 @@ end
 ---@field tree SSVT.Chord
 ---@field drawData table
 ---@field text string
-
-local ssvt = require('chord')
 
 local editor = {
     chordList = {}, ---@type wrappedChord[]
@@ -269,48 +329,6 @@ end
 
 editor:newChord()
 
-
-local themes = {
-    bright = {
-        bgbase = { COLOR.HEX 'DCD3C6' },
-        bg = { COLOR.HEX 'E0D7CA' },
-        sepLine = { COLOR.HEX '00000010' },
-        select = { COLOR.HEX 'FF312618' },
-        cursor = { COLOR.HEX 'FF312680' },
-        preview = { COLOR.HEX '2680FF80' },
-        playline = { COLOR.HEX '2680FF' },
-        text = COLOR.D,
-        dim = {
-            { COLOR.HEX 'AAAAAA62' },
-            { COLOR.HEX 'F2799262' },
-            { COLOR.HEX '6CD98562' },
-            { COLOR.HEX 'B598EE62' },
-            { COLOR.HEX 'FFC24762' },
-            { COLOR.HEX 'B5B50062' },
-            { COLOR.HEX 'ED987762' },
-        },
-    },
-    dark = {
-        bgbase = { COLOR.HEX '61607B' },
-        bg = { COLOR.HEX '65647F' },
-        sepLine = { COLOR.HEX '00000010' },
-        select = { COLOR.HEX 'F5C40018' },
-        cursor = { COLOR.HEX 'F5C400FF' },
-        preview = { COLOR.HEX '00F1F580' },
-        playline = { COLOR.HEX '00F1F5' },
-        text = COLOR.L,
-        dim = {
-            { COLOR.HEX 'AAAAAA42' },
-            { COLOR.HEX 'F2799226' },
-            { COLOR.HEX '2FD65626' },
-            { COLOR.HEX 'AA88EE26' },
-            { COLOR.HEX 'FFAA0126' },
-            { COLOR.HEX 'B5B50026' },
-            { COLOR.HEX 'ED987726' },
-        },
-    },
-}
-
 local preview = {
     playing = false,
     start = false,
@@ -369,7 +387,6 @@ end
 ---@type Zenitha.Scene
 local scene = {}
 
-local MSisDown = love.mouse.isDown
 function scene.mouseMove(_, _, dx, dy)
     if MSisDown(1) then
         editor:scroll(-dx / 260, dy / 260)
@@ -657,7 +674,7 @@ function scene.draw()
     -- Grid line
     do
         gc_setLineWidth(.01)
-        gc_setColor(theme.dim[editor.gridStep])
+        gc_setColor(theme.dimGridColor[editor.gridStep])
         local dist = log(ssvt.dimData[editor.gridStep].freq, 2)
         local y = 0
         gc_translate(editor.scrX1, 0)
@@ -749,6 +766,31 @@ function scene.draw()
         gc_translate(1.2, 0)
     end
     gc_pop()
+end
+
+function ZENITHA.globalEvent.drawCursor(x, y)
+    gc_setColor(COLOR.L)
+    gc_setLineWidth(3)
+    gc_setColor(1, 1, 1, .626)
+    gc_line(x - 13, y - 13, x + 13, y - 13)
+    gc_line(x - 13, y + 13, x + 13, y + 13)
+    gc_setLineWidth(6)
+    if MSisDown(1) then
+        gc_setColor(themes.dark.dim[2])
+        gc_line(x - 13, y - 13, x - 13, y + 13)
+    end
+    if MSisDown(2) then
+        gc_setColor(themes.dark.dim[3])
+        gc_line(x + 13, y - 13, x + 13, y + 13)
+    end
+    if MSisDown(3) then
+        gc_setColor(themes.dark.dim[4])
+        gc_line(x - 13, y + 13, x + 13, y - 13)
+    end
+    if MSisDown(4, 5, 6) then
+        gc_setColor(themes.dark.dim[5])
+        gc_line(x + 13, y - 13, x - 13, y + 13)
+    end
 end
 
 WIDGET.setDefaultOption {
