@@ -18,7 +18,7 @@ local themes = {
         select = { COLOR.HEX 'F5C40018' },
         cursor = { COLOR.HEX 'F5C400FF' },
         preview = { COLOR.HEX '00F1F580' },
-        playline = { COLOR.HEX '00F1F5' },
+        playline = { COLOR.HEX 'C0F0FF' },
         text = COLOR.L,
         dim = {
             { COLOR.HEX 'AAAAAA' },
@@ -46,7 +46,7 @@ local themes = {
         select = { COLOR.HEX 'FF312618' },
         cursor = { COLOR.HEX 'FF312680' },
         preview = { COLOR.HEX '2680FF80' },
-        playline = { COLOR.HEX '2680FF' },
+        playline = { COLOR.HEX '0042D0' },
         text = COLOR.D,
         dim = {
             { COLOR.HEX 'AAAAAA' },
@@ -200,18 +200,27 @@ end
 
 local editor = {
     chordList = {}, ---@type wrappedChord[]
-    editing = 0,
+    cursor = 0,
     selMark = false,
-    cursor = {}, ---@type number[]
+    nCur = {}, ---@type number[]
     cursorText = "0",
     curPitch = 1,
+
     combo = '', ---@type '' | 'C' | 'S' | 'A'
+
     scrX = 0,  -- Actual scroll position
     scrY = 0,
     scrX1 = 0, -- Smooth scroll position, follow {scrollX, editor.scrY} by time
     scrY1 = 0,
+
     theme = 'dark',
     gridStep = 2,
+
+    playing = false,
+    start = false,
+    stop = false,
+    count = 0,
+    timer = 0,
 }
 
 -- Scroll
@@ -221,18 +230,18 @@ function editor:scroll(dx, dy)
 end
 
 function editor:getChord()
-    return self.chordList[self.editing]
+    return self.chordList[self.cursor]
 end
 
 function editor:getNote()
-    return TABLE.listIndex(self.chordList[self.editing].tree, self.cursor)
+    return TABLE.listIndex(self.chordList[self.cursor].tree, self.nCur)
 end
 
 function editor:refreshText()
     local buffer = "0"
     local tree = self:getChord().tree
-    for i = 1, #self.cursor do
-        tree = tree[self.cursor[i]]
+    for i = 1, #self.nCur do
+        tree = tree[self.nCur[i]]
         buffer = buffer .. (tree.d > 0 and '+' or '') .. tree.d
     end
     self.cursorText = buffer
@@ -259,32 +268,32 @@ function editor:newChord()
         text = "0",
     }
     self:redrawChord(chord)
-    ins(self.chordList, self.editing + 1, chord)
+    ins(self.chordList, self.cursor + 1, chord)
     self:moveCursor(1)
 end
 
 function editor:moveCursor(offset)
-    local newPos = MATH.clamp(self.editing + offset, 1, #self.chordList)
+    local newPos = MATH.clamp(self.cursor + offset, 1, #self.chordList)
     if self.combo == 'S' then
-        if not self.selMark then self.selMark = self.editing end
+        if not self.selMark then self.selMark = self.cursor end
     elseif self.selMark then
         if abs(offset) == 1 then
-            newPos = (offset == -1 and min or max)(self.editing, self.selMark)
+            newPos = (offset == -1 and min or max)(self.cursor, self.selMark)
         end
         self.selMark = false
     end
-    if newPos ~= self.editing then
-        self.editing = newPos
-        TABLE.clear(self.cursor)
+    if newPos ~= self.cursor then
+        self.cursor = newPos
+        TABLE.clear(self.nCur)
         self.curPitch = self:getChord().tree.pitch
         self:refreshText()
     end
-    self.scrX = MATH.clamp(self.scrX, (self.editing - 4.8) * 1.2, (self.editing - 1) * 1.2)
+    self.scrX = MATH.clamp(self.scrX, (self.cursor - 4.8) * 1.2, (self.cursor - 1) * 1.2)
 end
 
 function editor:moveChord(chord, step)
     self:reCalculatePitch(chord.tree, chord.tree.pitch * ssvt.dimData[step].freq)
-    if chord == self.chordList[self.editing] then
+    if chord == self.chordList[self.cursor] then
         self.curPitch = chord.tree.pitch
     end
 end
@@ -294,7 +303,7 @@ function editor:deleteChord(s, e)
     for i = e, s, -1 do
         rem(self.chordList, i)
     end
-    if self.editing > #self.chordList then self.editing = #self.chordList end
+    if self.cursor > #self.chordList then self.cursor = #self.chordList end
     if #self.chordList == 0 then self:newChord() end
 end
 
@@ -312,7 +321,7 @@ function editor:dumpChords(s, e)
 end
 
 function editor:pasteChords(buffer, after)
-    local s = after or self.editing
+    local s = after or self.cursor
     local count = 0
     for str in buffer:gmatch('"(.-)"') do
         local chord = {
@@ -324,38 +333,30 @@ function editor:pasteChords(buffer, after)
         count = count + 1
         ins(self.chordList, s + count, chord)
     end
+    return count
 end
 
-editor:newChord()
-
-local preview = {
-    playing = false,
-    start = false,
-    stop = false,
-    count = 0,
-    timer = 0,
-}
-
-function preview:stopChord(stopAll)
+function editor:stopChord(stopAll)
     for i = 1, self.count do audio.stopNote('chord' .. i) end
     if stopAll then
         self.start, self.stop = false, false
-        self.playing = false
+        self.playing, editor.timer = false, 0
     end
 end
 
-function preview:playNextChord()
+function editor:playNextChord()
     if self.playing >= self.stop then
         self.playing = false
         self.start, self.stop = false, false
     else
         self.playing = self.playing + 1
-        self:startChord()
+        self:playChord()
     end
 end
 
 local temp = {}
-function preview:startChord()
+function editor:playChord()
+    UTIL.trace()
     if self.timer > 0 then self:stopChord() end
 
     self.coun = 0
@@ -386,6 +387,10 @@ end
 ---@type Zenitha.Scene
 local scene = {}
 
+function scene.load()
+    editor:newChord()
+end
+
 function scene.mouseMove(_, _, dx, dy)
     if MSisDown(1) then
         editor:scroll(-dx / 260, dy / 260)
@@ -410,18 +415,19 @@ function scene.keyDown(key, isRep)
 
     if key == 'space' then
         if isRep then return true end
-        if preview.playing then preview:stopChord(true) end
-        if editor.combo == 'C' then
-            -- Preview selected note
+        if editor.playing then
+            editor:stopChord(true)
+        elseif editor.combo == 'S' then
+            -- Play selected note
             audio.playNote(editor.curPitch, 'space')
         else
-            -- Preview selected chords
-            preview.start, preview.stop = editor.editing, editor.selMark or editor.editing
-            if preview.start > preview.stop then preview.start, preview.stop = preview.stop, preview.start end
-            preview.playing = preview.start
-            -- preview.timer0 = .5 + .5 / (preview.stop - preview.start + 1)
-            preview.timer0 = .626
-            preview:startChord()
+            -- Play selected chords
+            editor.start, editor.stop = editor.cursor, editor.selMark or editor.cursor
+            if editor.start > editor.stop then editor.start, editor.stop = editor.stop, editor.start end
+            editor.playing = editor.start
+            -- editor.timer0 = .5 + .5 / (editor.stop - editor.start + 1)
+            editor.timer0 = .626
+            editor:playChord()
         end
     elseif key == 'down' or key == 'up' then
         if editor.combo == 'C' then return true end
@@ -430,7 +436,7 @@ function scene.keyDown(key, isRep)
             editor:moveChord(editor:getChord(), key == 'up' and editor.gridStep or -editor.gridStep)
         else
             -- Select note
-            local allInfo = TABLE.flatten(TABLE.copyAll(editor.chordList[editor.editing].tree))
+            local allInfo = TABLE.flatten(TABLE.copyAll(editor.chordList[editor.cursor].tree))
             local pitches = {}
             for k, v in next, allInfo do
                 if k:sub(-5) == 'pitch' then
@@ -450,9 +456,9 @@ function scene.keyDown(key, isRep)
                 while curPos > 1 and (pitches[curPos][1] >= editor.curPitch) do curPos = curPos - 1 end
             end
             editor.curPitch = pitches[curPos][1]
-            editor.cursor = STRING.split(pitches[curPos][2], ".")
-            for i = 1, #editor.cursor do
-                editor.cursor[i] = tonumber(editor.cursor[i])
+            editor.nCur = STRING.split(pitches[curPos][2], ".")
+            for i = 1, #editor.nCur do
+                editor.nCur[i] = tonumber(editor.nCur[i])
             end
             editor:refreshText()
         end
@@ -460,7 +466,7 @@ function scene.keyDown(key, isRep)
         if editor.combo == 'C' then return true end
         if editor.combo == 'A' then
             -- Bias note
-            if #editor.cursor == 0 then return true end
+            if #editor.nCur == 0 then return true end
             local chord, curNote = editor:getChord(), editor:getNote()
             local tar = key == 'left' and 'l' or 'r'
             if curNote.bias ~= tar then
@@ -495,8 +501,8 @@ function scene.keyDown(key, isRep)
             editor.curPitch = 1
         else
             -- Delete selected note
-            if #editor.cursor == 0 then return true end
-            local n = rem(editor.cursor, #editor.cursor)
+            if #editor.nCur == 0 then return true end
+            local n = rem(editor.nCur, #editor.nCur)
             local chord, curNote = editor:getChord(), editor:getNote()
             rem(curNote, n)
             editor:redrawChord(chord)
@@ -506,7 +512,7 @@ function scene.keyDown(key, isRep)
     elseif key == 'delete' then
         if isRep then return true end
         -- Delete current chord
-        editor:deleteChord(editor.editing, editor.selMark or editor.editing)
+        editor:deleteChord(editor.cursor, editor.selMark or editor.cursor)
         editor.selMark = false
     elseif key == '.' then
         if isRep then return true end
@@ -580,20 +586,23 @@ function scene.keyDown(key, isRep)
     elseif key == 'a' then
         if editor.combo == 'C' then
             -- Select all
-            editor:moveCursor(1e99)
-            editor.selMark = 1
+            editor:moveCursor(-1e99)
+            editor.selMark = #editor.chordList
         end
     elseif key == 'c' then
         if isRep then return true end
         if editor.combo == 'C' then
             -- Copy
-            CLIPBOARD.set(table.concat(editor:dumpChords(editor.editing, editor.selMark or editor.editing), ' '))
+            local res = editor:dumpChords(editor.cursor, editor.selMark or editor.cursor)
+            CLIPBOARD.set(table.concat(res, ' '))
+            MSG('check', "Copied" .. #res .. " chords")
         end
     elseif key == 'v' then
         if isRep then return true end
         if editor.combo == 'C' then
             -- Paste
-            editor:pasteChords(CLIPBOARD.get())
+            local count = editor:pasteChords(CLIPBOARD.get())
+            MSG('check', "Pasted" .. count .. " chords")
         end
     elseif key == 'escape' then
         if isRep then return true end
@@ -615,14 +624,16 @@ function scene.keyUp(key)
 end
 
 function scene.update(dt)
-    if preview.timer > 0 then
-        preview.timer = preview.timer - dt
-        if preview.timer <= 0 then
-            preview:stopChord()
-            preview:playNextChord()
+    if editor.timer > 0 then
+        editor.timer = editor.timer - dt
+        if editor.timer <= 0 then
+            editor:stopChord()
+            editor:playNextChord()
+        end
+        if editor.playing and editor.selMark and abs(editor.cursor - editor.selMark) + 1 >= 4 then
+            editor:scroll((editor.playing - editor.timer / editor.timer0) * 1.2 - .26 - editor.scrX, 0)
         end
     end
-    if dt == 0 then return end
     editor.scrX1 = MATH.expApproach(editor.scrX1, editor.scrX, dt * 20)
     editor.scrY1 = MATH.expApproach(editor.scrY1, editor.scrY, dt * 20)
     if KBisDown('lctrl', 'rctrl') then
@@ -690,7 +701,7 @@ function scene.draw()
     -- Selection
     do
         ---@type number, number
-        local s, e = editor.editing, editor.selMark or editor.editing
+        local s, e = editor.cursor, editor.selMark or editor.cursor
         if s > e then s, e = e, s end
         s, e = (s - 1) * 1.2, e * 1.2
         gc_setColor(theme.select)
@@ -700,20 +711,6 @@ function scene.draw()
             gc_draw(TEX.transition, s, 0, 0, .2 / 128, 12, 0, .5)
             gc_draw(TEX.transition, e, 0, 0, -.2 / 128, 12, 0, .5)
         end
-    end
-
-    -- Preview selection
-    if preview.playing then
-        local s, e = preview.start, preview.stop
-        s, e = (s - 1) * 1.2, e * 1.2
-        gc_setColor(theme.preview)
-        gc_draw(TEX.transition, s, 0, 0, .2 / 128, 12, 0, .5)
-        gc_draw(TEX.transition, e, 0, 0, -.2 / 128, 12, 0, .5)
-        gc_setLineWidth(.026)
-        gc_setColor(theme.playline)
-        local progress = preview.playing + (1 - preview.timer / preview.timer0)
-        local x = MATH.interpolate(preview.start, s, preview.stop + 1, e, progress)
-        gc_line(x, editor.scrY1 - 6, x, editor.scrY1 + 6)
     end
 
     gc_push('transform')
@@ -745,7 +742,7 @@ function scene.draw()
         gc_print(i, .05, (i % 2 == 1 and -1.4 or -1.78) + editor.scrY1, 0, .003, -.003)
 
         -- Cursor
-        if editor.editing == i then
+        if editor.cursor == i then
             local y = log(editor.curPitch, 2)
             gc_setColor(theme.cursor)
             gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
@@ -763,6 +760,20 @@ function scene.draw()
         gc_translate(1.2, 0)
     end
     gc_pop()
+
+    -- Playing selection
+    if editor.playing then
+        local s, e = editor.start, editor.stop
+        s, e = (s - 1) * 1.2, e * 1.2
+        gc_setColor(theme.preview)
+        gc_draw(TEX.transition, s, 0, 0, .2 / 128, 12, 0, .5)
+        gc_draw(TEX.transition, e, 0, 0, -.2 / 128, 12, 0, .5)
+        gc_setLineWidth(.026)
+        gc_setColor(theme.playline)
+        local progress = editor.playing + (1 - editor.timer / editor.timer0)
+        local x = MATH.interpolate(editor.start, s, editor.stop + 1, e, progress)
+        gc_line(x, editor.scrY1 - 6, x, editor.scrY1 + 6)
+    end
 end
 
 function ZENITHA.globalEvent.drawCursor(x, y)
@@ -834,8 +845,11 @@ Help (Navigation):
   +shift: create selection
   +ctrl: view scroll
 
+  PgUp/PgDn: move cursor by 4
+  Home/End: move cursor to start/end
+
   Space: play chord(s)
-  +ctrl: play note
+  +shift: play note
 
   Ctrl+A: select all
 
