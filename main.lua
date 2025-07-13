@@ -790,7 +790,7 @@ function scene.draw()
     gc_rectangle('line', 0, y - .03, 1.2, .06)
     gc_strokePrint(
         'corner', .00626,
-        COLOR.D, COLOR.LS,
+        COLOR.D, theme.cursor,
         editor.cursorText,
         -.04, y + .16, nil, 'left',
         0, .0035, -.0035
@@ -895,6 +895,7 @@ Help (Navigation)
   Shift+V: paste before cursor
 
   Tab: dark/light theme
+  F11: toggle fullscreen
 ]]
 scene.widgetList = {
     WIDGET.new {
