@@ -211,10 +211,8 @@ local editor = {
 
     combo = '', ---@type '' | 'C' | 'S' | 'A'
 
-    scrX = 0,  -- Actual scroll position
+    scrX = 0, -- Scroll position
     scrY = 0,
-    scrX1 = 0, -- Smooth scroll position, follow {scrollX, editor.scrY} by time
-    scrY1 = 0,
 
     theme = 'dark',
     gridStep = 2,
@@ -224,6 +222,12 @@ local editor = {
     playR = false,
     count = 0,
     timer = 0,
+
+    -- Animation variables
+    cursor1 = 0,
+    curPitch1 = 0,
+    scrX1 = 0,
+    scrY1 = 0,
 }
 
 -- Scroll
@@ -664,6 +668,8 @@ function scene.update(dt)
             editor:scroll((editor.playing - editor.timer / editor.timer0) * 1.2 - .26 - editor.scrX, 0)
         end
     end
+    editor.cursor1 = MATH.expApproach(editor.cursor1, editor.cursor, dt * 35)
+    editor.curPitch1 = MATH.expApproach(editor.curPitch1, editor.curPitch, dt * 35)
     editor.scrX1 = MATH.expApproach(editor.scrX1, editor.scrX, dt * 20)
     editor.scrY1 = MATH.expApproach(editor.scrY1, editor.scrY, dt * 20)
     if KBisDown('lctrl', 'rctrl') then
@@ -731,7 +737,7 @@ function scene.draw()
     -- Selection
     do
         ---@type number, number
-        local s, e = editor.cursor, editor.selMark or editor.cursor
+        local s, e = editor.cursor1, editor.selMark or editor.cursor1
         if s > e then s, e = e, s end
         s, e = (s - 1) * 1.2, e * 1.2
         gc_setColor(theme.select)
@@ -771,25 +777,25 @@ function scene.draw()
         gc_setAlpha(.26)
         gc_print(i, .05, (i % 2 == 1 and -1.4 or -1.78) + editor.scrY1, 0, .003, -.003)
 
-        -- Cursor
-        if editor.cursor == i then
-            local y = log(editor.curPitch, 2)
-            gc_setColor(theme.cursor)
-            gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
-            gc_setLineWidth(.01)
-            gc_rectangle('line', 0, y - .03, 1.2, .06)
-            gc_strokePrint(
-                'corner', .00626,
-                COLOR.D, COLOR.LS,
-                editor.cursorText,
-                -.04, y + .16, nil, 'left',
-                0, .0035, -.0035
-            )
-        end
-
         gc_translate(1.2, 0)
     end
     gc_pop()
+
+    -- Cursor
+    GC.ucs_move('m', 1.2 * (editor.cursor1 - 1), 0)
+    local y = log(editor.curPitch1, 2)
+    gc_setColor(theme.cursor)
+    gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
+    gc_setLineWidth(.01)
+    gc_rectangle('line', 0, y - .03, 1.2, .06)
+    gc_strokePrint(
+        'corner', .00626,
+        COLOR.D, COLOR.LS,
+        editor.cursorText,
+        -.04, y + .16, nil, 'left',
+        0, .0035, -.0035
+    )
+    GC.ucs_back()
 
     -- Playing selection
     if editor.playing then
