@@ -346,6 +346,7 @@ function editor:pasteChords(buffer, after)
             tree = ssvt.decode(str),
             text = str,
         }
+        chord.tree.d = 0 -- Force root note being legal
         self:reCalculatePitch(chord.tree, 1)
         self:redrawChord(chord)
         count = count + 1

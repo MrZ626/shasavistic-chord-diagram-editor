@@ -154,9 +154,9 @@ end
 local function decode(str)
     ---@type SSVT.Chord
     local buf = { d = 0 }
-    local note = str:match("^%-?%d+")
+    local note = str:match('^%-?%d+')
     if note then
-        buf.d = tonumber(note:match("%-?%d+"))
+        buf.d = tonumber(note:match('%-?%d+'))
         str = str:sub(#note + 1)
     end
     while true do
@@ -176,7 +176,7 @@ local function decode(str)
         end
         str = str:sub(2)
     end
-    local branch = string.match(str, "%b()")
+    local branch = string.match(str, '%b()')
     if branch then
         branch = branch:sub(2, -2) -- Remove outer parentheses (and garbages come after)
         local resStrings = {}
@@ -184,12 +184,12 @@ local function decode(str)
         local start = 1
         for i = 1, #branch do
             local char = branch:sub(i, i)
-            if char == "(" then
+            if char == '(' then
                 balance = balance + 1
-            elseif char == ")" then
+            elseif char == ')' then
                 balance = balance - 1
-                assert(balance >= 0, "More ( than )")
-            elseif char == "," and balance == 0 then
+                -- assert(balance >= 0, "More ( than )") -- Impossible
+            elseif char == ',' and balance == 0 then
                 ins(resStrings, branch:sub(start, i - 1))
                 start = i + 1
             end
@@ -207,18 +207,18 @@ end
 local function encode(chord)
     local str = {}
     if chord.d then ins(str, chord.d) end
-    if chord.base then ins(str, "x") end
+    if chord.base then ins(str, 'x') end
     if chord.bias then ins(str, chord.bias) end
-    if chord.note then ins(str, ".") end
+    if chord.note then ins(str, '.') end
     if chord[1] then
-        ins(str, "(")
+        ins(str, '(')
         for i = 1, #chord do
             ins(str, encode(chord[i]))
             if i < #chord then
-                ins(str, ",")
+                ins(str, ',')
             end
         end
-        ins(str, ")")
+        ins(str, ')')
     end
     return table.concat(str)
 end
