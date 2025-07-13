@@ -77,6 +77,9 @@ local sin, log = math.sin, math.log
 local KBisDown = love.keyboard.isDown
 local MSisDown = love.mouse.isDown
 
+local function pitchSorter(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2]) end
+local function levelSorter(a, b) return a.d < b.d end
+
 do -- Texture
     TEX = {
         bright = {}, ---@type SSVT.Texture
@@ -283,7 +286,24 @@ function editor:moveCursor(offset)
     end
     if newPos ~= self.cursor then
         self.cursor = newPos
-        -- TODO: snap
+
+        -- Snap cursor to closest note
+        local allInfo = TABLE.flatten(TABLE.copyAll(self.chordList[self.cursor].tree))
+        local pitchInfo = {}
+        for k, v in next, allInfo do
+            if k:sub(-5) == 'pitch' then
+                ins(pitchInfo, { v, k:sub(1, -7) })
+            end
+        end
+        table.sort(pitchInfo, pitchSorter)
+        TABLE.transpose(pitchInfo) -- {pitches, keys}
+        local curPos = floor(MATH.ilLerp(pitchInfo[1], self.curPitch) * (#pitchInfo[1] - 1) + 1 + .5)
+        editor.curPitch = pitchInfo[1][curPos]
+        editor.nCur = STRING.split(pitchInfo[2][curPos], ".")
+        for i = 1, #editor.nCur do
+            editor.nCur[i] = tonumber(editor.nCur[i])
+        end
+
         self:refreshText()
     end
     self.scrX = MATH.clamp(self.scrX, (self.cursor - 4.8) * 1.2, (self.cursor - 1) * 1.2)
@@ -404,8 +424,6 @@ function scene.wheelMove(_, dy)
     end
 end
 
-local function pitchSorter(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2]) end
-local function levelSorter(a, b) return a.d < b.d end
 function scene.keyDown(key, isRep)
     if key == 'lctrl' or key == 'rctrl' or key == 'lshift' or key == 'rshift' or key == 'lalt' or key == 'ralt' then
         if editor.combo == '' then editor.combo = key:sub(2, 2):upper() end
@@ -436,27 +454,27 @@ function scene.keyDown(key, isRep)
         else
             -- Select note
             local allInfo = TABLE.flatten(TABLE.copyAll(editor.chordList[editor.cursor].tree))
-            local pitches = {}
+            local pitchInfo = {}
             for k, v in next, allInfo do
                 if k:sub(-5) == 'pitch' then
-                    ins(pitches, { v, k:sub(1, -7) })
+                    ins(pitchInfo, { v, k:sub(1, -7) })
                 end
             end
-            table.sort(pitches, pitchSorter)
+            table.sort(pitchInfo, pitchSorter)
             local curPos
-            for i = 1, #pitches do
-                if pitches[i][1] == editor.curPitch then
+            for i = 1, #pitchInfo do
+                if pitchInfo[i][1] == editor.curPitch then
                     curPos = i; break
                 end
             end
             if not curPos then return end
             if key == 'up' then
-                while curPos < #pitches and (pitches[curPos][1] <= editor.curPitch) do curPos = curPos + 1 end
+                while curPos < #pitchInfo and (pitchInfo[curPos][1] <= editor.curPitch) do curPos = curPos + 1 end
             else
-                while curPos > 1 and (pitches[curPos][1] >= editor.curPitch) do curPos = curPos - 1 end
+                while curPos > 1 and (pitchInfo[curPos][1] >= editor.curPitch) do curPos = curPos - 1 end
             end
-            editor.curPitch = pitches[curPos][1]
-            editor.nCur = STRING.split(pitches[curPos][2], ".")
+            editor.curPitch = pitchInfo[curPos][1]
+            editor.nCur = STRING.split(pitchInfo[curPos][2], ".")
             for i = 1, #editor.nCur do
                 editor.nCur[i] = tonumber(editor.nCur[i])
             end
@@ -756,11 +774,6 @@ function scene.draw()
             gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
             gc_setLineWidth(.01)
             gc_rectangle('line', 0, y - .03, 1.2, .06)
-            gc_line(
-                -.03, y - .10,
-                0.00, y - .06,
-                0.03, y - .10
-            )
             gc_strokePrint(
                 'corner', .00626,
                 COLOR.D, COLOR.LS,
@@ -869,6 +882,7 @@ Help (Navigation):
   Ctrl+C: copy selected
 
   Ctrl+V: paste after cursor
+  Shift+V: paste before cursor
 
   Tab: dark/light theme
 ]]
