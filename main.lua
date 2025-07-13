@@ -303,8 +303,11 @@ function editor:deleteChord(s, e)
     for i = e, s, -1 do
         rem(self.chordList, i)
     end
+    if #self.chordList == 0 then
+        self.cursor = 0
+        self:newChord()
+    end
     if self.cursor > #self.chordList then self:moveCursor(0) end
-    if #self.chordList == 0 then self:newChord() end
 end
 
 function editor:switchTheme()
