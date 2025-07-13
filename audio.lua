@@ -1,0 +1,61 @@
+local ins, rem = table.insert, table.remove
+
+-- Audio Source
+local srcCount = 0
+---@type love.Source[]
+local srcLib = {}
+do
+    local sampleRate = 48000
+    local baseFreq = 440
+    local loopCount = 62
+    local snd = love.sound.newSoundData(math.floor(sampleRate / baseFreq * loopCount), sampleRate, 16, 1)
+    for i = 0, snd:getSampleCount() - 1 do
+        local t = i / sampleRate
+        local v = math.sin(6.283185307179586 * baseFreq * t)
+        snd:setSample(i, MATH.sign(v) * math.abs(v) ^ .8)
+    end
+
+    srcLib[1] = love.audio.newSource(snd, "static")
+    srcLib[1]:setLooping(true)
+    srcCount = 1
+
+    snd:release()
+end
+
+---@type Map<love.Source>
+local activeSrc = {}
+
+local audio = {}
+
+function audio.playNote(freq, key, volume)
+    if #srcLib == 1 then
+        srcLib[2] = srcLib[1]:clone()
+        srcCount = srcCount + 1
+    end
+    for i = 2, #srcLib do
+        local s = srcLib[i]
+        if not s:isPlaying() then
+            rem(srcLib, i)
+            if activeSrc[key] then
+                activeSrc[key]:stop()
+                ins(srcLib, activeSrc[key])
+            end
+            activeSrc[key] = s
+            s:setVolume(volume or .26)
+            s:setPitch(freq)
+            s:play()
+            return
+        end
+    end
+end
+
+function audio.stopNote(key)
+    local s = activeSrc[key]
+    if s then
+        s:stop()
+        ins(srcLib, s)
+        activeSrc[key] = nil
+    end
+end
+
+return audio
