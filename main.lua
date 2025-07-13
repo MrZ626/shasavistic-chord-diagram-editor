@@ -269,7 +269,6 @@ function editor:newChord(pos)
     }
     self:redrawChord(chord)
     ins(self.chordList, MATH.clamp(pos, 1, #self.chordList + 1), chord)
-    self:moveCursor(1)
 end
 
 function editor:moveCursor(offset)
@@ -284,8 +283,7 @@ function editor:moveCursor(offset)
     end
     if newPos ~= self.cursor then
         self.cursor = newPos
-        TABLE.clear(self.nCur)
-        self.curPitch = self:getChord().tree.pitch
+        -- TODO: snap
         self:refreshText()
     end
     self.scrX = MATH.clamp(self.scrX, (self.cursor - 4.8) * 1.2, (self.cursor - 1) * 1.2)
@@ -330,8 +328,8 @@ function editor:pasteChords(buffer, after)
         }
         self:reCalculatePitch(chord.tree, 1)
         self:redrawChord(chord)
-        ins(self.chordList, s + count, chord)
         count = count + 1
+        ins(self.chordList, s + count, chord)
     end
     return count
 end
@@ -389,6 +387,7 @@ local scene = {}
 
 function scene.load()
     editor:newChord(1)
+    editor:moveCursor(0)
 end
 
 function scene.mouseMove(_, _, dx, dy)
@@ -450,6 +449,7 @@ function scene.keyDown(key, isRep)
                     curPos = i; break
                 end
             end
+            if not curPos then return end
             if key == 'up' then
                 while curPos < #pitches and (pitches[curPos][1] <= editor.curPitch) do curPos = curPos + 1 end
             else
@@ -494,6 +494,7 @@ function scene.keyDown(key, isRep)
         editor.combo = ''
         -- Create new chord
         editor:newChord(editor.cursor + 1)
+        editor:moveCursor(1)
     elseif key == 'backspace' then
         if isRep then return true end
         if editor.combo == 'A' then
@@ -601,9 +602,15 @@ function scene.keyDown(key, isRep)
     elseif key == 'v' then
         if isRep then return true end
         if editor.combo == 'C' then
-            -- Paste
+            -- Paste (after)
             local count = editor:pasteChords(CLIPBOARD.get())
             MSG('check', "Pasted " .. count .. " chords")
+        elseif editor.combo == 'S' then
+            -- Paste (before)
+            editor.cursor = editor.cursor - 1
+            local count = editor:pasteChords(CLIPBOARD.get())
+            MSG('check', "Pasted " .. count .. " chords")
+            editor.cursor = editor.cursor + 1
         end
     elseif key == 'escape' then
         if isRep then return true end
