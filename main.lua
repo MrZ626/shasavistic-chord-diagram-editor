@@ -262,13 +262,13 @@ function editor:redrawChord(chord)
     chord.text = ssvt.encode(chord.tree)
 end
 
-function editor:newChord()
+function editor:newChord(pos)
     local chord = {
         tree = { d = 0, pitch = 1 },
         text = "0",
     }
     self:redrawChord(chord)
-    ins(self.chordList, self.cursor + 1, chord)
+    ins(self.chordList, MATH.clamp(pos, 1, #self.chordList + 1), chord)
     self:moveCursor(1)
 end
 
@@ -303,11 +303,8 @@ function editor:deleteChord(s, e)
     for i = e, s, -1 do
         rem(self.chordList, i)
     end
-    if #self.chordList == 0 then
-        self.cursor = 0
-        self:newChord()
-    end
-    if self.cursor > #self.chordList then self:moveCursor(0) end
+    if #self.chordList == 0 then self:newChord(1) end
+    self:moveCursor(0)
 end
 
 function editor:switchTheme()
@@ -391,7 +388,7 @@ end
 local scene = {}
 
 function scene.load()
-    editor:newChord()
+    editor:newChord(1)
 end
 
 function scene.mouseMove(_, _, dx, dy)
@@ -496,7 +493,7 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         editor.combo = ''
         -- Create new chord
-        editor:newChord()
+        editor:newChord(editor.cursor + 1)
     elseif key == 'backspace' then
         if isRep then return true end
         if editor.combo == 'A' then
