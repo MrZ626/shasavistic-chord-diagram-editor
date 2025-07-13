@@ -625,6 +625,16 @@ function scene.keyDown(key, isRep)
             CLIPBOARD.set(table.concat(res, ' '))
             MSG('check', "Copied " .. #res .. " chords")
         end
+    elseif key == 'x' then
+        if isRep then return true end
+        if editor.combo == 'C' then
+            -- Cut (Copy+Delete)
+            local res = editor:dumpChords(editor.cursor, editor.selMark or editor.cursor)
+            CLIPBOARD.set(table.concat(res, ' '))
+            editor:deleteChord(editor.cursor, editor.selMark or editor.cursor)
+            editor.selMark = false
+            MSG('check', "Cut " .. #res .. " chords")
+        end
     elseif key == 'v' then
         if isRep then return true end
         if editor.combo == 'C' then
@@ -890,7 +900,7 @@ Help (Navigation)
   Ctrl+A: select all
 
   Ctrl+C: copy selected
-
+  Ctrl+X: cut selected
   Ctrl+V: paste after cursor
   Shift+V: paste before cursor
 
