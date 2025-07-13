@@ -330,8 +330,8 @@ function editor:pasteChords(buffer, after)
         }
         self:reCalculatePitch(chord.tree, 1)
         self:redrawChord(chord)
-        count = count + 1
         ins(self.chordList, s + count, chord)
+        count = count + 1
     end
     return count
 end
@@ -491,6 +491,7 @@ function scene.keyDown(key, isRep)
         editor:moveCursor(1e99)
     elseif key == 'return' then
         if isRep then return true end
+        editor.combo = ''
         -- Create new chord
         editor:newChord()
     elseif key == 'backspace' then
@@ -595,14 +596,14 @@ function scene.keyDown(key, isRep)
             -- Copy
             local res = editor:dumpChords(editor.cursor, editor.selMark or editor.cursor)
             CLIPBOARD.set(table.concat(res, ' '))
-            MSG('check', "Copied" .. #res .. " chords")
+            MSG('check', "Copied " .. #res .. " chords")
         end
     elseif key == 'v' then
         if isRep then return true end
         if editor.combo == 'C' then
             -- Paste
             local count = editor:pasteChords(CLIPBOARD.get())
-            MSG('check', "Pasted" .. count .. " chords")
+            MSG('check', "Pasted " .. count .. " chords")
         end
     elseif key == 'escape' then
         if isRep then return true end
@@ -748,6 +749,11 @@ function scene.draw()
             gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
             gc_setLineWidth(.01)
             gc_rectangle('line', 0, y - .03, 1.2, .06)
+            gc_line(
+                -.03, y - .10,
+                0.00, y - .06,
+                0.03, y - .10
+            )
             gc_strokePrint(
                 'corner', .00626,
                 COLOR.D, COLOR.LS,
