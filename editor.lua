@@ -5,6 +5,11 @@ local max, min = math.max, math.min
 local ins, rem = table.insert, table.remove
 local floor, abs = math.floor, math.abs
 
+---@class wrappedChord
+---@field tree SSVT.Chord
+---@field drawData table
+---@field text string
+
 local E = {
     chordList = {}, ---@type wrappedChord[]
     cursor = 0,
