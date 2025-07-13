@@ -220,8 +220,8 @@ local editor = {
     gridStep = 2,
 
     playing = false,
-    start = false,
-    stop = false,
+    playL = false,
+    playR = false,
     count = 0,
     timer = 0,
 }
@@ -274,6 +274,24 @@ function editor:newChord(pos)
     ins(self.chordList, MATH.clamp(pos, 1, #self.chordList + 1), chord)
 end
 
+function editor:snapCursor()
+    local allInfo = TABLE.flatten(TABLE.copyAll(self.chordList[self.cursor].tree))
+    local pitchInfo = {} -- {{pitch, key}, ...}
+    for k, v in next, allInfo do
+        if k:sub(-5) == 'pitch' then
+            ins(pitchInfo, { v, k:sub(1, -7) })
+        end
+    end
+    table.sort(pitchInfo, pitchSorter)
+    TABLE.transpose(pitchInfo) -- {pitches, keys}
+    local curPos = floor(MATH.ilLerp(pitchInfo[1], self.curPitch) * (#pitchInfo[1] - 1) + 1 + .5)
+    editor.curPitch = pitchInfo[1][curPos]
+    editor.nCur = STRING.split(pitchInfo[2][curPos], ".")
+    for i = 1, #editor.nCur do
+        editor.nCur[i] = tonumber(editor.nCur[i])
+    end
+end
+
 function editor:moveCursor(offset)
     local newPos = MATH.clamp(self.cursor + offset, 1, #self.chordList)
     if self.combo == 'S' then
@@ -286,25 +304,10 @@ function editor:moveCursor(offset)
     end
     if newPos ~= self.cursor then
         self.cursor = newPos
-
-        -- Snap cursor to closest note
-        local allInfo = TABLE.flatten(TABLE.copyAll(self.chordList[self.cursor].tree))
-        local pitchInfo = {}
-        for k, v in next, allInfo do
-            if k:sub(-5) == 'pitch' then
-                ins(pitchInfo, { v, k:sub(1, -7) })
-            end
-        end
-        table.sort(pitchInfo, pitchSorter)
-        TABLE.transpose(pitchInfo) -- {pitches, keys}
-        local curPos = floor(MATH.ilLerp(pitchInfo[1], self.curPitch) * (#pitchInfo[1] - 1) + 1 + .5)
-        editor.curPitch = pitchInfo[1][curPos]
-        editor.nCur = STRING.split(pitchInfo[2][curPos], ".")
-        for i = 1, #editor.nCur do
-            editor.nCur[i] = tonumber(editor.nCur[i])
-        end
-
+        self:snapCursor()
         self:refreshText()
+    else
+        self:snapCursor()
     end
     self.scrX = MATH.clamp(self.scrX, (self.cursor - 4.8) * 1.2, (self.cursor - 1) * 1.2)
 end
@@ -358,15 +361,15 @@ end
 function editor:stopChord(stopAll)
     for i = 1, self.count do audio.stopNote('chord' .. i) end
     if stopAll then
-        self.start, self.stop = false, false
+        self.playL, self.playR = false, false
         self.playing, editor.timer = false, 0
     end
 end
 
 function editor:playNextChord()
-    if self.playing >= self.stop then
+    if self.playing >= self.playR then
         self.playing = false
-        self.start, self.stop = false, false
+        self.playL, self.playR = false, false
     else
         self.playing = self.playing + 1
         self:playChord()
@@ -440,9 +443,9 @@ function scene.keyDown(key, isRep)
             audio.playNote(editor.curPitch, 'space')
         else
             -- Play selected chords
-            editor.start, editor.stop = editor.cursor, editor.selMark or editor.cursor
-            if editor.start > editor.stop then editor.start, editor.stop = editor.stop, editor.start end
-            editor.playing = editor.start
+            editor.playL, editor.playR = editor.cursor, editor.selMark or editor.cursor
+            if editor.playL > editor.playR then editor.playL, editor.playR = editor.playR, editor.playL end
+            editor.playing = editor.playL
             -- editor.timer0 = .5 + .5 / (editor.stop - editor.start + 1)
             editor.timer0 = .626
             editor:playChord()
@@ -790,7 +793,7 @@ function scene.draw()
 
     -- Playing selection
     if editor.playing then
-        local s, e = editor.start, editor.stop
+        local s, e = editor.playL, editor.playR
         s, e = (s - 1) * 1.2, e * 1.2
         gc_setColor(theme.preview)
         gc_draw(TEX.transition, s, 0, 0, .2 / 128, 12, 0, .5)
@@ -798,7 +801,7 @@ function scene.draw()
         gc_setLineWidth(.026)
         gc_setColor(theme.playline)
         local progress = editor.playing + (1 - editor.timer / editor.timer0)
-        local x = MATH.interpolate(editor.start, s, editor.stop + 1, e, progress)
+        local x = MATH.interpolate(editor.playL, s, editor.playR + 1, e, progress)
         gc_line(x, editor.scrY1 - 6, x, editor.scrY1 + 6)
     end
 end
@@ -847,7 +850,7 @@ WIDGET.setDefaultOption {
     },
 }
 local hintText1 = [[
-Help (Edit):
+Help (Edit)
   Num1-7: add note
   +shift: add downwards
   +ctrl: delete note
@@ -867,7 +870,7 @@ Help (Edit):
   '.': switch mute note
 ]]
 local hintText2 = [[
-Help (Navigation):
+Help (Navigation)
   Arrow: move cursor
   +shift: create selection
   +ctrl: view scroll
