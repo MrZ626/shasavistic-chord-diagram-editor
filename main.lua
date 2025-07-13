@@ -324,7 +324,6 @@ function editor:pasteChords(buffer, after)
         count = count + 1
         ins(self.chordList, s + count, chord)
     end
-    return count
 end
 
 editor:newChord()
@@ -588,18 +587,16 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         if editor.combo == 'C' then
             -- Copy
-            local res = editor:dumpChords(editor.editing, editor.selMark or editor.editing)
-            CLIPBOARD.set(table.concat(res, ' '))
-            MSG('info', 'Copied ' .. #res .. ' chords to clipboard.')
+            CLIPBOARD.set(table.concat(editor:dumpChords(editor.editing, editor.selMark or editor.editing), ' '))
         end
     elseif key == 'v' then
         if isRep then return true end
         if editor.combo == 'C' then
             -- Paste
-            local count = editor:pasteChords(CLIPBOARD.get())
-            MSG('info', 'Imported ' .. count .. ' chords from clipboard.')
+            editor:pasteChords(CLIPBOARD.get())
         end
     elseif key == 'escape' then
+        if isRep then return true end
         -- Clear selection
         editor.selMark = false
     end
@@ -855,7 +852,7 @@ scene.widgetList = {
         pos = { 1, 0 }, x = -40, y = 40, w = 60,
         labelPos = 'bottomLeft',
         floatText = hintText1,
-        floatFillColor = { 0, 0, 0, .26 },
+        floatFillColor = { .1, .1, .1, .62 },
     },
     WIDGET.new {
         type = 'hint', text = "?",
@@ -863,7 +860,7 @@ scene.widgetList = {
         pos = { 1, 0 }, x = -110, y = 40, w = 60,
         labelPos = 'bottomLeft',
         floatText = hintText2,
-        floatFillColor = { 0, 0, 0, .26 },
+        floatFillColor = { .1, .1, .1, .62 },
     },
 }
 
