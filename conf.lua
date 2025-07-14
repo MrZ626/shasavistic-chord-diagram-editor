@@ -1,5 +1,5 @@
 function love.conf(t)
-    t.identity="shasavistic_keyboard"--Saving folder
+    t.identity="chord_diagram_editor"--Saving folder
     t.version="11.1"
     t.gammacorrect=false
     t.appendidentity=true--Search files in source then in save directory
@@ -7,7 +7,7 @@ function love.conf(t)
     if t.audio then t.audio.mixwithsystem=true end
 
     local W=t.window
-    W.title="Shasavistic Keyboard"
+    W.title="Chord Diagram Editor"
     W.icon=nil
     W.width,W.height=1600,1000
     W.minwidth,W.minheight=160,100
