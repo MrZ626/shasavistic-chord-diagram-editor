@@ -457,7 +457,7 @@ Help (Navigation)
   +ctrl: view scroll
 
   PgUp/PgDn: move cursor by 4
-  Home/End: move cursor to start/end
+  Home/End: move cursor to end
 
   Space: play chord(s)
   +shift: play note
