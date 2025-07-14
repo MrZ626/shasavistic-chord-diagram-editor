@@ -440,6 +440,7 @@ Help (Edit)
   alt + Up/Dn: move chord by grid
 
   Bksp: delete note
+  +alt: reset chord height
 
   Enter: add new chord
 
