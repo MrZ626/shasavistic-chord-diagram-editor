@@ -134,9 +134,10 @@ function E:moveCursor(offset)
 end
 
 function E:moveChord(chord, step)
-    self:reCalculatePitch(chord.tree, chord.tree.pitch * ssvc.dimData[step].freq)
+    local k = ssvc.dimData[step].freq
+    self:reCalculatePitch(chord.tree, chord.tree.pitch * k)
     if chord == self.chordList[self.cursor] then
-        self.curPitch = chord.tree.pitch
+        self.curPitch = self.curPitch * k
     end
 end
 
