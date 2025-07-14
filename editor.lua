@@ -37,6 +37,7 @@ local E = {
     curPitch1 = 0,
     scrX1 = 0,
     scrY1 = 0,
+    gridStepAnimTimer = 0,
 }
 
 local function pitchSorter(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2]) end

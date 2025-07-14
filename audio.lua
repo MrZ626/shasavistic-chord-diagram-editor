@@ -1,10 +1,10 @@
 local ins, rem = table.insert, table.remove
 
--- Audio Source
+local srcLib = {} ---@type love.Source[]
+local activeSrc = {} ---@type Map<love.Source>
 local srcCount = 0
----@type love.Source[]
-local srcLib = {}
-do
+
+do -- Create first sudio source
     local sampleRate = 48000
     local baseFreq = 440
     local loopCount = 62
@@ -17,13 +17,11 @@ do
 
     srcLib[1] = love.audio.newSource(snd, "static")
     srcLib[1]:setLooping(true)
-    srcCount = 1
+    srcCount = srcCount + 1
 
     snd:release()
 end
 
----@type Map<love.Source>
-local activeSrc = {}
 
 local audio = {}
 
@@ -56,6 +54,10 @@ function audio.stopNote(key)
         ins(srcLib, s)
         activeSrc[key] = nil
     end
+end
+
+function audio.getCount()
+    return srcCount, #srcLib
 end
 
 return audio

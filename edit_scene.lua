@@ -1,15 +1,16 @@
+local themes = require('themes')
 local ssvc = require('chord')
 local audio = require('audio')
 local editor = require('editor')
 
 local ins, rem = table.insert, table.remove
+local max = math.max
 local abs = math.abs
 local sin, log = math.sin, math.log
 
 local KBisDown = love.keyboard.isDown
 local MSisDown = love.mouse.isDown
 
-local themes = require('themes')
 
 ---@type Zenitha.Scene
 local scene = {}
@@ -182,6 +183,7 @@ function scene.keyDown(key, isRep)
         if editor.combo == 'A' then
             -- Set custom grid step
             editor.gridStep = keyNum
+            editor.gridStepAnimTimer = .42
         else
             -- Add/Remove note
             local step = keyNum
@@ -284,6 +286,7 @@ function scene.update(dt)
     editor.curPitch1 = MATH.expApproach(editor.curPitch1, editor.curPitch, dt * 35)
     editor.scrX1 = MATH.expApproach(editor.scrX1, editor.scrX, dt * 20)
     editor.scrY1 = MATH.expApproach(editor.scrY1, editor.scrY, dt * 20)
+    editor.gridStepAnimTimer = max(editor.gridStepAnimTimer - dt, 0)
     if KBisDown('lctrl', 'rctrl') then
         if KBisDown('left') then editor:scroll(-dt * 6.2, 0) end
         if KBisDown('right') then editor:scroll(dt * 6.2, 0) end
@@ -308,16 +311,19 @@ TEX.dark.keyboard:setWrap('clampzero', 'repeat')
 TEX.bright.keyboard:setWrap('clampzero', 'repeat')
 function scene.draw()
     local theme = themes[editor.theme]
+    local tex = TEX[editor.theme] ---@type SSVT.TextureMap
+
     gc_clear(theme.bgbase)
 
     gc_replaceTransform(SCR.xOy)
     gc_setColor(theme.bg)
     gc_rectangle('fill', 0, 0, SCR.w0, SCR.h0)
 
-    -- gc_replaceTransform(SCR.xOy_ul)
-    -- gc_setColor(theme.text)
-    -- gc_setAlpha(.16)
-    -- gc_print("Audio Count   " .. srcCount - #srcLib .. "   /  " .. srcCount - 1, 100, 10)
+    if editor.gridStepAnimTimer > 0 then
+        gc_replaceTransform(SCR.xOy_m)
+        gc_setColor(1, 1, 1, editor.gridStepAnimTimer)
+        GC.mDraw(tex.symbol[editor.gridStep], 0, 0, 0, 2)
+    end
 
     gc_replaceTransform(SCR.xOy_l)
     gc_translate(100, 0)
@@ -325,7 +331,7 @@ function scene.draw()
     gc_translate(-editor.scrX1, -editor.scrY1)
 
     gc_setColor(1, 1, 1, MATH.clampInterpolate(.1, 1, .26, .26, editor.scrX1))
-    gc_draw(TEX[editor.theme].keyboard, keyboardQuad, editor.scrX1 - .36, 3.206, 0, .00184, -.00184)
+    gc_draw(tex.keyboard, keyboardQuad, editor.scrX1 - .36, 3.206, 0, .00184, -.00184)
 
     -- Grid line
     do
@@ -371,15 +377,14 @@ function scene.draw()
 
         -- Chord textures
         gc_setColor(1, 1, 1)
-        local texSrc = TEX[editor.theme]
         local drawData = editor.chordList[i].drawData
         local move = log(editor.chordList[i].tree.pitch, 2)
 
         gc_translate(.1, move)
         for j = 1, #drawData do
             local d = drawData[j]
-            local tex = texSrc[d.texture]
-            gc_draw(tex, d.x, d.y, 0, d.w / tex:getWidth(), d.h / tex:getHeight())
+            local t = tex[d.texture]
+            gc_draw(t, d.x, d.y, 0, d.w / t:getWidth(), d.h / t:getHeight())
         end
         gc_translate(-.1, -move)
 

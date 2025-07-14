@@ -55,49 +55,59 @@ end
 SCR.setSize(1600, 1000)
 
 -- Texture
-TEX = {
-    bright = {}, ---@type SSVC.Texture
-    dark = {}, ---@type SSVC.Texture
-}
----@class SSVC.Texture
-local images = {
-    note = "pitch-line.png",
-    note_skip = "pitch-line-dotted.png",
-    -- pitch_canceled = "pitch-line-canceled.png",
-    body_1d = "1d-ascent-group.png",
-    body_2d = "2d-line.png",
-    body_3d = "3d-line.png",
-    body_4d = "4d-line.png",
-    body_5d = "5d-line.png",
-    body_6d = "6d-line.png",
-    body_7d = "7d-line.png",
-    base = "base-symbol.png",
-    node = "node.png",
-    keyboard = "keyboard-segment.png",
-    -- symbol_1d = "1d-symbol.png",
-    -- symbol_2d = "2d-symbol.png",
-    -- symbol_3d = "3d-symbol.png",
-    -- symbol_4d = "4d-symbol.png",
-    -- symbol_5d = "5d-symbol.png",
-    -- symbol_6d = "6d-symbol.png",
-    -- ascent_group = "1d-ascent-group.png",
-    -- ascent_triangle = "1d-ascent-triangle.png",
-    -- descent_group = "1d-descent-group.png",
-    -- descent_triangle = "1d-descent-triangle.png",
-    -- ascent_symbol = "ascent-symbol.png",
-    -- descent_symbol = "descent-symbol.png",
-}
-for k, v in next, images do
-    TEX.bright[k] = 'components/bright/' .. v
-    TEX.dark[k] = 'components/dark/' .. v
-end
-TEX = IMG.init(TEX, true)
+TEX = {}
 local transition = { w = 128, h = 1 }
 for x = 0, 127 do
     table.insert(transition, { 'setCL', 1, 1, 1, 1 - x / 128 })
     table.insert(transition, { 'fRect', x, 0, 1, 1 })
 end
 TEX.transition = GC.load(transition)
+
+---@return love.Texture
+local function src(name) return 'components/dark/' .. name end
+---@class SSVT.TextureMap
+TEX.dark = {
+    note = src "pitch-line.png",
+    note_skip = src "pitch-line-dotted.png",
+    -- pitch_canceled = src"pitch-line-canceled.png",
+    body_1d = src "1d-ascent-group.png",
+    body_2d = src "2d-line.png",
+    body_3d = src "3d-line.png",
+    body_4d = src "4d-line.png",
+    body_5d = src "5d-line.png",
+    body_6d = src "6d-line.png",
+    body_7d = src "7d-line.png",
+    base = src "base-symbol.png",
+    node = src "node.png",
+    keyboard = src "keyboard-segment.png",
+    symbol = {
+        src "1d-symbol.png",
+        src "2d-symbol.png",
+        src "3d-symbol.png",
+        src "4d-symbol.png",
+        src "5d-symbol.png",
+        src "6d-symbol.png",
+        src "7d-symbol.png",
+    },
+    -- ascent_group = src"1d-ascent-group.png",
+    -- ascent_triangle = src"1d-ascent-triangle.png",
+    -- descent_group = src"1d-descent-group.png",
+    -- descent_triangle = src"1d-descent-triangle.png",
+    -- ascent_symbol = src"ascent-symbol.png",
+    -- descent_symbol = src"descent-symbol.png",
+}
+TEX.bright = {} ---@type SSVT.TextureMap
+for k, v in next, TEX.dark do
+    if type(v) == 'string' then
+        TEX.bright[k] = v:gsub('dark', 'bright')
+    else
+        TEX.bright[k] = {}
+        for k2, v2 in next, v do
+            TEX.bright[k][k2] = v2:gsub('dark', 'bright')
+        end
+    end
+end
+TEX = IMG.init(TEX, true)
 
 -- Widget
 WIDGET.setDefaultOption {
