@@ -438,18 +438,16 @@ Help (Edit)
   +ctrl: delete note
   +alt: switch grid step
 
-  alt + Left/Right: set note aside
   alt + Up/Dn: move chord by grid
+  alt + Left/Right: set note offset
 
   Bksp: delete note
   +alt: reset chord height
 
   Enter: add new chord
-
-  Del: delete chord(s)
+  Del: delete chord
 
   '/': switch base note
-
   '.': switch mute note
 ]]
 local hintText2 = [[
@@ -461,17 +459,16 @@ Help (Navigation)
   PgUp/PgDn: move cursor by 4
   Home/End: move cursor to end
 
-  Space: play chord(s)
+  Space: play chord
   +shift: play note
 
   Ctrl+A: select all
-
   Ctrl+C: copy selected
   Ctrl+X: cut selected
   Ctrl+V: paste after cursor
   Shift+V: paste before cursor
 
-  Tab: dark/light theme
+  Tab: switch dark/light theme
   F11: toggle fullscreen
 ]]
 scene.widgetList = {
