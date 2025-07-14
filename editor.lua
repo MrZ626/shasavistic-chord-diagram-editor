@@ -1,4 +1,4 @@
-local ssvt = require('chord')
+local ssvc = require('chord')
 local audio = require('audio')
 
 local max, min = math.max, math.min
@@ -6,7 +6,7 @@ local ins, rem = table.insert, table.remove
 local floor, abs = math.floor, math.abs
 
 ---@class wrappedChord
----@field tree SSVT.Chord
+---@field tree SSVC.Chord
 ---@field drawData table
 ---@field text string
 
@@ -72,16 +72,16 @@ end
 function E:reCalculatePitch(tree, curPitch)
     for _, v in next, tree do
         if type(v) == 'table' then
-            self:reCalculatePitch(v, curPitch * ssvt.dimData[v.d].freq)
+            self:reCalculatePitch(v, curPitch * ssvc.dimData[v.d].freq)
         end
     end
     tree.pitch = curPitch
 end
 
 function E:redrawChord(chord)
-    local data = ssvt.drawChord(chord.tree)
+    local data = ssvc.drawChord(chord.tree)
     chord.drawData = data
-    chord.text = ssvt.encode(chord.tree)
+    chord.text = ssvc.encode(chord.tree)
 end
 
 function E:newChord(pos)
@@ -133,7 +133,7 @@ function E:moveCursor(offset)
 end
 
 function E:moveChord(chord, step)
-    self:reCalculatePitch(chord.tree, chord.tree.pitch * ssvt.dimData[step].freq)
+    self:reCalculatePitch(chord.tree, chord.tree.pitch * ssvc.dimData[step].freq)
     if chord == self.chordList[self.cursor] then
         self.curPitch = chord.tree.pitch
     end
@@ -166,7 +166,7 @@ function E:pasteChords(buffer, after)
     local count = 0
     for str in buffer:gmatch('"(.-)"') do
         local chord = {
-            tree = ssvt.decode(str),
+            tree = ssvc.decode(str),
             text = str,
         }
         chord.tree.d = 0 -- Force root note being legal

@@ -6,15 +6,60 @@ ZENITHA.setFirstScene('main')
 ZENITHA.setShowFPS(false)
 ZENITHA.setVersionText("")
 
+-- globalEvent
+local MSisDown, KBisDown = love.mouse.isDown, love.keyboard.isDown
+local gc = love.graphics
+local gc_setColor, gc_setLineWidth = gc.setColor, gc.setLineWidth
+local gc_line = gc.line
+
+ZENITHA.globalEvent.clickFX = NULL
+
+function ZENITHA.globalEvent.keyDown(key, isRep)
+    if isRep then return end
+    if KBisDown('lctrl', 'rctrl') then return end
+    if key == 'f11' then
+        love.window.setFullscreen(not love.window.getFullscreen())
+    elseif key == 'f8' then
+        local m = ZENITHA.getDevMode()
+        ZENITHA.setDevMode(m == false and 1)
+    end
+end
+
+local themes = require('themes')
+function ZENITHA.globalEvent.drawCursor(x, y)
+    gc_setColor(COLOR.L)
+    gc_setLineWidth(3)
+    gc_setColor(1, 1, 1, .626)
+    gc_line(x - 13, y - 13, x + 13, y - 13)
+    gc_line(x - 13, y + 13, x + 13, y + 13)
+    gc_setLineWidth(6)
+    if MSisDown(1) then
+        gc_setColor(themes.dark.dim[2])
+        gc_line(x - 13, y - 13, x - 13, y + 13)
+    end
+    if MSisDown(2) then
+        gc_setColor(themes.dark.dim[3])
+        gc_line(x + 13, y - 13, x + 13, y + 13)
+    end
+    if MSisDown(3) then
+        gc_setColor(themes.dark.dim[4])
+        gc_line(x - 13, y + 13, x + 13, y - 13)
+    end
+    if MSisDown(4, 5, 6) then
+        gc_setColor(themes.dark.dim[5])
+        gc_line(x + 13, y - 13, x - 13, y + 13)
+    end
+end
+
 -- Screen
 SCR.setSize(1600, 1000)
 
 -- Texture
 TEX = {
-    bright = {}, ---@type SSVT.Texture
-    dark = {}, ---@type SSVT.Texture
+    bright = {}, ---@type SSVC.Texture
+    dark = {}, ---@type SSVC.Texture
 }
----@class SSVT.Texture
+---@class SSVC.Texture
 local images = {
     note = "pitch-line.png",
     note_skip = "pitch-line-dotted.png",
@@ -74,4 +119,5 @@ WIDGET.setDefaultOption {
     },
 }
 
+-- Scene
 SCN.add('main', require('edit_scene'))

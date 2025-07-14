@@ -1,4 +1,4 @@
-local ssvt = require('chord')
+local ssvc = require('chord')
 local audio = require('audio')
 local editor = require('editor')
 
@@ -9,64 +9,7 @@ local sin, log = math.sin, math.log
 local KBisDown = love.keyboard.isDown
 local MSisDown = love.mouse.isDown
 
-local themes = {
-    dark = {
-        bgbase = { COLOR.HEX '61607B' },
-        bg = { COLOR.HEX '65647F' },
-        sepLine = { COLOR.HEX '00000010' },
-        select = { COLOR.HEX 'F5C40018' },
-        cursor = { COLOR.HEX 'F5C400FF' },
-        preview = { COLOR.HEX '00F1F580' },
-        playline = { COLOR.HEX 'C0F0FF' },
-        text = COLOR.L,
-        dim = {
-            { COLOR.HEX 'AAAAAA' },
-            { COLOR.HEX 'F27992' },
-            { COLOR.HEX '6CD985' },
-            { COLOR.HEX 'B598EE' },
-            { COLOR.HEX 'FFC247' },
-            { COLOR.HEX '3C3D12' },
-            { COLOR.HEX 'ED9877' },
-        },
-        dimGridColor = {
-            { COLOR.HEX 'AAAAAA42' },
-            { COLOR.HEX 'F2799226' },
-            { COLOR.HEX '2FD65626' },
-            { COLOR.HEX 'AA88EE26' },
-            { COLOR.HEX 'FFAA0126' },
-            { COLOR.HEX 'B5B50026' },
-            { COLOR.HEX 'ED987726' },
-        },
-    },
-    bright = {
-        bgbase = { COLOR.HEX 'DCD3C6' },
-        bg = { COLOR.HEX 'E0D7CA' },
-        sepLine = { COLOR.HEX '00000010' },
-        select = { COLOR.HEX 'FF312618' },
-        cursor = { COLOR.HEX 'FF312680' },
-        preview = { COLOR.HEX '2680FF80' },
-        playline = { COLOR.HEX '0042D0' },
-        text = COLOR.D,
-        dim = {
-            { COLOR.HEX 'AAAAAA' },
-            { COLOR.HEX 'F27992' },
-            { COLOR.HEX '17AB39' },
-            { COLOR.HEX 'AA88EE' },
-            { COLOR.HEX 'EA9C02' },
-            { COLOR.HEX 'B5B500' },
-            { COLOR.HEX 'ED9877' },
-        },
-        dimGridColor = {
-            { COLOR.HEX 'AAAAAA62' },
-            { COLOR.HEX 'F2799262' },
-            { COLOR.HEX '6CD98562' },
-            { COLOR.HEX 'B598EE62' },
-            { COLOR.HEX 'FFC24762' },
-            { COLOR.HEX 'B5B50062' },
-            { COLOR.HEX 'ED987762' },
-        },
-    },
-}
+local themes = require('themes')
 
 ---@type Zenitha.Scene
 local scene = {}
@@ -258,7 +201,7 @@ function scene.keyDown(key, isRep)
                     editor:redrawChord(chord)
                 end
             else
-                local pitch = editor.curPitch * ssvt.dimData[step].freq
+                local pitch = editor.curPitch * ssvc.dimData[step].freq
                 if not exist then
                     ins(curNote, { d = step, pitch = pitch })
                     table.sort(curNote, editor._levelSorter)
@@ -388,7 +331,7 @@ function scene.draw()
     do
         gc_setLineWidth(.01)
         gc_setColor(theme.dimGridColor[editor.gridStep])
-        local dist = log(ssvt.dimData[editor.gridStep].freq, 2)
+        local dist = log(ssvc.dimData[editor.gridStep].freq, 2)
         local y = 0
         gc_translate(editor.scrX1, 0)
         while y < 3.5 do
@@ -541,43 +484,5 @@ scene.widgetList = {
         floatFillColor = { .1, .1, .1, .62 },
     },
 }
-
-ZENITHA.globalEvent.clickFX = NULL
-
-function ZENITHA.globalEvent.keyDown(key, isRep)
-    if isRep then return end
-    if KBisDown('lctrl', 'rctrl') then return end
-    if key == 'f11' then
-        love.window.setFullscreen(not love.window.getFullscreen())
-    elseif key == 'f8' then
-        local m = ZENITHA.getDevMode()
-        ZENITHA.setDevMode(m == false and 1)
-    end
-end
-
-function ZENITHA.globalEvent.drawCursor(x, y)
-    gc_setColor(COLOR.L)
-    gc_setLineWidth(3)
-    gc_setColor(1, 1, 1, .626)
-    gc_line(x - 13, y - 13, x + 13, y - 13)
-    gc_line(x - 13, y + 13, x + 13, y + 13)
-    gc_setLineWidth(6)
-    if MSisDown(1) then
-        gc_setColor(themes.dark.dim[2])
-        gc_line(x - 13, y - 13, x - 13, y + 13)
-    end
-    if MSisDown(2) then
-        gc_setColor(themes.dark.dim[3])
-        gc_line(x + 13, y - 13, x + 13, y + 13)
-    end
-    if MSisDown(3) then
-        gc_setColor(themes.dark.dim[4])
-        gc_line(x - 13, y + 13, x + 13, y - 13)
-    end
-    if MSisDown(4, 5, 6) then
-        gc_setColor(themes.dark.dim[5])
-        gc_line(x + 13, y - 13, x - 13, y + 13)
-    end
-end
 
 return scene

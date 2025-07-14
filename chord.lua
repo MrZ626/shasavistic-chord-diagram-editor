@@ -21,25 +21,25 @@ end
 
 local ins = table.insert
 
----@alias SSVT.Dim number
+---@alias SSVC.Dim number
 
----@class SSVT.Chord
----@field d? SSVT.Dim
+---@class SSVC.Chord
+---@field d? SSVC.Dim
 ---@field note? 'skip' | 'mute'
 ---@field bias? 'l' | 'r'
 ---@field base? true
----@field [number] SSVT.Chord
+---@field [number] SSVC.Chord
 
----@class SSVT.Shape
+---@class SSVC.Shape
 ---@field mode 'polygon' | 'path'
 ---@field _layer number
 ---@field color string
 ---@field points (string | number)[]
 
----@type SSVT.Shape[]
+---@type SSVC.Shape[]
 local drawBuffer
 
----@class SSVT.Environment
+---@class SSVC.Environment
 local env = {
     bodyW = .1,   -- body width
     noteW = .014, -- Note width
@@ -105,7 +105,7 @@ local function drawBody(d, x1, y1, x2, y2)
     end
 end
 
----@param chord SSVT.Chord
+---@param chord SSVC.Chord
 ---@param x1 number
 ---@param x2 number
 local function DrawBranch(chord, x1, x2)
@@ -141,7 +141,7 @@ local function DrawBranch(chord, x1, x2)
     moveOrigin(0, -nData.yStep)
 end
 
----@param chord SSVT.Chord
+---@param chord SSVC.Chord
 local function drawChord(chord)
     drawBuffer = {}
     DrawBranch(chord, 0, 1)
@@ -150,9 +150,9 @@ local function drawChord(chord)
 end
 
 ---@param str string
----@return SSVT.Chord
+---@return SSVC.Chord
 local function decode(str)
-    ---@type SSVT.Chord
+    ---@type SSVC.Chord
     local buf = { d = 0 }
     local note = str:match('^%-?%d+')
     if note then
@@ -202,7 +202,7 @@ local function decode(str)
     return buf
 end
 
----@param chord SSVT.Chord
+---@param chord SSVC.Chord
 ---@return string
 local function encode(chord)
     local str = {}
