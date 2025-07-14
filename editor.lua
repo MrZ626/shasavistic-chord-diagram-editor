@@ -46,6 +46,12 @@ local function levelSorter(a, b) return a.d < b.d end
 E._pitchSorter = pitchSorter
 E._levelSorter = levelSorter
 
+function E:getSelection()
+    local s, e = self.cursor, self.selMark or self.cursor
+    if s > e then s, e = e, s end
+    return s, e
+end
+
 -- Scroll
 function E:scroll(dx, dy)
     self.scrX = MATH.clamp(self.scrX + dx, 0, (max(#self.chordList, 4.8) - 4.8) * 1.2)
@@ -142,7 +148,6 @@ function E:moveChord(chord, step)
 end
 
 function E:deleteChord(s, e)
-    if s > e then s, e = e, s end
     for i = e, s, -1 do
         rem(self.chordList, i)
     end
@@ -155,7 +160,6 @@ function E:switchTheme()
 end
 
 function E:dumpChords(s, e)
-    if s > e then s, e = e, s end
     local buffer = {}
     for i = s, e do
         ins(buffer, '"' .. self.chordList[i].text .. '"')

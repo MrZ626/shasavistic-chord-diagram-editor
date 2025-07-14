@@ -49,8 +49,7 @@ function scene.keyDown(key, isRep)
             audio.playNote(editor.curPitch, 'space')
         else
             -- Play selected chords
-            editor.playL, editor.playR = editor.cursor, editor.selMark or editor.cursor
-            if editor.playL > editor.playR then editor.playL, editor.playR = editor.playR, editor.playL end
+            editor.playL, editor.playR = editor:getSelection()
             editor.playing = editor.playL
             -- editor.timer0 = .5 + .5 / (editor.stop - editor.start + 1)
             editor.timer0 = .626
@@ -60,7 +59,10 @@ function scene.keyDown(key, isRep)
         if editor.combo == 'C' then return true end
         if editor.combo == 'A' then
             -- Move chord
-            editor:moveChord(editor:getChord(), key == 'up' and editor.gridStep or -editor.gridStep)
+            local s, e = editor:getSelection()
+            for i = s, e do
+                editor:moveChord(editor.chordList[i], key == 'up' and editor.gridStep or -editor.gridStep)
+            end
         else
             -- Select note
             local allInfo = TABLE.flatten(TABLE.copyAll(editor.chordList[editor.cursor].tree))
@@ -143,7 +145,7 @@ function scene.keyDown(key, isRep)
     elseif key == 'delete' then
         if isRep then return true end
         -- Delete current chord
-        editor:deleteChord(editor.cursor, editor.selMark or editor.cursor)
+        editor:deleteChord(editor:getSelection())
         editor.selMark = false
     elseif key == '.' then
         if isRep then return true end
@@ -225,7 +227,7 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         if editor.combo == 'C' then
             -- Copy
-            local res = editor:dumpChords(editor.cursor, editor.selMark or editor.cursor)
+            local res = editor:dumpChords(editor:getSelection())
             CLIPBOARD.set(table.concat(res, ' '))
             MSG('check', "Copied " .. #res .. " chords")
         end
@@ -233,9 +235,9 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         if editor.combo == 'C' then
             -- Cut (Copy+Delete)
-            local res = editor:dumpChords(editor.cursor, editor.selMark or editor.cursor)
+            local res = editor:dumpChords(editor:getSelection())
             CLIPBOARD.set(table.concat(res, ' '))
-            editor:deleteChord(editor.cursor, editor.selMark or editor.cursor)
+            editor:deleteChord(editor:getSelection())
             editor.selMark = false
             MSG('check', "Cut " .. #res .. " chords")
         end
