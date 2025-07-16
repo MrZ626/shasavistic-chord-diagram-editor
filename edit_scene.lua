@@ -4,9 +4,9 @@ local audio = require('audio')
 local editor = require('editor')
 
 local ins, rem = table.insert, table.remove
-local max = math.max
-local abs = math.abs
+local max, abs = math.max, math.abs
 local sin, log = math.sin, math.log
+local floor = math.floor
 
 local KBisDown = love.keyboard.isDown
 local MSisDown = love.mouse.isDown
@@ -406,6 +406,7 @@ function scene.draw()
         gc_setColor(theme.cursor)
         local x, y = 1.2 * (editor.cursor1 - 1), -log(editor.curPitch1, 2)
         gc_draw(TEX.transition, editor.scrX1 - .62, y, 0, .62 / 128, 2.6 / 128, 0, .5)
+        gc_print(floor(440 * editor.curPitch), editor.scrX1 - .37, y - .09, 0, .0018)
         gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
         gc_setLineWidth(.01)
         gc_rectangle('line', x, y - .03, 1.2, .06)
