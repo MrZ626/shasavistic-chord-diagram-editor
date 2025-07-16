@@ -60,7 +60,8 @@ function E:scroll(dx, dy)
 end
 
 function E:scale(dk)
-    self.scrK = MATH.clamp(self.scrK * dk, .42, 1)
+    self.scrK = MATH.clamp(self.scrK * dk, .5, 1)
+    self.scrX = MATH.clamp(self.scrX, 0, max(#self.chordList - 4.8 / self.scrK, 0) * 1.2)
 end
 
 function E:focusCursor()
@@ -118,12 +119,16 @@ end
 
 -- Operation
 
-function E:newChord(pos)
-    local chord = {
-        tree = { d = 0, pitch = 1 },
-        text = "0",
-        textObj = GC.newText(FONT.get(30), "0"),
+local function newChordObj(tree, text)
+    return {
+        tree = tree or { d = 0, pitch = 1 },
+        text = text or "0",
+        textObj = GC.newText(FONT.get(30), text or "0"),
     }
+end
+
+function E:newChord(pos)
+    local chord = newChordObj()
     self:renderChord(chord)
     ins(self.chordList, MATH.clamp(pos, 1, #self.chordList + 1), chord)
 end
@@ -184,7 +189,8 @@ end
 
 function E:deleteChord(s, e)
     for i = e, s, -1 do
-        rem(self.chordList, i)
+        local chord = rem(self.chordList, i)
+        chord.textObj:release()
     end
     if #self.chordList == 0 then
         self:newChord(1)
@@ -194,19 +200,16 @@ end
 function E:dumpChord(s, e)
     local buffer = {}
     for i = s, e do
-        ins(buffer, '"' .. self.chordList[i].textObj .. '"')
+        ins(buffer, '"' .. self.chordList[i].text .. '"')
     end
     return buffer
 end
 
-function E:pasteChord(buffer, after)
+function E:pasteChord(str, after)
     local s = after or self.cursor
     local count = 0
-    for str in buffer:gmatch('"(.-)"') do
-        local chord = {
-            tree = ssvc.decode(str),
-            text = str,
-        }
+    for sec in str:gmatch('"(.-)"') do
+        local chord = newChordObj(ssvc.decode(sec), sec)
         chord.tree.d = 0 -- Force root note being legal
         self:reCalculatePitch(chord.tree, 1)
         self:renderChord(chord)

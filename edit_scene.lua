@@ -192,7 +192,7 @@ function scene.keyDown(key, isRep)
             editor.gridStep = keyNum
             editor.gridStepAnimTimer = .42
             editor:focusCursor()
-        elseif editor.combo == '' then
+        elseif editor.combo == '' or editor.combo == 'S' then
             -- Add/Remove note
             local step = keyNum
             if editor.combo == 'S' then step = -step end
@@ -305,7 +305,7 @@ local gc_push, gc_pop = gc.push, gc.pop
 local gc_clear, gc_replaceTransform = gc.clear, gc.replaceTransform
 local gc_translate, gc_scale = gc.translate, gc.scale
 local gc_setColor, gc_setLineWidth = gc.setColor, gc.setLineWidth
-local gc_print, gc_printf, gc_draw, gc_line = gc.print, gc.printf, gc.draw, gc.line
+local gc_print, gc_draw, gc_line = gc.print, gc.draw, gc.line
 local gc_rectangle = gc.rectangle
 local gc_setAlpha = GC.setAlpha
 local gc_strokeDraw = GC.strokeDraw
@@ -316,7 +316,7 @@ TEX.bright.keyboard:setWrap('clampzero', 'repeat')
 function scene.draw()
     local theme = themes[editor.theme]
     local tex = TEX[editor.theme] ---@type SSVT.TextureMap
-    local x, y, k = editor.scrX1, editor.scrY1, editor.scrK1
+    local X, Y, K = editor.scrX1, editor.scrY1, editor.scrK1
 
     FONT.set(30)
 
@@ -334,10 +334,10 @@ function scene.draw()
 
     gc_replaceTransform(SCR.xOy_l)
     gc_translate(100, 0)
-    gc_scale(260 * k)
-    gc_translate(-x, -y)
-    local topY = y - 2.6 / k
-    local btmY = y + 2.6 / k
+    gc_scale(260 * K)
+    gc_translate(-X, -Y)
+    local topY = Y - 2.6 / K
+    local btmY = Y + 2.6 / K
 
     -- Grid line
     do
@@ -345,7 +345,7 @@ function scene.draw()
         gc_setColor(theme.dimGridColor[editor.gridStep])
         local dist = log(ssvc.dimData[editor.gridStep].freq, 2)
         local y = 0
-        gc_translate(x, 0)
+        gc_translate(X, 0)
         while y < 2.6 do
             gc_line(-2.6, y, 26, y)
             y = y + dist
@@ -355,7 +355,7 @@ function scene.draw()
             gc_line(-2.6, y, 26, y)
             y = y - dist
         end
-        gc_translate(-x, 0)
+        gc_translate(-X, 0)
     end
 
     -- Selection
@@ -393,25 +393,25 @@ function scene.draw()
 
         -- Chord Code
         gc_setColor(theme.text)
-        gc_scale(1 / k)
+        gc_scale(1 / K)
         local text = editor.chordList[i].textObj
-        gc_draw(text, .03, 1.75 + y * k, 0, min(.004, 1.14 / text:getWidth() * k), .004)
-        gc_scale(k)
+        gc_draw(text, .03, 1.75 + Y * K, 0, min(.004, 1.14 / text:getWidth() * K), .004)
+        gc_scale(K)
 
         gc_translate(1.2, 0)
     end
     gc_pop()
 
     -- Keyboard
-    gc_setColor(1, 1, 1, MATH.clampInterpolate(.1, 1, .26, .26, x))
-    gc_draw(tex.keyboard, keyboardQuad, x - .36, -3.206, 0, .00184)
+    gc_setColor(1, 1, 1, MATH.clampInterpolate(.1, 1, .26, .26, X))
+    gc_draw(tex.keyboard, keyboardQuad, X - .36, -3.206, 0, .00184)
 
     -- Cursor
     do
         gc_setColor(theme.cursor)
         local x, y = 1.2 * (editor.cursor1 - 1), -log(editor.curPitch1, 2)
-        gc_draw(TEX.transition, x - .62, y, 0, .62 / 128, 2.6 / 128, 0, .5)
-        gc_print(floor(440 * editor.curPitch), x - .37, y - .09, 0, .0018)
+        gc_draw(TEX.transition, X, y, 0, 1 / 128, 2.6 / 128, 128, .5)
+        gc_print(floor(440 * editor.curPitch), X - .37, y - .09, 0, .0018)
         gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
         gc_setLineWidth(.01)
         gc_rectangle('line', x, y - .03, 1.2, .06)
