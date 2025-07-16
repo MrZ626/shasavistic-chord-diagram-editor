@@ -366,6 +366,7 @@ function scene.draw()
         end
     end
 
+    -- Chords
     gc_push('transform')
     FONT.set(30)
     for i = 1, #editor.chordList do
@@ -377,7 +378,7 @@ function scene.draw()
         -- Chord textures
         gc_setColor(1, 1, 1)
         local drawData = editor.chordList[i].drawData
-        local move = log(editor.chordList[i].tree.pitch, 2)
+        local move = -log(editor.chordList[i].tree.pitch, 2)
 
         gc_translate(.1, move)
         for j = 1, #drawData do
