@@ -3,8 +3,8 @@ local ssvc = require('chord')
 local audio = require('audio')
 local editor = require('editor')
 
-local ins, rem = table.insert, table.remove
-local abs,floor =  math.abs,math.floor
+local ins = table.insert
+local abs, floor = math.abs, math.floor
 local sin, log = math.sin, math.log
 
 ---@type Zenitha.Scene
@@ -138,13 +138,7 @@ function scene.keyDown(key, isRep)
             editor:focusCursor()
         else
             -- Delete selected note
-            if #editor.nCur == 0 then return true end
-            local n = rem(editor.nCur, #editor.nCur)
-            local chord, curNote = editor:getChord(), editor:getNote()
-            rem(curNote, n)
-            editor:redrawChord(chord)
-            editor.curPitch = curNote.pitch
-            editor:refreshText()
+            editor:deleteCursorNote()
             editor:focusCursor()
         end
     elseif key == 'delete' then
@@ -455,8 +449,8 @@ Shift+V                   Paste before cursor
 Tab                       Switch theme
 F11                        Fullscreen
 ]]
-hintText1=hintText1:gsub(" ","  ")
-hintText2=hintText2:gsub(" ","  ")
+hintText1 = hintText1:gsub(" ", "  ")
+hintText2 = hintText2:gsub(" ", "  ")
 scene.widgetList = {
     WIDGET.new {
         type = 'hint', text = "?",

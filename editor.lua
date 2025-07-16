@@ -134,7 +134,7 @@ function E:snapCursor()
     end
     table.sort(pitchInfo, pitchSorter)
     TABLE.transpose(pitchInfo) -- {pitches, keys}
-    local curPos = floor(MATH.ilLerp(pitchInfo[1], self.curPitch) * (#pitchInfo[1] - 1) + 1 + .5)
+    local curPos = floor(.48 + 1 + MATH.ilLerp(pitchInfo[1], self.curPitch) * (#pitchInfo[1] - 1))
     E.curPitch = pitchInfo[1][curPos]
     E.nCur = STRING.split(pitchInfo[2][curPos], ".")
     for i = 1, #E.nCur do
@@ -166,6 +166,15 @@ function E:moveChord(chord, step)
     if chord == self.chordList[self.cursor] then
         self.curPitch = self.curPitch * k
     end
+end
+
+function E:deleteCursorNote()
+    if #E.nCur == 0 then return end
+    local n = rem(E.nCur)
+    rem(E:getNote(), n)
+    E:redrawChord(E:getChord())
+    E:snapCursor()
+    E:refreshText()
 end
 
 function E:deleteChord(s, e)
