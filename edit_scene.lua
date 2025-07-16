@@ -452,36 +452,39 @@ end
 
 local hintText1 = [[
 Help (Edit)
-  (Shift+)1-7               Add note (downwards)
-  (Alt+)1-7                   Change grid step
+1-7               Add note
+Shift+1-7         Add downwards
+/                 Mark base note
+.                 Mute note
 
-  (Alt+)Up/Down      Move chord
-  (Alt+)Left/Right    Bias note
+Alt+1-7          Change grid step
+Alt+Up/Down    Move chord
+Alt+Left/Right   Bias note
 
-  Bksp                           Delete note
-  (Alt+)Bksp                Reset chord pitch
+Bksp             Delete note
+Alt+Bksp         Reset chord pitch
 
-  Enter                          Add chord
-  Delete                        Delete chord
-  '/'                                 Switch base note
-  '.'                                  Switch mute note
+Enter            Add chord
+Delete           Delete chord
 ]]
 local hintText2 = [[
 Help (Navigation)
-  (Ctrl/Shift+)WHEEL             Scroll & Zoom
+(Ctrl/Shift+)WHEEL      Scroll & Zoom
 
-  ARROW                                     Move cursor
-  PgUp/PgDn/Home/End     Fast Move
-  Ctrl+ARROW/'-'/'='              Scroll & Zoom
+ARROW                  Move cursor
+PgUp/PgDn/Home/End  Fast Move
+Ctrl+ARROW/'-'/'='       Scroll & Zoom
 
-  Shift+[Move Cursor]            Create selection
-  Ctrl+A                                        Select all
-  Ctrl+C/V/X                              Copy/Paste/Cut
-  Shift+V                                      Paste before cursor
+Shift+[Move]             Create selection
+Ctrl+A                    Select all
+Ctrl+C/V/X               Copy/Paste/Cut
+Shift+V                   Paste before cursor
 
-  Tab                                              Switch dark / light theme
-  F11                                                Fullscreen
+Tab                       Switch theme
+F11                        Fullscreen
 ]]
+hintText1=hintText1:gsub(" ","  ")
+hintText2=hintText2:gsub(" ","  ")
 scene.widgetList = {
     WIDGET.new {
         type = 'hint', text = "?",
