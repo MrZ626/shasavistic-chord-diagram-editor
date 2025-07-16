@@ -5,6 +5,7 @@ local editor = require('editor')
 local converter = require('svg_converter')
 
 local ins = table.insert
+local min = math.min
 local abs, floor = math.abs, math.floor
 local sin, log = math.sin, math.log
 
@@ -99,7 +100,7 @@ function scene.keyDown(key, isRep)
             local tar = key == 'left' and 'l' or 'r'
             if curNote.bias ~= tar then
                 curNote.bias = not curNote.bias and tar or nil
-                editor:redrawChord(chord)
+                editor:renderChord(chord)
             end
             editor:focusCursor()
         else
@@ -158,7 +159,7 @@ function scene.keyDown(key, isRep)
         else
             curNote.note = abs(curNote.d) == 1 and 'skip' or 'mute'
         end
-        editor:redrawChord(chord)
+        editor:renderChord(chord)
         editor:focusCursor()
     elseif key == '/' then
         if isRep then return true end
@@ -178,7 +179,7 @@ function scene.keyDown(key, isRep)
             end
             curNote.base = true
         end
-        editor:redrawChord(chord)
+        editor:renderChord(chord)
         editor:focusCursor()
     elseif #key == 1 and MATH.between(tonumber(key) or 0, 1, 7) then
         if isRep then return true end
@@ -208,7 +209,7 @@ function scene.keyDown(key, isRep)
             if not exist then
                 ins(curNote, { d = step, pitch = pitch })
                 table.sort(curNote, editor._levelSorter)
-                editor:redrawChord(chord)
+                editor:renderChord(chord)
             end
             audio.playNote(pitch, key)
             editor:focusCursor()
@@ -304,9 +305,8 @@ local gc_push, gc_pop = gc.push, gc.pop
 local gc_clear, gc_replaceTransform = gc.clear, gc.replaceTransform
 local gc_translate, gc_scale = gc.translate, gc.scale
 local gc_setColor, gc_setLineWidth = gc.setColor, gc.setLineWidth
-local gc_draw, gc_line = gc.draw, gc.line
+local gc_print, gc_printf, gc_draw, gc_line = gc.print, gc.printf, gc.draw, gc.line
 local gc_rectangle = gc.rectangle
-local gc_print = gc.print
 local gc_setAlpha = GC.setAlpha
 local gc_strokeDraw = GC.strokeDraw
 
@@ -316,6 +316,7 @@ TEX.bright.keyboard:setWrap('clampzero', 'repeat')
 function scene.draw()
     local theme = themes[editor.theme]
     local tex = TEX[editor.theme] ---@type SSVT.TextureMap
+    local x, y, k = editor.scrX1, editor.scrY1, editor.scrK1
 
     FONT.set(30)
 
@@ -333,10 +334,10 @@ function scene.draw()
 
     gc_replaceTransform(SCR.xOy_l)
     gc_translate(100, 0)
-    gc_scale(260 * editor.scrK1)
-    gc_translate(-editor.scrX1, -editor.scrY1)
-    local topY = editor.scrY1 - 2.6 / editor.scrK1
-    local btmY = editor.scrY1 + 2.6 / editor.scrK1
+    gc_scale(260 * k)
+    gc_translate(-x, -y)
+    local topY = y - 2.6 / k
+    local btmY = y + 2.6 / k
 
     -- Grid line
     do
@@ -344,7 +345,7 @@ function scene.draw()
         gc_setColor(theme.dimGridColor[editor.gridStep])
         local dist = log(ssvc.dimData[editor.gridStep].freq, 2)
         local y = 0
-        gc_translate(editor.scrX1, 0)
+        gc_translate(x, 0)
         while y < 2.6 do
             gc_line(-2.6, y, 26, y)
             y = y + dist
@@ -354,7 +355,7 @@ function scene.draw()
             gc_line(-2.6, y, 26, y)
             y = y - dist
         end
-        gc_translate(-editor.scrX1, 0)
+        gc_translate(-x, 0)
     end
 
     -- Selection
@@ -391,26 +392,26 @@ function scene.draw()
         end
 
         -- Chord Code
-        local y = ((i % 2 == 1 and .75 or 1) - 2.6) / editor.scrK1 + editor.scrY1
         gc_setColor(theme.text)
-        gc_print(editor.chordList[i].text, .05, y, 0, .005)
-        gc_setAlpha(.26)
-        gc_print(i, .05, y - .07, 0, .003)
+        gc_scale(1 / k)
+        local text = editor.chordList[i].textObj
+        gc_draw(text, .03, 1.75 + y * k, 0, min(.004, 1.14 / text:getWidth() * k), .004)
+        gc_scale(k)
 
         gc_translate(1.2, 0)
     end
     gc_pop()
 
     -- Keyboard
-    gc_setColor(1, 1, 1, MATH.clampInterpolate(.1, 1, .26, .26, editor.scrX1))
-    gc_draw(tex.keyboard, keyboardQuad, editor.scrX1 - .36, -3.206, 0, .00184)
+    gc_setColor(1, 1, 1, MATH.clampInterpolate(.1, 1, .26, .26, x))
+    gc_draw(tex.keyboard, keyboardQuad, x - .36, -3.206, 0, .00184)
 
     -- Cursor
     do
         gc_setColor(theme.cursor)
         local x, y = 1.2 * (editor.cursor1 - 1), -log(editor.curPitch1, 2)
-        gc_draw(TEX.transition, editor.scrX1 - .62, y, 0, .62 / 128, 2.6 / 128, 0, .5)
-        gc_print(floor(440 * editor.curPitch), editor.scrX1 - .37, y - .09, 0, .0018)
+        gc_draw(TEX.transition, x - .62, y, 0, .62 / 128, 2.6 / 128, 0, .5)
+        gc_print(floor(440 * editor.curPitch), x - .37, y - .09, 0, .0018)
         gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
         gc_setLineWidth(.01)
         gc_rectangle('line', x, y - .03, 1.2, .06)

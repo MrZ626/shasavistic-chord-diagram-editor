@@ -7,7 +7,7 @@ return {
         cursor = { COLOR.HEX 'F5C400FF' },
         preview = { COLOR.HEX '00F1F580' },
         playline = { COLOR.HEX 'C0F0FFFF' },
-        text = COLOR.L,
+        text = { COLOR.HEX 'FFFFFF80' },
         dim = {
             { COLOR.HEX 'AAAAAAFF' },
             { COLOR.HEX 'F27992FF' },
@@ -35,7 +35,7 @@ return {
         cursor = { COLOR.HEX 'FF312680' },
         preview = { COLOR.HEX '2680FF80' },
         playline = { COLOR.HEX '0042D0FF' },
-        text = COLOR.D,
+        text = { COLOR.HEX '00000080' },
         dim = {
             { COLOR.HEX 'AAAAAAFF' },
             { COLOR.HEX 'F27992FF' },

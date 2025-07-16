@@ -12,6 +12,7 @@ local KBisDown = love.keyboard.isDown
 ---@field tree SSVC.Chord
 ---@field drawData table
 ---@field text string
+---@field textObj love.Text
 
 local E = {
     chordList = {}, ---@type wrappedChord[]
@@ -107,10 +108,12 @@ function E:reCalculatePitch(tree, curPitch)
     tree.pitch = curPitch
 end
 
-function E:redrawChord(chord)
+---@param chord wrappedChord
+function E:renderChord(chord)
     local data = ssvc.drawChord(chord.tree)
     chord.drawData = data
     chord.text = ssvc.encode(chord.tree)
+    chord.textObj:set(chord.text)
 end
 
 -- Operation
@@ -119,8 +122,9 @@ function E:newChord(pos)
     local chord = {
         tree = { d = 0, pitch = 1 },
         text = "0",
+        textObj = GC.newText(FONT.get(30), "0"),
     }
-    self:redrawChord(chord)
+    self:renderChord(chord)
     ins(self.chordList, MATH.clamp(pos, 1, #self.chordList + 1), chord)
 end
 
@@ -160,6 +164,7 @@ function E:moveCursor(offset)
     self:refreshText()
 end
 
+---@param chord wrappedChord
 function E:moveChord(chord, step)
     local k = ssvc.dimData[step].freq
     self:reCalculatePitch(chord.tree, chord.tree.pitch * k)
@@ -172,7 +177,7 @@ function E:deleteCursorNote()
     if #E.nCur == 0 then return end
     local n = rem(E.nCur)
     rem(E:getNote(), n)
-    E:redrawChord(E:getChord())
+    E:renderChord(E:getChord())
     E:snapCursor()
     E:refreshText()
 end
@@ -189,7 +194,7 @@ end
 function E:dumpChord(s, e)
     local buffer = {}
     for i = s, e do
-        ins(buffer, '"' .. self.chordList[i].text .. '"')
+        ins(buffer, '"' .. self.chordList[i].textObj .. '"')
     end
     return buffer
 end
@@ -204,7 +209,7 @@ function E:pasteChord(buffer, after)
         }
         chord.tree.d = 0 -- Force root note being legal
         self:reCalculatePitch(chord.tree, 1)
-        self:redrawChord(chord)
+        self:renderChord(chord)
         count = count + 1
         ins(self.chordList, s + count, chord)
     end
