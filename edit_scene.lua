@@ -262,12 +262,15 @@ function scene.keyDown(key, isRep)
         if editor.combo == 'C' then
             -- Export SVG
             local fileName = os.date("chords_%y%m%d_%H%M%S.svg") ---@cast fileName string
-            FILE.save(require 'svg_converter' (editor:dumpChord(editor:getSelection())), fileName)
+            local s, e = editor:getSelection()
+            FILE.save(require 'svg_converter' (editor:dumpChord(s, e)), fileName)
+            local count = e - s + 1
+            MSG('check', "Exported " .. count .. " chords to file " .. fileName .. ",\nPress Ctrl+D to open the export directory")
         end
     elseif key == 'd' then
         if isRep then return true end
         if editor.combo == 'C' then
-            -- Open save directory
+            -- Open export directory
             UTIL.openSaveDirectory()
         end
     elseif key == 'escape' then
