@@ -22,7 +22,7 @@ end
 
 function scene.mouseMove(_, _, dx, dy)
     if MSisDown(1) then
-        editor:scroll(-dx / 260, dy / 260)
+        editor:scroll(-dx / 260, -dy / 260)
     end
 end
 
@@ -30,7 +30,7 @@ function scene.wheelMove(_, dy)
     if KBisDown('lshift', 'rshift') then
         editor:scroll(-dy / 2.6, 0)
     else
-        editor:scroll(0, dy / 2.6)
+        editor:scroll(0, -dy / 2.6)
     end
 end
 
@@ -292,8 +292,8 @@ function scene.update(dt)
     if KBisDown('lctrl', 'rctrl') then
         if KBisDown('left') then editor:scroll(-dt * 6.2, 0) end
         if KBisDown('right') then editor:scroll(dt * 6.2, 0) end
-        if KBisDown('up') then editor:scroll(0, dt * 6.2) end
-        if KBisDown('down') then editor:scroll(0, -dt * 6.2) end
+        if KBisDown('up') then editor:scroll(0, -dt * 6.2) end
+        if KBisDown('down') then editor:scroll(0, dt * 6.2) end
     end
 end
 
@@ -305,7 +305,7 @@ local gc_setColor, gc_setLineWidth = gc.setColor, gc.setLineWidth
 local gc_draw, gc_line = gc.draw, gc.line
 local gc_rectangle = gc.rectangle
 local gc_print = gc.print
-local gc_setAlpha = GC.setAlpha
+local gc_setAlpha, gc_mulAlpha = GC.setAlpha, GC.mulAlpha
 local gc_strokePrint = GC.strokePrint
 
 local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 6, TEX.dark.keyboard)
@@ -329,11 +329,8 @@ function scene.draw()
 
     gc_replaceTransform(SCR.xOy_l)
     gc_translate(100, 0)
-    gc_scale(260, -260)
+    gc_scale(260, 260)
     gc_translate(-editor.scrX1, -editor.scrY1)
-
-    gc_setColor(1, 1, 1, MATH.clampInterpolate(.1, 1, .26, .26, editor.scrX1))
-    gc_draw(tex.keyboard, keyboardQuad, editor.scrX1 - .36, 3.206, 0, .00184, -.00184)
 
     -- Grid line
     do
@@ -342,12 +339,12 @@ function scene.draw()
         local dist = log(ssvc.dimData[editor.gridStep].freq, 2)
         local y = 0
         gc_translate(editor.scrX1, 0)
-        while y < 3.5 do
+        while y < 2.6 do
             gc_line(-2.6, y, 26, y)
             y = y + dist
         end
         y = -dist
-        while y > -2.6 do
+        while y > -3.5 do
             gc_line(-2.6, y, 26, y)
             y = y - dist
         end
@@ -392,29 +389,34 @@ function scene.draw()
 
         -- Text
         gc_setColor(theme.text)
-        gc_print(editor.chordList[i].text, .05, (i % 2 == 1 and -1.466 or -1.626) + editor.scrY1, 0, .005, -.005)
+        gc_print(editor.chordList[i].text, .05, (i % 2 == 1 and 1.466 or 1.626) + editor.scrY1, 0, .005)
         gc_setAlpha(.26)
-        gc_print(i, .05, (i % 2 == 1 and -1.4 or -1.78) + editor.scrY1, 0, .003, -.003)
+        gc_print(i, .05, (i % 2 == 1 and 1.4 or 1.78) + editor.scrY1, 0, .003)
 
         gc_translate(1.2, 0)
     end
     gc_pop()
 
+    -- Keyboard
+    gc_setColor(1, 1, 1, MATH.clampInterpolate(.1, 1, .26, .26, editor.scrX1))
+    gc_draw(tex.keyboard, keyboardQuad, editor.scrX1 - .36, -3.206, 0, .00184)
+
     -- Cursor
-    GC.ucs_move('m', 1.2 * (editor.cursor1 - 1), 0)
-    local y = log(editor.curPitch1, 2)
-    gc_setColor(theme.cursor)
-    gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
-    gc_setLineWidth(.01)
-    gc_rectangle('line', 0, y - .03, 1.2, .06)
-    gc_strokePrint(
-        'corner', .00626,
-        COLOR.D, theme.cursor,
-        editor.cursorText,
-        -.04, y + .16, nil, 'left',
-        0, .0035, -.0035
-    )
-    GC.ucs_back()
+    do
+        gc_setColor(theme.cursor)
+        local x, y = 1.2 * (editor.cursor1 - 1), -log(editor.curPitch1, 2)
+        gc_draw(TEX.transition, editor.scrX1 - .62, y, 0, .62 / 128, 2.6 / 128, 0, .5)
+        gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
+        gc_setLineWidth(.01)
+        gc_rectangle('line', x, y - .03, 1.2, .06)
+        gc_strokePrint(
+            'corner', .00626,
+            COLOR.D, theme.cursor,
+            editor.cursorText,
+            x - .04, y - .16, nil, 'left',
+            0, .0035
+        )
+    end
 
     -- Playing selection
     if editor.playing then

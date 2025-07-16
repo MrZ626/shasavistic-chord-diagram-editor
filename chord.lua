@@ -12,7 +12,7 @@ local dimData = {
 }
 for i = 0, #dimData do
     local dim = dimData[i]
-    dim.yStep = math.log(dim.freq, 2)
+    dim.yStep = -math.log(dim.freq, 2)
     dimData[-i] = {
         freq = 1 / dim.freq,
         yStep = -dim.yStep,
@@ -84,8 +84,8 @@ end
 
 local function drawBody(d, x1, y1, x2, y2)
     local flip
-    if y1 < y2 then flip, y1, y2 = true, y2, y1 end
-    y1, y2 = y1 + env.noteW / 2, y2 - env.noteW / 2
+    if y1 > y2 then flip, y1, y2 = true, y2, y1 end
+    y1, y2 = y1 - env.noteW / 2, y2 + env.noteW / 2
     if abs(d) == 1 then
         local m = (x1 + x2) / 2
         if flip then y1, y2 = y2, y1 end
