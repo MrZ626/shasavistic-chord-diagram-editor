@@ -2,6 +2,7 @@ local themes = require('themes')
 local ssvc = require('chord')
 local audio = require('audio')
 local editor = require('editor')
+local converter = require('svg_converter')
 
 local ins = table.insert
 local abs, floor = math.abs, math.floor
@@ -261,11 +262,13 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         if editor.combo == 'C' then
             -- Export SVG
-            local fileName = os.date("chords_%y%m%d_%H%M%S.svg") ---@cast fileName string
+            local fileName = os.date("progression_%y%m%d_%H%M%S.svg") ---@cast fileName string
             local s, e = editor:getSelection()
-            FILE.save(require 'svg_converter' (editor:dumpChord(s, e)), fileName)
-            local count = e - s + 1
-            MSG('check', "Exported " .. count .. " chords to file " .. fileName .. ",\nPress Ctrl+D to open the export directory")
+            FILE.save(converter(editor:dumpChord(s, e)), fileName)
+            MSG('check', ("Exported %d chord%s to file " .. fileName .. ",\nPress Ctrl+D to open the export directory"):format(
+                e - s + 1,
+                e > s and "s" or ""
+            ))
         end
     elseif key == 'd' then
         if isRep then return true end

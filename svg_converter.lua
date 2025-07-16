@@ -57,10 +57,10 @@ for i = 0, #dimData do
     }
 end
 
----@alias SSVT.Dim number
+---@alias _SSVC.Dim number
 
 ---@class _SSVC.Chord
----@field d? SSVT.Dim
+---@field d? _SSVC.Dim
 ---@field note? 'skip' | 'dotted'
 ---@field bias? 'l' | 'r'
 ---@field bass? true
@@ -319,7 +319,7 @@ end
 ---@param bgColor? string
 ---@param bw? number Body width
 ---@param nw? number Note width
-return function(chords, height, bgColor, bw, nw)
+local function converter(chords, height, bgColor, bw, nw)
     height = height or 128
     bodyW, noteH = bw or .1, nw or .014
     drawBuffer = {}
@@ -397,13 +397,15 @@ return function(chords, height, bgColor, bw, nw)
         end
     end
 
-    return string.format(
-        [[<svg width="%d" height="%d" viewBox="0 0 %f %f" xmlns="http://www.w3.org/2000/svg">%s%s</svg>]],
+    return ([[<svg width="%d" height="%d" viewBox="0 0 %f %f" xmlns="http://www.w3.org/2000/svg">%s%s%s</svg>]]):format(
         math.ceil(height / maxY * maxX),
         math.ceil(height / maxY * maxY),
-        string.format("%.4g", maxX),
-        string.format("%.4g", maxY),
+        ("%.4g"):format(maxX),
+        ("%.4g"):format(maxY),
+        [[<!-- Generator: Shasavistic Chord Diagram Editor by MrZ -->]],
         bgColor and ([[<rect width="100%%" height="100%%" fill="#%s" />]]):format(bgColor) or "",
         shapeData
     )
 end
+
+return converter
