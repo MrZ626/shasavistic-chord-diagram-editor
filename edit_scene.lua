@@ -27,8 +27,10 @@ function scene.mouseMove(_, _, dx, dy)
 end
 
 function scene.wheelMove(_, dy)
-    if KBisDown('lshift', 'rshift') then
+    if editor.combo == 'S' then
         editor:scroll(-dy / 2.6, 0)
+    elseif editor.combo == 'C' then
+        editor:scale(1 + dy * .1)
     else
         editor:scroll(0, -dy / 2.6)
     end
@@ -63,6 +65,7 @@ function scene.keyDown(key, isRep)
             for i = s, e do
                 editor:moveChord(editor.chordList[i], key == 'up' and editor.gridStep or -editor.gridStep)
             end
+            editor:focusCursor()
         else
             -- Select note
             local allInfo = TABLE.flatten(TABLE.copyAll(editor.chordList[editor.cursor].tree))
@@ -92,6 +95,7 @@ function scene.keyDown(key, isRep)
             end
             editor:refreshText()
             TABLE.free(pitchInfo)
+            editor:focusCursor()
         end
     elseif key == 'left' or key == 'right' then
         if editor.combo == 'C' then return true end
@@ -104,34 +108,42 @@ function scene.keyDown(key, isRep)
                 curNote.bias = not curNote.bias and tar or nil
                 editor:redrawChord(chord)
             end
+            editor:focusCursor()
         else
             -- Move cursor (normally)
             editor:moveCursor(key == 'left' and -1 or 1)
+            editor:focusCursor()
         end
     elseif key == 'pageup' then
         if isRep then return true end
         editor:moveCursor(-4)
+        editor:focusCursor()
     elseif key == 'pagedown' then
         if isRep then return true end
         editor:moveCursor(4)
+        editor:focusCursor()
     elseif key == 'home' then
         if isRep then return true end
         editor:moveCursor(-1e99)
+        editor:focusCursor()
     elseif key == 'end' then
         if isRep then return true end
         editor:moveCursor(1e99)
+        editor:focusCursor()
     elseif key == 'return' then
         if isRep then return true end
         editor.combo = ''
         -- Create new chord
         editor:newChord(editor.cursor + 1)
         editor:moveCursor(1)
+        editor:focusCursor()
     elseif key == 'backspace' then
         if isRep then return true end
         if editor.combo == 'A' then
             local chord = editor:getChord()
             editor:reCalculatePitch(chord.tree, 1)
             editor.curPitch = 1
+            editor:focusCursor()
         else
             -- Delete selected note
             if #editor.nCur == 0 then return true end
@@ -141,12 +153,15 @@ function scene.keyDown(key, isRep)
             editor:redrawChord(chord)
             editor.curPitch = curNote.pitch
             editor:refreshText()
+            editor:focusCursor()
         end
     elseif key == 'delete' then
         if isRep then return true end
         -- Delete current chord
         editor:deleteChord(editor:getSelection())
+        editor:moveCursor(0)
         editor.selMark = false
+        editor:focusCursor()
     elseif key == '.' then
         if isRep then return true end
         -- Mark selected note as fake note
@@ -157,6 +172,7 @@ function scene.keyDown(key, isRep)
             curNote.note = abs(curNote.d) == 1 and 'skip' or 'mute'
         end
         editor:redrawChord(chord)
+        editor:focusCursor()
     elseif key == '/' then
         if isRep then return true end
         -- Mark selected note as base
@@ -176,6 +192,7 @@ function scene.keyDown(key, isRep)
             curNote.base = true
         end
         editor:redrawChord(chord)
+        editor:focusCursor()
     elseif #key == 1 and MATH.between(tonumber(key) or 0, 1, 7) then
         if isRep then return true end
 
@@ -186,6 +203,7 @@ function scene.keyDown(key, isRep)
             -- Set custom grid step
             editor.gridStep = keyNum
             editor.gridStepAnimTimer = .42
+            editor:focusCursor()
         else
             -- Add/Remove note
             local step = keyNum
@@ -213,6 +231,7 @@ function scene.keyDown(key, isRep)
                 end
                 audio.playNote(pitch, key)
             end
+            editor:focusCursor()
         end
     elseif key == 'tab' then
         if isRep then return true end
@@ -222,12 +241,13 @@ function scene.keyDown(key, isRep)
             -- Select all
             editor:moveCursor(-1e99)
             editor.selMark = #editor.chordList
+            editor:focusCursor()
         end
     elseif key == 'c' then
         if isRep then return true end
         if editor.combo == 'C' then
             -- Copy
-            local res = editor:dumpChords(editor:getSelection())
+            local res = editor:dumpChord(editor:getSelection())
             CLIPBOARD.set(table.concat(res, ' '))
             MSG('check', "Copied " .. #res .. " chords")
         end
@@ -235,24 +255,28 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         if editor.combo == 'C' then
             -- Cut (Copy+Delete)
-            local res = editor:dumpChords(editor:getSelection())
+            local res = editor:dumpChord(editor:getSelection())
             CLIPBOARD.set(table.concat(res, ' '))
             editor:deleteChord(editor:getSelection())
+            editor:moveCursor(0)
             editor.selMark = false
             MSG('check', "Cut " .. #res .. " chords")
+            editor:focusCursor()
         end
     elseif key == 'v' then
         if isRep then return true end
         if editor.combo == 'C' then
             -- Paste (after)
-            local count = editor:pasteChords(CLIPBOARD.get())
+            local count = editor:pasteChord(CLIPBOARD.get())
             MSG('check', "Pasted " .. count .. " chords")
+            editor:focusCursor()
         elseif editor.combo == 'S' then
             -- Paste (before)
             editor.cursor = editor.cursor - 1
-            local count = editor:pasteChords(CLIPBOARD.get())
+            local count = editor:pasteChord(CLIPBOARD.get())
             MSG('check', "Pasted " .. count .. " chords")
             editor.cursor = editor.cursor + 1
+            editor:focusCursor()
         end
     elseif key == 'escape' then
         if isRep then return true end
@@ -288,6 +312,7 @@ function scene.update(dt)
     editor.curPitch1 = MATH.expApproach(editor.curPitch1, editor.curPitch, dt * 35)
     editor.scrX1 = MATH.expApproach(editor.scrX1, editor.scrX, dt * 20)
     editor.scrY1 = MATH.expApproach(editor.scrY1, editor.scrY, dt * 20)
+    editor.scrK1 = MATH.expApproach(editor.scrK1, editor.scrK, dt * 20)
     editor.gridStepAnimTimer = max(editor.gridStepAnimTimer - dt, 0)
     if KBisDown('lctrl', 'rctrl') then
         if KBisDown('left') then editor:scroll(-dt * 6.2, 0) end
@@ -331,8 +356,10 @@ function scene.draw()
 
     gc_replaceTransform(SCR.xOy_l)
     gc_translate(100, 0)
-    gc_scale(260, 260)
+    gc_scale(260 * editor.scrK1)
     gc_translate(-editor.scrX1, -editor.scrY1)
+    local topY = editor.scrY1 - 2.6 / editor.scrK1
+    local btmY = editor.scrY1 + 2.6 / editor.scrK1
 
     -- Grid line
     do
@@ -360,7 +387,7 @@ function scene.draw()
         if s > e then s, e = e, s end
         s, e = (s - 1) * 1.2, e * 1.2
         gc_setColor(theme.select)
-        gc_rectangle('fill', s, -6, e - s, 12)
+        gc_rectangle('fill', s, topY, e - s, btmY - topY)
         if editor.selMark then
             gc_setColor(theme.cursor)
             gc_draw(TEX.transition, s, 0, 0, .2 / 128, 12, 0, .5)
@@ -374,26 +401,24 @@ function scene.draw()
         -- Separator line
         gc_setColor(theme.sepLine)
         gc_setLineWidth(.01)
-        gc_line(1.2, editor.scrY1 - 6, 1.2, editor.scrY1 + 6)
+        gc_line(1.2, topY, 1.2, btmY)
 
         -- Chord textures
         gc_setColor(1, 1, 1)
         local drawData = editor.chordList[i].drawData
-        local move = -log(editor.chordList[i].tree.pitch, 2)
-
-        gc_translate(.1, move)
+        local dy = -log(editor.chordList[i].tree.pitch, 2)
         for j = 1, #drawData do
             local d = drawData[j]
             local t = tex[d.texture]
-            gc_draw(t, d.x, d.y, 0, d.w / t:getWidth(), d.h / t:getHeight())
+            gc_draw(t, .1 + d.x, dy + d.y, 0, d.w / t:getWidth(), d.h / t:getHeight())
         end
-        gc_translate(-.1, -move)
 
-        -- Text
+        -- Chord Code
+        local y = ((i % 2 == 1 and .75 or 1) - 2.6) / editor.scrK1 + editor.scrY1
         gc_setColor(theme.text)
-        gc_print(editor.chordList[i].text, .05, (i % 2 == 1 and 1.466 or 1.626) + editor.scrY1, 0, .005)
+        gc_print(editor.chordList[i].text, .05, y, 0, .005)
         gc_setAlpha(.26)
-        gc_print(i, .05, (i % 2 == 1 and 1.4 or 1.78) + editor.scrY1, 0, .003)
+        gc_print(i, .05, y - .07, 0, .003)
 
         gc_translate(1.2, 0)
     end
@@ -412,7 +437,7 @@ function scene.draw()
         gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
         gc_setLineWidth(.01)
         gc_rectangle('line', x, y - .03, 1.2, .06)
-        gc_setColor(0,0,0)
+        gc_setColor(0, 0, 0)
         gc_strokeDraw('corner', .0042, editor.cursorText, x - .04, y - .16, 0, .0035)
         gc_setColor(theme.cursor)
         gc_draw(editor.cursorText, x - .04, y - .16, 0, .0035)
@@ -429,7 +454,7 @@ function scene.draw()
         gc_setColor(theme.playline)
         local progress = editor.playing + (1 - editor.timer / editor.timer0)
         local x = MATH.interpolate(editor.playL, s, editor.playR + 1, e, progress)
-        gc_line(x, editor.scrY1 - 6, x, editor.scrY1 + 6)
+        gc_line(x, topY, x, btmY)
     end
 end
 
@@ -454,6 +479,11 @@ Help (Edit)
 ]]
 local hintText2 = [[
 Help (Navigation)
+  Mouse Drag: drag view
+  Mouse Wheel: scroll view
+  +shift: horizontal scroll
+  +ctrl: zoom in/out
+
   Arrow: move cursor
   +shift: create selection
   +ctrl: view scroll
@@ -480,6 +510,7 @@ scene.widgetList = {
         pos = { 1, 0 }, x = -40, y = 40, w = 60,
         labelPos = 'bottomLeft',
         floatText = hintText1,
+        floatFontSize = 30,
         floatFillColor = { .1, .1, .1, .62 },
     },
     WIDGET.new {
@@ -488,6 +519,7 @@ scene.widgetList = {
         pos = { 1, 0 }, x = -110, y = 40, w = 60,
         labelPos = 'bottomLeft',
         floatText = hintText2,
+        floatFontSize = 25,
         floatFillColor = { .1, .1, .1, .62 },
     },
 }

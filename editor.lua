@@ -2,8 +2,9 @@ local ssvc = require('chord')
 local audio = require('audio')
 
 local max, min = math.max, math.min
-local ins, rem = table.insert, table.remove
 local floor, abs = math.floor, math.abs
+local log = math.log
+local ins, rem = table.insert, table.remove
 
 ---@class wrappedChord
 ---@field tree SSVC.Chord
@@ -22,6 +23,7 @@ local E = {
 
     scrX = 0, -- Scroll position
     scrY = 0,
+    scrK = 1,
 
     theme = 'dark',
     gridStep = 2,
@@ -37,6 +39,7 @@ local E = {
     curPitch1 = 0,
     scrX1 = 0,
     scrY1 = 0,
+    scrK1 = 1,
     gridStepAnimTimer = 0,
 }
 
@@ -46,16 +49,33 @@ local function levelSorter(a, b) return a.d < b.d end
 E._pitchSorter = pitchSorter
 E._levelSorter = levelSorter
 
+-- View & Appearance
+
+function E:scroll(dx, dy)
+    self.scrX = MATH.clamp(self.scrX + dx, 0, max(#self.chordList - 4.8 / self.scrK, 0) * 1.2)
+    self.scrY = MATH.clamp(self.scrY + dy, -2, 2)
+end
+
+function E:scale(dk)
+    self.scrK = MATH.clamp(self.scrK * dk, .626, 1)
+end
+
+function E:focusCursor()
+    self.scrX = MATH.clamp(self.scrX, (self.cursor - 4.8 / self.scrK) * 1.2, (self.cursor - 1) * 1.2)
+    local h = -log(self.curPitch, 2)
+    self.scrY = MATH.clamp(self.scrY, h - 1.6, h + 1.6)
+end
+
+function E:switchTheme()
+    self.theme = self.theme == 'bright' and 'dark' or 'bright'
+end
+
+-- Data
+
 function E:getSelection()
     local s, e = self.cursor, self.selMark or self.cursor
     if s > e then s, e = e, s end
     return s, e
-end
-
--- Scroll
-function E:scroll(dx, dy)
-    self.scrX = MATH.clamp(self.scrX + dx, 0, (max(#self.chordList, 4.8) - 4.8) * 1.2)
-    self.scrY = MATH.clamp(self.scrY + dy, -2, 2)
 end
 
 function E:getChord()
@@ -90,6 +110,8 @@ function E:redrawChord(chord)
     chord.drawData = data
     chord.text = ssvc.encode(chord.tree)
 end
+
+-- Operation
 
 function E:newChord(pos)
     local chord = {
@@ -134,7 +156,6 @@ function E:moveCursor(offset)
     end
     self:snapCursor()
     self:refreshText()
-    self.scrX = MATH.clamp(self.scrX, (self.cursor - 4.8) * 1.2, (self.cursor - 1) * 1.2)
 end
 
 function E:moveChord(chord, step)
@@ -150,17 +171,11 @@ function E:deleteChord(s, e)
         rem(self.chordList, i)
     end
     if #self.chordList == 0 then
-        self.cursor = 0
         self:newChord(1)
     end
-    self:moveCursor(0)
 end
 
-function E:switchTheme()
-    self.theme = self.theme == 'bright' and 'dark' or 'bright'
-end
-
-function E:dumpChords(s, e)
+function E:dumpChord(s, e)
     local buffer = {}
     for i = s, e do
         ins(buffer, '"' .. self.chordList[i].text .. '"')
@@ -168,7 +183,7 @@ function E:dumpChords(s, e)
     return buffer
 end
 
-function E:pasteChords(buffer, after)
+function E:pasteChord(buffer, after)
     local s = after or self.cursor
     local count = 0
     for str in buffer:gmatch('"(.-)"') do
@@ -184,6 +199,8 @@ function E:pasteChords(buffer, after)
     end
     return count
 end
+
+-- Playback
 
 function E:stopChord(stopAll)
     for i = 1, self.count do audio.stopNote('chord' .. i) end
