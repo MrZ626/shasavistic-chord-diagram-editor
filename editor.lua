@@ -15,7 +15,7 @@ local E = {
     cursor = 0,
     selMark = false,
     nCur = {}, ---@type number[]
-    cursorText = "0",
+    cursorText = GC.newText(FONT.get(30), "0"),
     curPitch = 1,
 
     combo = '', ---@type '' | 'C' | 'S' | 'A'
@@ -73,7 +73,7 @@ function E:refreshText()
         tree = tree[self.nCur[i]]
         buffer = buffer .. (tree.d > 0 and '+' or '') .. tree.d
     end
-    self.cursorText = buffer
+    self.cursorText:set(buffer)
 end
 
 function E:reCalculatePitch(tree, curPitch)
@@ -131,11 +131,9 @@ function E:moveCursor(offset)
     end
     if newPos ~= self.cursor then
         self.cursor = newPos
-        self:snapCursor()
-        self:refreshText()
-    else
-        self:snapCursor()
     end
+    self:snapCursor()
+    self:refreshText()
     self.scrX = MATH.clamp(self.scrX, (self.cursor - 4.8) * 1.2, (self.cursor - 1) * 1.2)
 end
 
@@ -151,7 +149,10 @@ function E:deleteChord(s, e)
     for i = e, s, -1 do
         rem(self.chordList, i)
     end
-    if #self.chordList == 0 then self:newChord(1) end
+    if #self.chordList == 0 then
+        self.cursor = 0
+        self:newChord(1)
+    end
     self:moveCursor(0)
 end
 

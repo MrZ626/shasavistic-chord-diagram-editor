@@ -305,8 +305,8 @@ local gc_setColor, gc_setLineWidth = gc.setColor, gc.setLineWidth
 local gc_draw, gc_line = gc.draw, gc.line
 local gc_rectangle = gc.rectangle
 local gc_print = gc.print
-local gc_setAlpha, gc_mulAlpha = GC.setAlpha, GC.mulAlpha
-local gc_strokePrint = GC.strokePrint
+local gc_setAlpha = GC.setAlpha
+local gc_strokeDraw = GC.strokeDraw
 
 local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 6, TEX.dark.keyboard)
 TEX.dark.keyboard:setWrap('clampzero', 'repeat')
@@ -314,6 +314,8 @@ TEX.bright.keyboard:setWrap('clampzero', 'repeat')
 function scene.draw()
     local theme = themes[editor.theme]
     local tex = TEX[editor.theme] ---@type SSVT.TextureMap
+
+    FONT.set(30)
 
     gc_clear(theme.bgbase)
 
@@ -368,7 +370,6 @@ function scene.draw()
 
     -- Chords
     gc_push('transform')
-    FONT.set(30)
     for i = 1, #editor.chordList do
         -- Separator line
         gc_setColor(theme.sepLine)
@@ -411,13 +412,10 @@ function scene.draw()
         gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
         gc_setLineWidth(.01)
         gc_rectangle('line', x, y - .03, 1.2, .06)
-        gc_strokePrint(
-            'corner', .00626,
-            COLOR.D, theme.cursor,
-            editor.cursorText,
-            x - .04, y - .16, nil, 'left',
-            0, .0035
-        )
+        gc_setColor(0,0,0)
+        gc_strokeDraw('corner', .0042, editor.cursorText, x - .04, y - .16, 0, .0035)
+        gc_setColor(theme.cursor)
+        gc_draw(editor.cursorText, x - .04, y - .16, 0, .0035)
     end
 
     -- Playing selection
