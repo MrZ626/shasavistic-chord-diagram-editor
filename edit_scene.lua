@@ -257,13 +257,17 @@ function scene.keyDown(key, isRep)
             editor.cursor = editor.cursor + 1
             editor:focusCursor()
         end
-    elseif key == 's' then
+    elseif key == 'e' then
         if isRep then return true end
         if editor.combo == 'C' then
-            FILE.save(
-                require 'svg_converter' (editor:dumpChord(editor:getSelection())),
-                os.date("chords_%y%m%d_%H%M%S.svg")
-            )
+            -- Export SVG
+            local fileName = os.date("chords_%y%m%d_%H%M%S.svg") ---@cast fileName string
+            FILE.save(require 'svg_converter' (editor:dumpChord(editor:getSelection())), fileName)
+        end
+    elseif key == 'd' then
+        if isRep then return true end
+        if editor.combo == 'C' then
+            -- Open save directory
             UTIL.openSaveDirectory()
         end
     elseif key == 'escape' then
@@ -454,7 +458,8 @@ Shift+[Move]             Create selection
 Ctrl+A                    Select all
 Ctrl+C/V/X               Copy/Paste/Cut
 Shift+V                   Paste before cursor
-Ctrl+S                    Export SVG
+Ctrl+E                    Export SVG
+Ctrl+D                    Open export directory
 
 Tab                       Switch theme
 F11                        Fullscreen
