@@ -5,6 +5,8 @@ local max, min = math.max, math.min
 local floor, abs = math.floor, math.abs
 local log = math.log
 local ins, rem = table.insert, table.remove
+local expApproach = MATH.expApproach
+local KBisDown = love.keyboard.isDown
 
 ---@class wrappedChord
 ---@field tree SSVC.Chord
@@ -248,6 +250,33 @@ function E:playChord()
         end
     end
     TABLE.free(temp)
+end
+
+function E:update(dt)
+    if self.timer > 0 then
+        self.timer = self.timer - dt
+        if self.timer <= 0 then
+            self:stopChord()
+            self:playNextChord()
+        end
+        if self.playing and self.selMark and abs(self.cursor - self.selMark) + 1 >= 4 then
+            self:scroll((self.playing - self.timer / self.timer0) * 1.2 - .26 - self.scrX, 0)
+        end
+    end
+    self.cursor1 = expApproach(self.cursor1, self.cursor, dt * 35)
+    self.curPitch1 = expApproach(self.curPitch1, self.curPitch, dt * 35)
+    self.scrX1 = expApproach(self.scrX1, self.scrX, dt * 20)
+    self.scrY1 = expApproach(self.scrY1, self.scrY, dt * 20)
+    self.scrK1 = expApproach(self.scrK1, self.scrK, dt * 20)
+    self.gridStepAnimTimer = max(self.gridStepAnimTimer - dt, 0)
+    if self.combo == 'C' then
+        if KBisDown('left') then self:scroll(-dt * 6.2, 0) end
+        if KBisDown('right') then self:scroll(dt * 6.2, 0) end
+        if KBisDown('up') then self:scroll(0, -dt * 6.2) end
+        if KBisDown('down') then self:scroll(0, dt * 6.2) end
+        if KBisDown('-') then self:scale(.5 ^ (dt * 2.6)) end
+        if KBisDown('=') then self:scale(2. ^ (dt * 2.6)) end
+    end
 end
 
 return E

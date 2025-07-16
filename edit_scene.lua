@@ -4,13 +4,8 @@ local audio = require('audio')
 local editor = require('editor')
 
 local ins, rem = table.insert, table.remove
-local max, abs = math.max, math.abs
+local abs,floor =  math.abs,math.floor
 local sin, log = math.sin, math.log
-local floor = math.floor
-
-local KBisDown = love.keyboard.isDown
-local MSisDown = love.mouse.isDown
-
 
 ---@type Zenitha.Scene
 local scene = {}
@@ -288,30 +283,7 @@ function scene.keyUp(key)
 end
 
 function scene.update(dt)
-    if editor.timer > 0 then
-        editor.timer = editor.timer - dt
-        if editor.timer <= 0 then
-            editor:stopChord()
-            editor:playNextChord()
-        end
-        if editor.playing and editor.selMark and abs(editor.cursor - editor.selMark) + 1 >= 4 then
-            editor:scroll((editor.playing - editor.timer / editor.timer0) * 1.2 - .26 - editor.scrX, 0)
-        end
-    end
-    editor.cursor1 = MATH.expApproach(editor.cursor1, editor.cursor, dt * 35)
-    editor.curPitch1 = MATH.expApproach(editor.curPitch1, editor.curPitch, dt * 35)
-    editor.scrX1 = MATH.expApproach(editor.scrX1, editor.scrX, dt * 20)
-    editor.scrY1 = MATH.expApproach(editor.scrY1, editor.scrY, dt * 20)
-    editor.scrK1 = MATH.expApproach(editor.scrK1, editor.scrK, dt * 20)
-    editor.gridStepAnimTimer = max(editor.gridStepAnimTimer - dt, 0)
-    if editor.combo == 'C' then
-        if KBisDown('left') then editor:scroll(-dt * 6.2, 0) end
-        if KBisDown('right') then editor:scroll(dt * 6.2, 0) end
-        if KBisDown('up') then editor:scroll(0, -dt * 6.2) end
-        if KBisDown('down') then editor:scroll(0, dt * 6.2) end
-        if KBisDown('-') then editor:scale(.5 ^ (dt * 2.6)) end
-        if KBisDown('=') then editor:scale(2. ^ (dt * 2.6)) end
-    end
+    editor:update(dt)
 end
 
 local gc = love.graphics
