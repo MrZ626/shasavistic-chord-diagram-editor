@@ -21,9 +21,6 @@ function scene.load()
 end
 
 function scene.mouseMove(_, _, dx, dy)
-    if MSisDown(1) then
-        editor:scroll(-dx / 260, -dy / 260)
-    end
 end
 
 function scene.wheelMove(_, dy)
@@ -204,7 +201,7 @@ function scene.keyDown(key, isRep)
             editor.gridStep = keyNum
             editor.gridStepAnimTimer = .42
             editor:focusCursor()
-        else
+        elseif editor.combo == '' then
             -- Add/Remove note
             local step = keyNum
             if editor.combo == 'S' then step = -step end
@@ -217,20 +214,13 @@ function scene.keyDown(key, isRep)
                 end
             end
 
-            if editor.combo == 'C' then
-                if exist then
-                    rem(curNote, exist)
-                    editor:redrawChord(chord)
-                end
-            else
-                local pitch = editor.curPitch * ssvc.dimData[step].freq
-                if not exist then
-                    ins(curNote, { d = step, pitch = pitch })
-                    table.sort(curNote, editor._levelSorter)
-                    editor:redrawChord(chord)
-                end
-                audio.playNote(pitch, key)
+            local pitch = editor.curPitch * ssvc.dimData[step].freq
+            if not exist then
+                ins(curNote, { d = step, pitch = pitch })
+                table.sort(curNote, editor._levelSorter)
+                editor:redrawChord(chord)
             end
+            audio.playNote(pitch, key)
             editor:focusCursor()
         end
     elseif key == 'tab' then
@@ -314,11 +304,13 @@ function scene.update(dt)
     editor.scrY1 = MATH.expApproach(editor.scrY1, editor.scrY, dt * 20)
     editor.scrK1 = MATH.expApproach(editor.scrK1, editor.scrK, dt * 20)
     editor.gridStepAnimTimer = max(editor.gridStepAnimTimer - dt, 0)
-    if KBisDown('lctrl', 'rctrl') then
+    if editor.combo == 'C' then
         if KBisDown('left') then editor:scroll(-dt * 6.2, 0) end
         if KBisDown('right') then editor:scroll(dt * 6.2, 0) end
         if KBisDown('up') then editor:scroll(0, -dt * 6.2) end
         if KBisDown('down') then editor:scroll(0, dt * 6.2) end
+        if KBisDown('-') then editor:scale(.5 ^ (dt * 2.6)) end
+        if KBisDown('=') then editor:scale(2. ^ (dt * 2.6)) end
     end
 end
 
@@ -460,48 +452,35 @@ end
 
 local hintText1 = [[
 Help (Edit)
-  Num1-7: add note
-  +shift: add downwards
-  +ctrl: delete note
-  +alt: switch grid step
+  (Shift+)1-7               Add note (downwards)
+  (Alt+)1-7                   Change grid step
 
-  alt + Up/Dn: move chord by grid
-  alt + Left/Right: set note offset
+  (Alt+)Up/Down      Move chord
+  (Alt+)Left/Right    Bias note
 
-  Bksp: delete note
-  +alt: reset chord height
+  Bksp                           Delete note
+  (Alt+)Bksp                Reset chord pitch
 
-  Enter: add new chord
-  Del: delete chord
-
-  '/': switch base note
-  '.': switch mute note
+  Enter                          Add chord
+  Delete                        Delete chord
+  '/'                                 Switch base note
+  '.'                                  Switch mute note
 ]]
 local hintText2 = [[
 Help (Navigation)
-  Mouse Drag: drag view
-  Mouse Wheel: scroll view
-  +shift: horizontal scroll
-  +ctrl: zoom in/out
+  (Ctrl/Shift+)WHEEL             Scroll & Zoom
 
-  Arrow: move cursor
-  +shift: create selection
-  +ctrl: view scroll
+  ARROW                                     Move cursor
+  PgUp/PgDn/Home/End     Fast Move
+  Ctrl+ARROW/'-'/'='              Scroll & Zoom
 
-  PgUp/PgDn: move cursor by 4
-  Home/End: move cursor to end
+  Shift+[Move Cursor]            Create selection
+  Ctrl+A                                        Select all
+  Ctrl+C/V/X                              Copy/Paste/Cut
+  Shift+V                                      Paste before cursor
 
-  Space: play chord
-  +shift: play note
-
-  Ctrl+A: select all
-  Ctrl+C: copy selected
-  Ctrl+X: cut selected
-  Ctrl+V: paste after cursor
-  Shift+V: paste before cursor
-
-  Tab: switch dark/light theme
-  F11: toggle fullscreen
+  Tab                                              Switch dark / light theme
+  F11                                                Fullscreen
 ]]
 scene.widgetList = {
     WIDGET.new {
@@ -519,7 +498,7 @@ scene.widgetList = {
         pos = { 1, 0 }, x = -110, y = 40, w = 60,
         labelPos = 'bottomLeft',
         floatText = hintText2,
-        floatFontSize = 25,
+        floatFontSize = 30,
         floatFillColor = { .1, .1, .1, .62 },
     },
 }

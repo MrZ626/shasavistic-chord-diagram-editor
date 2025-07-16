@@ -57,7 +57,7 @@ function E:scroll(dx, dy)
 end
 
 function E:scale(dk)
-    self.scrK = MATH.clamp(self.scrK * dk, .626, 1)
+    self.scrK = MATH.clamp(self.scrK * dk, .42, 1)
 end
 
 function E:focusCursor()
