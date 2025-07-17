@@ -28,6 +28,7 @@ local ins = table.insert
 ---@field note? 'skip' | 'mute'
 ---@field bias? 'l' | 'r'
 ---@field base? true
+---@field pitch? number GUI use only
 ---@field [number] SSVC.Chord
 
 ---@class SSVC.Shape
@@ -110,8 +111,7 @@ end
 ---@param x2 number
 local function DrawBranch(chord, x1, x2)
     local nData = dimData[chord.d]
-
-    assert(nData, "Unknown dimension: " .. tostring(chord.d))
+    if not nData then error("Unknown dimension: " .. chord.d) end
 
     moveOrigin(0, nData.yStep)
 

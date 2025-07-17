@@ -8,6 +8,7 @@ local ins = table.insert
 local min = math.min
 local abs, floor = math.abs, math.floor
 local sin, log = math.sin, math.log
+local tostring = tostring
 
 ---@type Zenitha.Scene
 local scene = {}
@@ -168,6 +169,7 @@ function scene.keyDown(key, isRep)
         else
             for k in next, TABLE.flatten(TABLE.copyAll(chord.tree)) do
                 if k:find('base') then
+                    ---@type table
                     local index = STRING.split(k, '.')
                     for i = 1, #index do
                         index[i] = tonumber(index[i]) or index[i]
@@ -413,7 +415,7 @@ function scene.draw()
         gc_setColor(theme.cursor)
         local x, y = 1.2 * (editor.cursor1 - 1), -log(editor.curPitch1, 2)
         gc_draw(TEX.transition, X, y, 0, 1 / 128, 2.6 / 128, 128, .5)
-        gc_print(floor(440 * editor.curPitch), X - .37, y - .09, 0, .0018)
+        gc_print(tostring(floor(440 * editor.curPitch)), X - .37, y - .09, 0, .0018)
         gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
         gc_setLineWidth(.01)
         gc_rectangle('line', x, y - .03, 1.2, .06)
