@@ -418,7 +418,7 @@ function scene.draw()
         gc_rectangle('line', x, y - .03, 1.2, .06)
         if editor.ghostPitch ~= editor.curPitch then
             gc_setAlpha(.1)
-            gc_rectangle('line', x, -log(editor.ghostPitch, 2) - .03, 1.2, .06)
+            gc_rectangle('fill', x, -log(editor.ghostPitch, 2) - .03, 1.2, .06)
         end
         gc_setColor(0, 0, 0)
         gc_strokeDraw('corner', .0042, editor.cursorText, x - .04, y - .16, 0, .0035)
