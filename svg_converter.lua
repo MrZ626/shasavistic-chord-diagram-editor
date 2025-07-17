@@ -319,14 +319,17 @@ end
 ---@param bgColor? string
 ---@param bw? number Body width
 ---@param nw? number Note width
-local function converter(chords, height, bgColor, bw, nw)
+local function converter(chords, biasList, height, bgColor, bw, nw)
     height = height or 128
     bodyW, noteH = bw or .1, nw or .014
     drawBuffer = {}
 
     -- Process input data
     for i = 1, #chords do
+        local d=biasList[i]
+        moveOrigin(0,d)
         DrawBranch(decode(chords[i]), 1.2 * i - 1.1, 1.2 * i - .1)
+        moveOrigin(0,-d)
     end
     table.sort(drawBuffer, function(a, b) return a._layer < b._layer end)
 

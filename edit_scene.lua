@@ -17,9 +17,6 @@ function scene.load()
     editor:moveCursor(0)
 end
 
-function scene.mouseMove(_, _, dx, dy)
-end
-
 function scene.wheelMove(_, dy)
     if editor.combo == 'S' then
         editor:scroll(-dy / 2.6, 0)
@@ -266,7 +263,11 @@ function scene.keyDown(key, isRep)
             -- Export SVG
             local fileName = os.date("progression_%y%m%d_%H%M%S.svg") ---@cast fileName string
             local s, e = editor:getSelection()
-            FILE.save(converter(editor:dumpChord(s, e)), fileName)
+            local chordPitches = {}
+            for i = 1, #editor.chordList do
+                chordPitches[i] = log(editor.chordList[i].tree.pitch, 2)
+            end
+            FILE.save(converter(editor:dumpChord(s, e), chordPitches), fileName)
             MSG('check', ("Exported %d chord%s to file " .. fileName .. ",\nPress Ctrl+D to open the export directory"):format(
                 e - s + 1,
                 e > s and "s" or ""
