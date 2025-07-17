@@ -21,6 +21,7 @@ local E = {
     nCur = {}, ---@type number[]
     cursorText = GC.newText(FONT.get(30), "0"),
     curPitch = 1,
+    ghostPitch = 1,
 
     combo = '', ---@type '' | 'C' | 'S' | 'A'
 
@@ -54,6 +55,10 @@ E._levelSorter = levelSorter
 
 -- View & Appearance
 
+function E:switchTheme()
+    self.theme = self.theme == 'bright' and 'dark' or 'bright'
+end
+
 function E:scroll(dx, dy)
     self.scrX = MATH.clamp(self.scrX + dx, 0, max(#self.chordList - 4.8 / self.scrK, 0) * 1.2)
     self.scrY = MATH.clamp(self.scrY + dy, -2, 2)
@@ -70,8 +75,40 @@ function E:focusCursor()
     self.scrY = MATH.clamp(self.scrY, h - 1.6, h + 1.6)
 end
 
-function E:switchTheme()
-    self.theme = self.theme == 'bright' and 'dark' or 'bright'
+function E:snapCursor()
+    local allInfo = TABLE.flatten(TABLE.copyAll(self.chordList[self.cursor].tree))
+    local pitchInfo = TABLE.alloc() -- {{pitch, key}, ...}
+    for k, v in next, allInfo do
+        if k:sub(-5) == 'pitch' then
+            ins(pitchInfo, { v, k:sub(1, -7) })
+        end
+    end
+    table.sort(pitchInfo, pitchSorter)
+    TABLE.transpose(pitchInfo) -- {pitches, keys}
+    local curPos = floor(.48 + 1 + MATH.ilLerp(pitchInfo[1], self.ghostPitch or self.curPitch) * (#pitchInfo[1] - 1))
+    self.curPitch = pitchInfo[1][curPos]
+    self.nCur = STRING.split(pitchInfo[2][curPos], ".")
+    for i = 1, #self.nCur do
+        self.nCur[i] = tonumber(self.nCur[i])
+    end
+    TABLE.free(pitchInfo)
+end
+
+function E:moveCursor(offset)
+    local newPos = MATH.clamp(self.cursor + offset, 1, #self.chordList)
+    if self.combo == 'S' then
+        if not self.selMark then self.selMark = self.cursor end
+    elseif self.selMark then
+        if abs(offset) == 1 then
+            newPos = (offset == -1 and min or max)(self.cursor, self.selMark)
+        end
+        self.selMark = false
+    end
+    if newPos ~= self.cursor then
+        self.cursor = newPos
+    end
+    self:snapCursor()
+    self:refreshText()
 end
 
 -- Data
@@ -117,86 +154,6 @@ function E:renderChord(chord)
     chord.textObj:set(chord.text)
 end
 
--- Operation
-
-local function newChordObj(tree, text)
-    return {
-        tree = tree or { d = 0, pitch = 1 },
-        text = text or "0",
-        textObj = GC.newText(FONT.get(30), text or "0"),
-    }
-end
-
-function E:newChord(pos)
-    local chord = newChordObj()
-    self:renderChord(chord)
-    ins(self.chordList, MATH.clamp(pos, 1, #self.chordList + 1), chord)
-end
-
-function E:snapCursor()
-    local allInfo = TABLE.flatten(TABLE.copyAll(self.chordList[self.cursor].tree))
-    local pitchInfo = TABLE.alloc() -- {{pitch, key}, ...}
-    for k, v in next, allInfo do
-        if k:sub(-5) == 'pitch' then
-            ins(pitchInfo, { v, k:sub(1, -7) })
-        end
-    end
-    table.sort(pitchInfo, pitchSorter)
-    TABLE.transpose(pitchInfo) -- {pitches, keys}
-    local curPos = floor(.48 + 1 + MATH.ilLerp(pitchInfo[1], self.curPitch) * (#pitchInfo[1] - 1))
-    E.curPitch = pitchInfo[1][curPos]
-    E.nCur = STRING.split(pitchInfo[2][curPos], ".")
-    for i = 1, #E.nCur do
-        E.nCur[i] = tonumber(E.nCur[i])
-    end
-    TABLE.free(pitchInfo)
-end
-
-function E:moveCursor(offset)
-    local newPos = MATH.clamp(self.cursor + offset, 1, #self.chordList)
-    if self.combo == 'S' then
-        if not self.selMark then self.selMark = self.cursor end
-    elseif self.selMark then
-        if abs(offset) == 1 then
-            newPos = (offset == -1 and min or max)(self.cursor, self.selMark)
-        end
-        self.selMark = false
-    end
-    if newPos ~= self.cursor then
-        self.cursor = newPos
-    end
-    self:snapCursor()
-    self:refreshText()
-end
-
----@param chord wrappedChord
-function E:moveChord(chord, step)
-    local k = ssvc.dimData[step].freq
-    self:reCalculatePitch(chord.tree, chord.tree.pitch * k)
-    if chord == self.chordList[self.cursor] then
-        self.curPitch = self.curPitch * k
-    end
-end
-
-function E:deleteCursorNote()
-    if #E.nCur == 0 then return end
-    local n = rem(E.nCur)
-    rem(E:getNote(), n)
-    E:renderChord(E:getChord())
-    E:snapCursor()
-    E:refreshText()
-end
-
-function E:deleteChord(s, e)
-    for i = e, s, -1 do
-        local chord = rem(self.chordList, i)
-        chord.textObj:release()
-    end
-    if #self.chordList == 0 then
-        self:newChord(1)
-    end
-end
-
 function E:dumpChord(s, e)
     local buffer = {}
     for i = s, e do
@@ -219,13 +176,60 @@ function E:pasteChord(str, after)
     return count
 end
 
+-- Operation
+
+local function newChordObj(tree, text)
+    return {
+        tree = tree or { d = 0, pitch = 1 },
+        text = text or "0",
+        textObj = GC.newText(FONT.get(30), text or "0"),
+    }
+end
+
+function E:newChord(pos)
+    local chord = newChordObj()
+    self:renderChord(chord)
+    ins(self.chordList, MATH.clamp(pos, 1, #self.chordList + 1), chord)
+end
+
+---@param chord wrappedChord
+function E:moveChord(chord, step)
+    local k = ssvc.dimData[step].freq
+    self:reCalculatePitch(chord.tree, chord.tree.pitch * k)
+    if chord == self.chordList[self.cursor] then
+        self.curPitch = self.curPitch * k
+        self.ghostPitch = self.curPitch
+    end
+end
+
+function E:deleteCursorNote()
+    if #self.nCur == 0 then return end
+    local n = rem(self.nCur)
+    rem(E:getNote(), n)
+    self:renderChord(self:getChord())
+    self:snapCursor()
+    self:refreshText()
+    self.ghostPitch = self.curPitch
+end
+
+function E:deleteChord(s, e)
+    for i = e, s, -1 do
+        local chord = rem(self.chordList, i)
+        chord.textObj:release()
+    end
+    if #self.chordList == 0 then
+        self:newChord(1)
+    end
+    self.ghostPitch = self.curPitch
+end
+
 -- Playback
 
 function E:stopChord(stopAll)
     for i = 1, self.count do audio.stopNote('chord' .. i) end
     if stopAll then
         self.playL, self.playR = false, false
-        self.playing, E.timer = false, 0
+        self.playing, self.timer = false, 0
     end
 end
 
@@ -245,7 +249,7 @@ function E:playChord()
 
     self.coun = 0
     self.timer = self.timer0
-    local chord = E.chordList[self.playing]
+    local chord = self.chordList[self.playing]
     local allInfo = TABLE.flatten(TABLE.copyAll(chord.tree))
     local basePitch = -1e99
     for k in next, allInfo do

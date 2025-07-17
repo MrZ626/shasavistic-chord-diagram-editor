@@ -83,6 +83,7 @@ function scene.keyDown(key, isRep)
                 while curPos > 1 and (pitchInfo[curPos][1] >= editor.curPitch) do curPos = curPos - 1 end
             end
             editor.curPitch = pitchInfo[curPos][1]
+            editor.ghostPitch = editor.curPitch
             editor.nCur = STRING.split(pitchInfo[curPos][2], ".")
             for i = 1, #editor.nCur do
                 editor.nCur[i] = tonumber(editor.nCur[i])
@@ -415,6 +416,10 @@ function scene.draw()
         gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
         gc_setLineWidth(.01)
         gc_rectangle('line', x, y - .03, 1.2, .06)
+        if editor.ghostPitch ~= editor.curPitch then
+            gc_setAlpha(.1)
+            gc_rectangle('line', x, -log(editor.ghostPitch, 2) - .03, 1.2, .06)
+        end
         gc_setColor(0, 0, 0)
         gc_strokeDraw('corner', .0042, editor.cursorText, x - .04, y - .16, 0, .0035)
         gc_setColor(theme.cursor)
