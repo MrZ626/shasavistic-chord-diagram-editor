@@ -53,6 +53,14 @@ local function levelSorter(a, b) return a.d < b.d end
 E._pitchSorter = pitchSorter
 E._levelSorter = levelSorter
 
+local function newChordObj(tree, text)
+    return {
+        tree = tree or { d = 0, pitch = 1 },
+        text = text or "0",
+        textObj = GC.newText(FONT.get(30), text or "0"),
+    }
+end
+
 -- View & Appearance
 
 function E:switchTheme()
@@ -80,17 +88,15 @@ function E:snapCursor()
     local pitchInfo = TABLE.alloc() -- {{pitch, key}, ...}
     for k, v in next, allInfo do
         if k:sub(-5) == 'pitch' then
-            ins(pitchInfo, { v, k:sub(1, -7) })
+            ins(pitchInfo, { log(v, 2), k:sub(1, -7) })
         end
     end
     table.sort(pitchInfo, pitchSorter)
     TABLE.transpose(pitchInfo) -- {pitches, keys}
-    local curPos = floor(.48 + 1 + MATH.ilLerp(pitchInfo[1], self.ghostPitch or self.curPitch) * (#pitchInfo[1] - 1))
-    self.curPitch = pitchInfo[1][curPos]
+    local curPos = floor(.5 + 1 + MATH.ilLerp(pitchInfo[1], log(self.ghostPitch or self.curPitch, 2)) * (#pitchInfo[1] - 1))
     self.nCur = STRING.split(pitchInfo[2][curPos], ".")
-    for i = 1, #self.nCur do
-        self.nCur[i] = tonumber(self.nCur[i])
-    end
+    for i = 1, #self.nCur do self.nCur[i] = tonumber(self.nCur[i]) end
+    self.curPitch = E:getNote().pitch
     TABLE.free(pitchInfo)
 end
 
@@ -178,18 +184,11 @@ end
 
 -- Operation
 
-local function newChordObj(tree, text)
-    return {
-        tree = tree or { d = 0, pitch = 1 },
-        text = text or "0",
-        textObj = GC.newText(FONT.get(30), text or "0"),
-    }
-end
-
 function E:newChord(pos)
     local chord = newChordObj()
     self:renderChord(chord)
     ins(self.chordList, MATH.clamp(pos, 1, #self.chordList + 1), chord)
+    self.ghostPitch = self.curPitch
 end
 
 ---@param chord wrappedChord
