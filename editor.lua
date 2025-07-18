@@ -237,8 +237,19 @@ end
 
 -- Operation
 
-function E:newChord(pos)
-    local chord = newChordObj()
+function E:newChord(pos, useCurPitch)
+    local vec
+    if useCurPitch then
+        vec = TABLE.copy(self:getChord().pitchVec)
+        local tree = self:getChord().tree
+        for i = 1, #self.nCur do
+            tree = tree[self.nCur[i]]
+            local pStep = abs(tree.d)
+            vec[pStep] = vec[pStep] + MATH.sign(tree.d)
+        end
+    end
+    local chord = newChordObj(nil, vec)
+    if vec then self:reCalculatePitch(chord.tree, vecToPitch(vec)) end
     self:renderChord(chord)
     ins(self.chordList, MATH.clamp(pos, 1, #self.chordList + 1), chord)
     self.ghostPitch = self.curPitch

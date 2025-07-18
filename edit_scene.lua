@@ -127,7 +127,7 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         editor.combo = ''
         -- Create new chord
-        editor:newChord(editor.cursor + 1)
+        editor:newChord(editor.cursor + 1, true)
         editor:moveCursor(1)
         editor:focusCursor()
     elseif key == 'backspace' then
