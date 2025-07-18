@@ -319,7 +319,8 @@ end
 ---@param bgColor? string
 ---@param bw? number Body width
 ---@param nw? number Note width
-local function converter(chords, biasList, height, bgColor, bw, nw)
+return function(chords, biasList, height, bgColor, bw, nw)
+    print(bgColor)
     height = height or 128
     bodyW, noteH = bw or .1, nw or .014
     drawBuffer = {}
@@ -410,5 +411,3 @@ local function converter(chords, biasList, height, bgColor, bw, nw)
         shapeData
     )
 end
-
-return converter
