@@ -136,6 +136,7 @@ function scene.keyDown(key, isRep)
             local chord = editor:getChord()
             editor:reCalculatePitch(chord.tree, 1)
             editor.curPitch = 1
+            editor.ghostPitch = editor.curPitch
             editor:focusCursor()
         else
             -- Delete selected note

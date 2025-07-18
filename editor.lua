@@ -13,6 +13,7 @@ local KBisDown = love.keyboard.isDown
 ---@field drawData table
 ---@field text string
 ---@field textObj love.Text
+---@field pitchVec number[]
 
 local E = {
     chordList = {}, ---@type wrappedChord[]
@@ -53,11 +54,14 @@ local function levelSorter(a, b) return a.d < b.d end
 E._pitchSorter = pitchSorter
 E._levelSorter = levelSorter
 
+---@return wrappedChord
 local function newChordObj(tree, text)
     return {
         tree = tree or { d = 0, pitch = 1 },
+        drawData = {},
         text = text or "0",
         textObj = GC.newText(FONT.get(30), text or "0"),
+        pitchVec = TABLE.new(0, 7),
     }
 end
 
@@ -154,8 +158,7 @@ end
 
 ---@param chord wrappedChord
 function E:renderChord(chord)
-    local data = ssvc.drawChord(chord.tree)
-    chord.drawData = data
+    chord.drawData = ssvc.drawChord(chord.tree)
     chord.text = ssvc.encode(chord.tree)
     chord.textObj:set(chord.text)
 end
@@ -193,10 +196,21 @@ end
 
 ---@param chord wrappedChord
 function E:moveChord(chord, step)
-    local k = ssvc.dimData[step].freq
-    self:reCalculatePitch(chord.tree, chord.tree.pitch * k)
+    local vec = chord.pitchVec
+    local pStep = abs(step)
+    vec[pStep] = MATH.clamp(vec[pStep] + MATH.sign(step), -13, 13)
+    if abs(vec[pStep]) == 13 then MSG('warn', "Reached max movement in single dimension!", 1) end
+
+    local pitch = 1
+    for i = 1, #vec do
+        if vec[i] ~= 0 then
+            pitch = pitch * ssvc.dimData[i].freq ^ vec[i]
+        end
+    end
+
+    self:reCalculatePitch(chord.tree, pitch)
     if chord == self.chordList[self.cursor] then
-        self.curPitch = self.curPitch * k
+        self.curPitch = pitch
         self.ghostPitch = self.curPitch
     end
 end
