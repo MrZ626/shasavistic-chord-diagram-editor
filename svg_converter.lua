@@ -316,21 +316,19 @@ end
 
 ---@param chords string[]
 ---@param height? number
----@param bgColor? string
 ---@param bw? number Body width
 ---@param nw? number Note width
-return function(chords, biasList, height, bgColor, bw, nw)
-    print(bgColor)
+return function(chords, biasList, height, bw, nw)
     height = height or 128
     bodyW, noteH = bw or .1, nw or .014
     drawBuffer = {}
 
     -- Process input data
     for i = 1, #chords do
-        local d=biasList[i]
-        moveOrigin(0,d)
+        local d = biasList[i]
+        moveOrigin(0, d)
         DrawBranch(decode(chords[i]), 1.2 * i - 1.1, 1.2 * i - .1)
-        moveOrigin(0,-d)
+        moveOrigin(0, -d)
     end
     table.sort(drawBuffer, function(a, b) return a._layer < b._layer end)
 
@@ -407,7 +405,7 @@ return function(chords, biasList, height, bgColor, bw, nw)
         ("%.4g"):format(maxX),
         ("%.4g"):format(maxY),
         [[<!-- Generator: Shasavistic Chord Diagram Editor by MrZ -->]],
-        bgColor and ([[<rect width="100%%" height="100%%" fill="#%s" />]]):format(bgColor) or "",
+        [[<rect width="100%" height="100%" fill="#61607B" />]],
         shapeData
     )
 end

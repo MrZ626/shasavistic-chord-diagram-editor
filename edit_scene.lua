@@ -269,8 +269,7 @@ function scene.keyDown(key, isRep)
             for i = 1, #editor.chordList do
                 chordPitches[i] = log(editor.chordList[i].tree.pitch, 2)
             end
-            local bg = COLOR.toHEX(unpack(themes[editor.theme].bgbase, 1, 3))
-            FILE.save(converter(editor:dumpChord(false, s, e), chordPitches, 128, bg), fileName)
+            FILE.save(converter(editor:dumpChord(false, s, e), chordPitches), fileName)
             MSG('check', ("Exported %d chord%s to file " .. fileName .. ",\nPress Ctrl+D to open the export directory"):format(
                 e - s + 1,
                 e > s and "s" or ""
