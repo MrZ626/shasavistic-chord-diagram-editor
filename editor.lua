@@ -291,12 +291,9 @@ end
 
 -- Playback
 
-function E:stopChord(stopAll)
-    for i = 1, self.count do audio.stopNote('chord' .. i) end
-    if stopAll then
-        self.playL, self.playR = false, false
-        self.playing, self.timer = false, 0
-    end
+function E:stopPlaying()
+    self.playL, self.playR = false, false
+    self.playing, self.timer = false, 0
 end
 
 function E:playNextChord()
@@ -311,7 +308,6 @@ end
 
 function E:playChord()
     UTIL.trace()
-    if self.timer > 0 then self:stopChord() end
 
     self.coun = 0
     self.timer = self.timer0
@@ -338,7 +334,7 @@ function E:playChord()
     end
     self.count = #temp
     for i = 1, #temp do
-        audio.playNote(temp[i], 'chord' .. i, 1 / (#temp + 1.6))
+        audio.playNote(temp[i], 1 / (#temp + 1.6))
     end
     TABLE.free(temp)
 end
@@ -347,7 +343,6 @@ function E:update(dt)
     if self.timer > 0 then
         self.timer = self.timer - dt
         if self.timer <= 0 then
-            self:stopChord()
             self:playNextChord()
         end
         if self.playing and self.selMark and abs(self.cursor - self.selMark) + 1 >= 4 then

@@ -37,16 +37,16 @@ function scene.keyDown(key, isRep)
     if key == 'space' then
         if isRep then return true end
         if editor.playing then
-            editor:stopChord(true)
+            editor:stopPlaying()
         elseif editor.combo == 'S' then
             -- Play selected note
-            audio.playNote(editor.curPitch, 'space')
+            audio.playNote(editor.curPitch)
         else
             -- Play selected chords
             editor.playL, editor.playR = editor:getSelection()
             editor.playing = editor.playL
-            -- editor.timer0 = .5 + .5 / (editor.stop - editor.start + 1)
-            editor.timer0 = .626
+            -- editor.timer0 = .5 + .5 / (editor.playR - editor.playL + 1)
+            editor.timer0 = .62
             editor:playChord()
         end
     elseif key == 'down' or key == 'up' then
@@ -211,7 +211,7 @@ function scene.keyDown(key, isRep)
                 table.sort(curNote, editor._levelSorter)
                 editor:renderChord(chord)
             end
-            audio.playNote(pitch, key)
+            audio.playNote(pitch, nil, .26)
             editor:focusCursor()
         end
     elseif key == 'tab' then
@@ -297,11 +297,11 @@ function scene.keyUp(key)
     elseif key == 'lalt' or key == 'ralt' then
         if editor.combo == 'A' then editor.combo = '' end
     end
-    audio.stopNote(key)
 end
 
 function scene.update(dt)
     editor:update(dt)
+    audio.update(dt)
 end
 
 local gc = love.graphics

@@ -1,7 +1,13 @@
 local ins, rem = table.insert, table.remove
 
-local srcLib = {} ---@type love.Source[]
-local activeSrc = {} ---@type Map<love.Source>
+---@class wrappedSource
+---@field src love.Source
+---@field volume? number
+---@field timer? number
+---@field duration? number
+
+local srcLib = {} ---@type wrappedSource[]
+local activeSrc = {} ---@type Map<wrappedSource>
 local srcCount = 0
 
 do -- Create first sudio source
@@ -29,8 +35,14 @@ do -- Create first sudio source
         snd:setSample(i, v)
     end
 
-    srcLib[1] = love.audio.newSource(snd, "static")
-    srcLib[1]:setLooping(true)
+    local src = love.audio.newSource(snd, "static")
+    src:setLooping(true)
+    srcLib[1] = {
+        src = src,
+        timer = 0,
+        volume = 0, -- Default volume
+        duration = snd:getDuration()
+    }
     srcCount = srcCount + 1
 
     snd:release()
@@ -39,39 +51,41 @@ end
 
 local audio = {}
 
-function audio.playNote(freq, key, volume)
+function audio.playNote(freq, volume, duration)
     if #srcLib == 1 then
-        srcLib[2] = srcLib[1]:clone()
+        srcLib[2] = { src = srcLib[1].src:clone() }
         srcCount = srcCount + 1
     end
     for i = 2, #srcLib do
-        local s = srcLib[i]
-        if not s:isPlaying() then
-            rem(srcLib, i)
-            if activeSrc[key] then
-                activeSrc[key]:stop()
-                ins(srcLib, activeSrc[key])
-            end
-            activeSrc[key] = s
-            s:setVolume(volume or .26)
-            s:setPitch(freq)
-            s:play()
+        local S = srcLib[i]
+        if not S.src:isPlaying() then
+            ins(activeSrc, rem(srcLib, i))
+            S.duration = duration or 1.62
+            S.timer = S.duration
+            S.volume = volume or .26
+            S.src:setVolume(S.volume)
+            S.src:setPitch(freq)
+            S.src:play()
             return
         end
     end
 end
 
-function audio.stopNote(key)
-    local s = activeSrc[key]
-    if s then
-        s:stop()
-        ins(srcLib, s)
-        activeSrc[key] = nil
-    end
-end
-
 function audio.getCount()
     return srcCount, #srcLib
+end
+
+function audio.update(dt)
+    for i = #activeSrc, 1, -1 do
+        local S = activeSrc[i]
+        S.timer = S.timer - dt
+        if S.timer > 0 then
+            S.src:setVolume(S.volume * (S.timer / S.duration) ^ 2)
+        else
+            S.src:stop()
+            ins(srcLib, rem(activeSrc, i))
+        end
+    end
 end
 
 return audio
