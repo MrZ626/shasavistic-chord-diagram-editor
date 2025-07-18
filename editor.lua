@@ -86,7 +86,7 @@ local function vecToStr(vec)
         end
     end
     if not e then return end
-    local str = "!"
+    local str = ""
     for i = 1, e do
         str = str .. (
             vec[i] == 0 and '0' or
@@ -101,16 +101,12 @@ local function strToVec(str)
     local vec = TABLE.new(0, 7)
     for i = 1, #str do
         local c = str:sub(i, i)
-        if i == 1 then
-            if c ~= '!' then return vec end
-        else
-            if c == '0' then
-                vec[i - 1] = 0
-            elseif c >= 'A' and c <= 'Z' then
-                vec[i - 1] = c:byte() - 64
-            elseif c >= 'a' and c <= 'z' then
-                vec[i - 1] = 96 - c:byte()
-            end
+        if c == '0' then
+            vec[i] = 0
+        elseif c >= 'A' and c <= 'Z' then
+            vec[i] = c:byte() - 64
+        elseif c >= 'a' and c <= 'z' then
+            vec[i] = 96 - c:byte()
         end
     end
     return vec
@@ -214,15 +210,16 @@ function E:renderChord(chord)
     chord.textObj:set(chord.text)
 end
 
----@param full boolean Whether to include pitchVectors
+---@param full boolean include pitchVec information?
 function E:dumpChord(full, s, e)
     local buffer = {}
     for i = s, e do
         local chord = self.chordList[i]
         if full and TABLE.count(chord.pitchVec, 0) ~= #chord.pitchVec then
-            ins(buffer, vecToStr(chord.pitchVec))
+            ins(buffer, vecToStr(chord.pitchVec) .. '!' .. chord.text)
+        else
+            ins(buffer, chord.text)
         end
-        ins(buffer, chord.text)
     end
     return buffer
 end
@@ -230,22 +227,19 @@ end
 function E:pasteChord(str, after)
     local count = 0
     local list = STRING.split(str, "%s", true)
-    local pitchBuffer
     for i = 1, #list do
-        if list[i]:sub(1, 1) == '!' then
-            pitchBuffer = strToVec(list[i])
-        else
-            local chord = newChordObj(list[i])
-            chord.tree.d = 0 -- Force root note being legal
-            if pitchBuffer then
-                chord.pitchVec = pitchBuffer
-                pitchBuffer = false
-            end
-            self:reCalculatePitch(chord.tree, vecToPitch(chord.pitchVec))
-            self:renderChord(chord)
-            count = count + 1
-            ins(self.chordList, after + count, chord)
+        local pitchVec
+        if list[i]:find("!") then
+            pitchVec = strToVec(list[i]:match("(.*)!"))
+            list[i] = list[i]:match("!(.*)")
         end
+        local chord = newChordObj(list[i])
+        chord.tree.d = 0 -- Force root note being legal
+        if pitchVec then chord.pitchVec = pitchVec end
+        self:reCalculatePitch(chord.tree, vecToPitch(chord.pitchVec))
+        self:renderChord(chord)
+        count = count + 1
+        ins(self.chordList, after + count, chord)
     end
     return count
 end
