@@ -7,12 +7,26 @@ local srcCount = 0
 do -- Create first sudio source
     local sampleRate = 48000
     local baseFreq = 440
+    local period = 1 / baseFreq
     local loopCount = 62
     local snd = love.sound.newSoundData(math.floor(sampleRate / baseFreq * loopCount), sampleRate, 16, 1)
     for i = 0, snd:getSampleCount() - 1 do
         local t = i / sampleRate
-        local v = math.sin(6.283185307179586 * baseFreq * t)
-        snd:setSample(i, MATH.sign(v) * math.abs(v) ^ .8)
+
+        -- Sine Wave ~
+        local v = math.sin(6.283185307179586 / period * t)
+
+        -- Square Wave -_
+        -- local v = t % period < period * .5 and 1 or -1
+
+        -- Triangle Wave ^v
+        -- local v = -1 + math.abs((t - period / 4) % period - period / 2) * 2 / (period / 2)
+
+        -- Sine-Square Wave /-\_/
+        -- local v = math.sin(6.283185307179586 /period * t)
+        -- v = (v >= 0 and 1 or -1) * math.abs(v) ^ .8
+
+        snd:setSample(i, v)
     end
 
     srcLib[1] = love.audio.newSource(snd, "static")
