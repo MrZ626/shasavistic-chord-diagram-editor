@@ -147,7 +147,6 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         -- Delete current chord
         editor:deleteChord(editor:getSelection())
-        editor:moveCursor(0)
         editor.selMark = false
         editor:focusCursor()
     elseif key == '.' then
@@ -229,33 +228,35 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         if editor.combo == 'C' then
             -- Copy
-            local res = editor:dumpChord(editor:getSelection())
+            local s, e = editor:getSelection()
+            local res = editor:dumpChord(true, s, e)
             CLIPBOARD.set(table.concat(res, ' '))
-            MSG('check', "Copied " .. #res .. " chords")
+            MSG('check', "Copied " .. (e - s + 1) .. " chords")
         end
     elseif key == 'x' then
         if isRep then return true end
         if editor.combo == 'C' then
             -- Cut (Copy+Delete)
-            local res = editor:dumpChord(editor:getSelection())
+            local s, e = editor:getSelection()
+            local res = editor:dumpChord(true, s, e)
             CLIPBOARD.set(table.concat(res, ' '))
             editor:deleteChord(editor:getSelection())
             editor:moveCursor(0)
             editor.selMark = false
-            MSG('check', "Cut " .. #res .. " chords")
+            MSG('check', "Cut " .. (e - s + 1) .. " chords")
             editor:focusCursor()
         end
     elseif key == 'v' then
         if isRep then return true end
         if editor.combo == 'C' then
             -- Paste (after)
-            local count = editor:pasteChord(CLIPBOARD.get())
+            local count = editor:pasteChord(CLIPBOARD.get(), editor.cursor)
             MSG('check', "Pasted " .. count .. " chords")
             editor:focusCursor()
         elseif editor.combo == 'S' then
             -- Paste (before)
             editor.cursor = editor.cursor - 1
-            local count = editor:pasteChord(CLIPBOARD.get())
+            local count = editor:pasteChord(CLIPBOARD.get(), editor.cursor)
             MSG('check', "Pasted " .. count .. " chords")
             editor.cursor = editor.cursor + 1
             editor:focusCursor()
@@ -270,7 +271,7 @@ function scene.keyDown(key, isRep)
             for i = 1, #editor.chordList do
                 chordPitches[i] = log(editor.chordList[i].tree.pitch, 2)
             end
-            FILE.save(converter(editor:dumpChord(s, e), chordPitches), fileName)
+            FILE.save(converter(editor:dumpChord(false, s, e), chordPitches), fileName)
             MSG('check', ("Exported %d chord%s to file " .. fileName .. ",\nPress Ctrl+D to open the export directory"):format(
                 e - s + 1,
                 e > s and "s" or ""

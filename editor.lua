@@ -55,14 +55,65 @@ E._pitchSorter = pitchSorter
 E._levelSorter = levelSorter
 
 ---@return wrappedChord
-local function newChordObj(tree, text)
+local function newChordObj(text)
     return {
-        tree = tree or { d = 0, pitch = 1 },
+        tree = text and ssvc.decode(text) or { d = 0, pitch = 1 },
         drawData = {},
         text = text or "0",
         textObj = GC.newText(FONT.get(30), text or "0"),
         pitchVec = TABLE.new(0, 7),
     }
+end
+
+---@param vec number[]
+local function vecToPitch(vec)
+    local pitch = 1
+    for i = 1, #vec do
+        if vec[i] ~= 0 then
+            pitch = pitch * ssvc.dimData[i].freq ^ vec[i]
+        end
+    end
+    return pitch
+end
+
+---@param vec number[]
+local function vecToStr(vec)
+    local e
+    for i = #vec, 1, -1 do
+        if vec[i] ~= 0 then
+            e = i
+            break
+        end
+    end
+    if not e then return end
+    local str = "!"
+    for i = 1, e do
+        str = str .. (
+            vec[i] == 0 and '0' or
+            vec[i] > 0 and string.char(64 + vec[i]) or
+            string.char(96 - vec[i])
+        )
+    end
+    return str
+end
+
+local function strToVec(str)
+    local vec = TABLE.new(0, 7)
+    for i = 1, #str do
+        local c = str:sub(i, i)
+        if i == 1 then
+            if c ~= '!' then return vec end
+        else
+            if c == '0' then
+                vec[i - 1] = 0
+            elseif c >= 'A' and c <= 'Z' then
+                vec[i - 1] = c:byte() - 64
+            elseif c >= 'a' and c <= 'z' then
+                vec[i - 1] = 96 - c:byte()
+            end
+        end
+    end
+    return vec
 end
 
 -- View & Appearance
@@ -163,24 +214,38 @@ function E:renderChord(chord)
     chord.textObj:set(chord.text)
 end
 
-function E:dumpChord(s, e)
+---@param full boolean Whether to include pitchVectors
+function E:dumpChord(full, s, e)
     local buffer = {}
     for i = s, e do
-        ins(buffer, '"' .. self.chordList[i].text .. '"')
+        local chord = self.chordList[i]
+        if full and TABLE.count(chord.pitchVec, 0) ~= #chord.pitchVec then
+            ins(buffer, vecToStr(chord.pitchVec))
+        end
+        ins(buffer, chord.text)
     end
     return buffer
 end
 
 function E:pasteChord(str, after)
-    local s = after or self.cursor
     local count = 0
-    for sec in str:gmatch('"(.-)"') do
-        local chord = newChordObj(ssvc.decode(sec), sec)
-        chord.tree.d = 0 -- Force root note being legal
-        self:reCalculatePitch(chord.tree, 1)
-        self:renderChord(chord)
-        count = count + 1
-        ins(self.chordList, s + count, chord)
+    local list = STRING.split(str, "%s", true)
+    local pitchBuffer
+    for i = 1, #list do
+        if list[i]:sub(1, 1) == '!' then
+            pitchBuffer = strToVec(list[i])
+        else
+            local chord = newChordObj(list[i])
+            chord.tree.d = 0 -- Force root note being legal
+            if pitchBuffer then
+                chord.pitchVec = pitchBuffer
+                pitchBuffer = false
+            end
+            self:reCalculatePitch(chord.tree, vecToPitch(chord.pitchVec))
+            self:renderChord(chord)
+            count = count + 1
+            ins(self.chordList, after + count, chord)
+        end
     end
     return count
 end
@@ -198,19 +263,12 @@ end
 function E:moveChord(chord, step)
     local vec = chord.pitchVec
     local pStep = abs(step)
-    vec[pStep] = MATH.clamp(vec[pStep] + MATH.sign(step), -13, 13)
-    if abs(vec[pStep]) == 13 then MSG('warn', "Reached max movement in single dimension!", 1) end
+    vec[pStep] = MATH.clamp(vec[pStep] + MATH.sign(step), -26, 26)
+    if abs(vec[pStep]) == 26 then MSG('warn', "Reached max movement in single dimension!", 1) end
 
-    local pitch = 1
-    for i = 1, #vec do
-        if vec[i] ~= 0 then
-            pitch = pitch * ssvc.dimData[i].freq ^ vec[i]
-        end
-    end
-
-    self:reCalculatePitch(chord.tree, pitch)
+    self:reCalculatePitch(chord.tree, vecToPitch(vec))
     if chord == self.chordList[self.cursor] then
-        self.curPitch = pitch
+        self.curPitch = chord.tree.pitch
         self.ghostPitch = self.curPitch
     end
 end
@@ -230,9 +288,8 @@ function E:deleteChord(s, e)
         local chord = rem(self.chordList, i)
         chord.textObj:release()
     end
-    if #self.chordList == 0 then
-        self:newChord(1)
-    end
+    if #self.chordList == 0 then self:newChord(1) end
+    if MATH.between(self.cursor, s, e) then self:moveCursor(0) end
     self.ghostPitch = self.curPitch
 end
 
