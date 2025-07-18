@@ -228,22 +228,20 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         if editor.combo == 'C' then
             -- Copy
-            local s, e = editor:getSelection()
-            local res = editor:dumpChord(true, s, e)
+            local res = editor:dumpChord(true, editor:getSelection())
             CLIPBOARD.set(table.concat(res, ' '))
-            MSG('check', "Copied " .. (e - s + 1) .. " chords")
+            MSG('check', "Copied " .. #res .. " chords")
         end
     elseif key == 'x' then
         if isRep then return true end
         if editor.combo == 'C' then
             -- Cut (Copy+Delete)
-            local s, e = editor:getSelection()
-            local res = editor:dumpChord(true, s, e)
+            local res = editor:dumpChord(true, editor:getSelection())
             CLIPBOARD.set(table.concat(res, ' '))
             editor:deleteChord(editor:getSelection())
             editor:moveCursor(0)
             editor.selMark = false
-            MSG('check', "Cut " .. (e - s + 1) .. " chords")
+            MSG('check', "Cut " .. #res .. " chords")
             editor:focusCursor()
         end
     elseif key == 'v' then

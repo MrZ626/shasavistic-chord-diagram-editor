@@ -55,13 +55,13 @@ E._pitchSorter = pitchSorter
 E._levelSorter = levelSorter
 
 ---@return wrappedChord
-local function newChordObj(text)
+local function newChordObj(text, pitchVec)
     return {
         tree = text and ssvc.decode(text) or { d = 0, pitch = 1 },
         drawData = {},
         text = text or "0",
         textObj = GC.newText(FONT.get(30), text or "0"),
-        pitchVec = TABLE.new(0, 7),
+        pitchVec = pitchVec or TABLE.new(0, 7),
     }
 end
 
@@ -78,18 +78,19 @@ end
 
 ---@param vec number[]
 local function vecToStr(vec)
-    local e
+    local stop
     for i = #vec, 1, -1 do
         if vec[i] ~= 0 then
-            e = i
+            stop = i
             break
         end
     end
-    if not e then return end
+    if not stop then return "" end
+
     local str = ""
-    for i = 1, e do
+    for i = 1, stop do
         str = str .. (
-            vec[i] == 0 and '0' or
+            vec[i] == 0 and "0" or
             vec[i] > 0 and string.char(64 + vec[i]) or
             string.char(96 - vec[i])
         )
@@ -215,27 +216,17 @@ function E:dumpChord(full, s, e)
     local buffer = {}
     for i = s, e do
         local chord = self.chordList[i]
-        if full and TABLE.count(chord.pitchVec, 0) ~= #chord.pitchVec then
-            ins(buffer, vecToStr(chord.pitchVec) .. '!' .. chord.text)
-        else
-            ins(buffer, chord.text)
-        end
+        ins(buffer, vecToStr(full and chord.pitchVec or NONE) .. '!' .. chord.text)
     end
     return buffer
 end
 
 function E:pasteChord(str, after)
     local count = 0
-    local list = STRING.split(str, "%s", true)
+    local list = STRING.split(str, '%s', true)
     for i = 1, #list do
-        local pitchVec
-        if list[i]:find("!") then
-            pitchVec = strToVec(list[i]:match("(.*)!"))
-            list[i] = list[i]:match("!(.*)")
-        end
-        local chord = newChordObj(list[i])
-        chord.tree.d = 0 -- Force root note being legal
-        if pitchVec then chord.pitchVec = pitchVec end
+        local pitch, code = list[i]:match('^(.*)!(.*)$')
+        local chord = newChordObj(code, strToVec(pitch))
         self:reCalculatePitch(chord.tree, vecToPitch(chord.pitchVec))
         self:renderChord(chord)
         count = count + 1
