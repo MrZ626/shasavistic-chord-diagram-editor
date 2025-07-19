@@ -149,25 +149,6 @@ function scene.keyDown(key, isRep)
         edit:deleteChord(edit:getSelection())
         edit.selMark = false
         edit:focusCursor()
-    elseif key == 'm' or key == '.' then
-        if isRep then return true end
-        -- Mark selected note as mute note
-        local curNote = edit:getNote()
-        curNote.note = curNote.note ~= 'mute' and 'mute' or nil
-        edit:renderChord(edit:getChord())
-        edit:focusCursor()
-    elseif key == 'n' then
-        if isRep then return true end
-        -- Mark selected note as hidden note
-        local curNote = edit:getNote()
-        curNote.note = curNote.note ~= 'skip' and 'skip' or nil
-        edit:renderChord(edit:getChord())
-        edit:focusCursor()
-    elseif key == 'b' or key == '/' then
-        if isRep then return true end
-        -- Mark selected note as base
-        edit:switchBase()
-        edit:focusCursor()
     elseif #key == 1 and MATH.between(tonumber(key) or 0, 1, 7) then
         if isRep then return true end
 
@@ -208,73 +189,87 @@ function scene.keyDown(key, isRep)
 
             audio.playNote(pitch, nil, .26)
         end
+    elseif ALT and key == 'm' then
+        if isRep then return true end
+        -- Mark selected note as mute note
+        local curNote = edit:getNote()
+        curNote.note = curNote.note ~= 'mute' and 'mute' or nil
+        edit:renderChord(edit:getChord())
+        edit:focusCursor()
+    elseif ALT and key == 'h' then
+        if isRep then return true end
+        -- Mark selected note as hidden note
+        local curNote = edit:getNote()
+        curNote.note = curNote.note ~= 'skip' and 'skip' or nil
+        edit:renderChord(edit:getChord())
+        edit:focusCursor()
+    elseif ALT and key == 'b' then
+        if isRep then return true end
+        -- Mark selected note as base
+        edit:switchBase()
+        edit:focusCursor()
+    elseif ALT and key == 'l' then
+        if isRep then return true end
+        -- Switch extended line
+        edit:switchExtended()
+        edit:focusCursor()
+    elseif CTRL and key == 'a' then
+        if isRep then return true end
+        -- Select all
+        edit:moveCursor(-1e99)
+        edit.selMark = #edit.chordList
+        edit:focusCursor()
+    elseif CTRL and key == 'c' then
+        if isRep then return true end
+        -- Copy
+        local res = edit:dumpChord(true, edit:getSelection())
+        CLIPBOARD.set(table.concat(res, ' '))
+        MSG('check', "Copied " .. #res .. " chords")
+    elseif CTRL and key == 'x' then
+        if isRep then return true end
+        -- Cut (Copy+Delete)
+        local res = edit:dumpChord(true, edit:getSelection())
+        CLIPBOARD.set(table.concat(res, ' '))
+        edit:deleteChord(edit:getSelection())
+        edit:moveCursor(0)
+        edit.selMark = false
+        MSG('check', "Cut " .. #res .. " chords")
+        edit:focusCursor()
+    elseif CTRL and key == 'v' then
+        if isRep then return true end
+        -- Paste (after)
+        local count = edit:pasteChord(CLIPBOARD.get(), edit.cursor)
+        MSG('check', "Pasted " .. count .. " chords")
+        edit:focusCursor()
+    elseif SHIFT and key == 'v' then
+        if isRep then return true end
+        -- Paste (before)
+        edit.cursor = edit.cursor - 1
+        local count = edit:pasteChord(CLIPBOARD.get(), edit.cursor)
+        MSG('check', "Pasted " .. count .. " chords")
+        edit.cursor = edit.cursor + 1
+        edit:focusCursor()
+    elseif CTRL and key == 'e' then
+        if isRep then return true end
+        -- Export SVG
+        local fileName = os.date("progression_%y%m%d_%H%M%S.svg") ---@cast fileName string
+        local s, e = edit:getSelection()
+        local chordPitches = {}
+        for i = 1, #edit.chordList do
+            chordPitches[i] = log(edit.chordList[i].tree.pitch, 2)
+        end
+        FILE.save(converter(edit:dumpChord(false, s, e), chordPitches), fileName)
+        MSG('check', ("Exported %d chord%s to file " .. fileName .. ",\nPress Ctrl+D to open the export directory"):format(
+            e - s + 1,
+            e > s and "s" or ""
+        ))
+    elseif CTRL and key == 'd' then
+        if isRep then return true end
+        -- Open export directory
+        UTIL.openSaveDirectory()
     elseif key == 'tab' then
         if isRep then return true end
         edit:switchTheme()
-    elseif key == 'a' then
-        if CTRL then
-            -- Select all
-            edit:moveCursor(-1e99)
-            edit.selMark = #edit.chordList
-            edit:focusCursor()
-        end
-    elseif key == 'c' then
-        if isRep then return true end
-        if CTRL then
-            -- Copy
-            local res = edit:dumpChord(true, edit:getSelection())
-            CLIPBOARD.set(table.concat(res, ' '))
-            MSG('check', "Copied " .. #res .. " chords")
-        end
-    elseif key == 'x' then
-        if isRep then return true end
-        if CTRL then
-            -- Cut (Copy+Delete)
-            local res = edit:dumpChord(true, edit:getSelection())
-            CLIPBOARD.set(table.concat(res, ' '))
-            edit:deleteChord(edit:getSelection())
-            edit:moveCursor(0)
-            edit.selMark = false
-            MSG('check', "Cut " .. #res .. " chords")
-            edit:focusCursor()
-        end
-    elseif key == 'v' then
-        if isRep then return true end
-        if CTRL then
-            -- Paste (after)
-            local count = edit:pasteChord(CLIPBOARD.get(), edit.cursor)
-            MSG('check', "Pasted " .. count .. " chords")
-            edit:focusCursor()
-        elseif SHIFT then
-            -- Paste (before)
-            edit.cursor = edit.cursor - 1
-            local count = edit:pasteChord(CLIPBOARD.get(), edit.cursor)
-            MSG('check', "Pasted " .. count .. " chords")
-            edit.cursor = edit.cursor + 1
-            edit:focusCursor()
-        end
-    elseif key == 'e' then
-        if isRep then return true end
-        if CTRL then
-            -- Export SVG
-            local fileName = os.date("progression_%y%m%d_%H%M%S.svg") ---@cast fileName string
-            local s, e = edit:getSelection()
-            local chordPitches = {}
-            for i = 1, #edit.chordList do
-                chordPitches[i] = log(edit.chordList[i].tree.pitch, 2)
-            end
-            FILE.save(converter(edit:dumpChord(false, s, e), chordPitches), fileName)
-            MSG('check', ("Exported %d chord%s to file " .. fileName .. ",\nPress Ctrl+D to open the export directory"):format(
-                e - s + 1,
-                e > s and "s" or ""
-            ))
-        end
-    elseif key == 'd' then
-        if isRep then return true end
-        if CTRL then
-            -- Open export directory
-            UTIL.openSaveDirectory()
-        end
     elseif key == 'escape' then
         if isRep then return true end
         -- Clear selection
@@ -435,9 +430,10 @@ local hintText1 = [[
 Help (Edit)
 Num(1-7)        Add note
 Shift+[Num]     Add downwards
-M or '.'           Mute note
-N                Hide note
-B or '/'           Mark base note
+Alt+M           Mute note
+Alt+H            Hide note
+Alt+B            Mark base note
+Alt+L            Add extended line
 Ctrl+[Num]      Mute & Add note
 
 Alt+[Num]       Change grid step

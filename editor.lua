@@ -9,7 +9,7 @@ local expApproach = MATH.expApproach
 local KBisDown = love.keyboard.isDown
 
 ---@class wrappedChord
----@field tree SSVC.Chord
+---@field tree SSVC.Note
 ---@field drawData table
 ---@field text string
 ---@field textObj love.Text
@@ -179,6 +179,7 @@ function E:getChord()
     return self.chordList[self.cursor]
 end
 
+---@return SSVC.Note
 function E:getNote()
     return TABLE.listIndex(self.chordList[self.cursor].tree, self.nCur)
 end
@@ -305,6 +306,12 @@ function E:switchBase()
         curNote.base = true
     end
     self:renderChord(chord)
+end
+
+function E:switchExtended()
+    local curNote = self:getNote()
+    curNote.extended = not curNote.extended or nil
+    self:renderChord(self:getChord())
 end
 
 -- Playback

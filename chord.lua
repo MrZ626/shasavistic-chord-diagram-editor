@@ -23,13 +23,14 @@ local ins = table.insert
 
 ---@alias SSVC.Dim number
 
----@class SSVC.Chord
+---@class SSVC.Note
 ---@field d? SSVC.Dim
 ---@field note? 'skip' | 'mute'
 ---@field bias? 'l' | 'r'
 ---@field base? true
+---@field extended? true
 ---@field pitch? number GUI use only
----@field [number] SSVC.Chord
+---@field [number] SSVC.Note
 
 ---@class SSVC.Shape
 ---@field mode 'polygon' | 'path'
@@ -63,17 +64,20 @@ local function addShape(texture, layer, x, y, w, h)
     })
 end
 
-local function drawbase(mode, x1, x2)
+local function drawBase(mode, x1, x2)
     if mode == 'l' then
         addShape('base', 99, x1 - 0.12, -.04, 0.07, .08)
     else
         addShape('base', 99, x2 + 0.12, -.04, -0.07, .08)
     end
 end
+local function drawExtend(x1)
+    addShape('note', -1, x1 + .02, -env.noteW / 6, 1.2 - x1 + .2, env.noteW / 3)
+end
 local function drawNote(mode, x1, x2)
     if mode == 'mute' then
         -- Dotted line
-        addShape('note_skip', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
+        addShape('note_mute', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     elseif mode == 'skip' then
         -- Nothing
         -- addShape('note', 0, (x1 + x2) / 2 - .1, -env.noteW / 2, .2, env.noteW) -- Short line
@@ -106,7 +110,7 @@ local function drawBody(d, x1, y1, x2, y2)
     end
 end
 
----@param chord SSVC.Chord
+---@param chord SSVC.Note
 ---@param x1 number
 ---@param x2 number
 local function DrawBranch(chord, x1, x2)
@@ -115,15 +119,16 @@ local function DrawBranch(chord, x1, x2)
 
     moveOrigin(0, nData.yStep)
 
-    -- base
-    if chord.base then
-        drawbase(chord.bias or 'l', x1, x2)
-    end
+    -- Base
+    if chord.base then drawBase(chord.bias or 'l', x1, x2) end
+
+    -- Extended line
+    if chord.extended then drawExtend(x1) end
 
     -- Note
     drawNote(chord.note, x1, x2)
 
-    -- body
+    -- Body
     drawBody(chord.d, x1, 0, x2, -nData.yStep)
 
     -- Branches
@@ -141,7 +146,7 @@ local function DrawBranch(chord, x1, x2)
     moveOrigin(0, -nData.yStep)
 end
 
----@param chord SSVC.Chord
+---@param chord SSVC.Note
 local function drawChord(chord)
     drawBuffer = {}
     DrawBranch(chord, 0, 1)
@@ -150,9 +155,9 @@ local function drawChord(chord)
 end
 
 ---@param str string
----@return SSVC.Chord
+---@return SSVC.Note
 local function decode(str)
-    ---@type SSVC.Chord
+    ---@type SSVC.Note
     local buf = { d = 0 }
     local note = str:match('^%-?%d+')
     if note then
@@ -202,7 +207,7 @@ local function decode(str)
     return buf
 end
 
----@param chord SSVC.Chord
+---@param chord SSVC.Note
 ---@return string
 local function encode(chord)
     local str = {}

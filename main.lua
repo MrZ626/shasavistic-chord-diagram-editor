@@ -68,7 +68,7 @@ local function src(name) return 'components/dark/' .. name end
 ---@class SSVT.TextureMap
 TEX.dark = {
     note = src "pitch-line.png",
-    note_skip = src "pitch-line-dotted.png",
+    note_mute = src "pitch-line-dotted.png",
     -- pitch_canceled = src"pitch-line-canceled.png",
     body_1d = src "1d-ascent-group.png",
     body_2d = src "2d-line.png",
