@@ -8,7 +8,7 @@ function love.conf(t)
 
     local W = t.window
     W.title = "Chord Diagram Editor"
-    W.icon = "components/dark/5d-symbol.png"
+    W.icon = "image/dark/5d-symbol.png"
     W.width, W.height = 1600, 1000
     W.minwidth, W.minheight = 160, 100
     -- W.borderless=false

@@ -295,12 +295,14 @@ local gc_print, gc_draw, gc_line = gc.print, gc.draw, gc.line
 local gc_rectangle = gc.rectangle
 local gc_setAlpha = GC.setAlpha
 local gc_strokeDraw = GC.strokeDraw
+local gc_mDraw = GC.mDraw
 
 local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 6, TEX.dark.keyboard)
 TEX.dark.keyboard:setWrap('clampzero', 'repeat')
 TEX.bright.keyboard:setWrap('clampzero', 'repeat')
 function scene.draw()
     local theme = themes[edit.theme]
+    ---@diagnostic disable-next-line
     local tex = TEX[edit.theme] ---@type SSVT.TextureMap
     local X, Y, K = edit.scrX1, edit.scrY1, edit.scrK1
 
@@ -315,8 +317,12 @@ function scene.draw()
     if edit.gridStepAnimTimer > 0 then
         gc_replaceTransform(SCR.xOy_m)
         gc_setColor(1, 1, 1, edit.gridStepAnimTimer)
-        GC.mDraw(tex.symbol[edit.gridStep], 0, 0, 0, 2)
+        gc_mDraw(tex.symbol[edit.gridStep], 0, 0, 0, 2)
     end
+
+    gc_replaceTransform(SCR.xOy_ur)
+    gc_setColor(1, 1, 1, .26)
+    gc_mDraw(TEX.lamplight, -40, 40, 0, .16)
 
     gc_replaceTransform(SCR.xOy_l)
     gc_translate(100, 0)
@@ -426,6 +432,11 @@ function scene.draw()
     end
 end
 
+local aboutText = [[
+Based on Shasavistic Music Theory
+Original Theory & Art Design from LAMPLIGHT
+App Design & Developed by MrZ_26
+]]
 local hintText1 = [[
 Help (Edit)
 Num(1-7)        Add note
@@ -470,9 +481,18 @@ hintText1 = hintText1:gsub("(%S)  (%S)", "%1 %2")
 hintText2 = hintText2:gsub("(%S)  (%S)", "%1 %2")
 scene.widgetList = {
     WIDGET.new {
+        type = 'hint',
+        fontSize = 50, frameColor = COLOR.X,
+        pos = { 1, 0 }, x = -40, y = 40, w = 60,
+        labelPos = 'bottomLeft',
+        floatText = aboutText,
+        floatFontSize = 30,
+        floatFillColor = { .1, .1, .1, .62 },
+    },
+    WIDGET.new {
         type = 'hint', text = "?",
         fontSize = 50, frameColor = COLOR.lG, textColor = { .62, .9, .62 },
-        pos = { 1, 0 }, x = -40, y = 40, w = 60,
+        pos = { 1, 0 }, x = -110, y = 40, w = 60,
         labelPos = 'bottomLeft',
         floatText = hintText1,
         floatFontSize = 30,
@@ -481,7 +501,7 @@ scene.widgetList = {
     WIDGET.new {
         type = 'hint', text = "?",
         fontSize = 50, frameColor = COLOR.lR, textColor = { 1, .62, .62 },
-        pos = { 1, 0 }, x = -110, y = 40, w = 60,
+        pos = { 1, 0 }, x = -180, y = 40, w = 60,
         labelPos = 'bottomLeft',
         floatText = hintText2,
         floatFontSize = 30,

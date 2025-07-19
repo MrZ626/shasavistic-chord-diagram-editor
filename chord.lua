@@ -72,7 +72,7 @@ local function drawBase(mode, x1, x2)
     end
 end
 local function drawExtend(x2)
-    addShape('note_mute', -1, x2 - .02, -env.noteW / 3, 1.2 - x2 + .04, env.noteW / 1.5)
+    addShape('note_mute', -1, x2 - .02, -env.noteW / 2, 1.2 - x2 + .04, env.noteW)
 end
 local function drawNote(mode, x1, x2)
     if mode == 'mute' then

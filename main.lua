@@ -55,7 +55,11 @@ end
 SCR.setSize(1600, 1000)
 
 -- Texture
-TEX = {}
+local function src(name) return 'image/' .. name end ---@return love.Texture
+TEX = {
+    lamplight = src 'lamplight.png',
+}
+
 local transition = { w = 128, h = 1 }
 for x = 0, 127 do
     table.insert(transition, { 'setCL', 1, 1, 1, 1 - x / 128 })
@@ -63,38 +67,36 @@ for x = 0, 127 do
 end
 TEX.transition = GC.load(transition)
 
----@return love.Texture
-local function src(name) return 'components/dark/' .. name end
 ---@class SSVT.TextureMap
 TEX.dark = {
-    note = src "pitch-line.png",
-    note_mute = src "pitch-line-dotted.png",
-    -- pitch_canceled = src"pitch-line-canceled.png",
-    body_1d = src "1d-ascent-group.png",
-    body_2d = src "2d-line.png",
-    body_3d = src "3d-line.png",
-    body_4d = src "4d-line.png",
-    body_5d = src "5d-line.png",
-    body_6d = src "6d-line.png",
-    body_7d = src "7d-line.png",
-    base = src "base-symbol.png",
-    node = src "node.png",
-    keyboard = src "keyboard-segment.png",
+    note = src "dark/pitch-line.png",
+    note_mute = src "dark/pitch-line-dotted.png",
+    -- pitch_canceled = src "dark/pitch-line-canceled.png",
+    body_1d = src "dark/1d-ascent-group.png",
+    body_2d = src "dark/2d-line.png",
+    body_3d = src "dark/3d-line.png",
+    body_4d = src "dark/4d-line.png",
+    body_5d = src "dark/5d-line.png",
+    body_6d = src "dark/6d-line.png",
+    body_7d = src "dark/7d-line.png",
+    base = src "dark/base-symbol.png",
+    node = src "dark/node.png",
+    keyboard = src "dark/keyboard-segment.png",
     symbol = {
-        src "1d-symbol.png",
-        src "2d-symbol.png",
-        src "3d-symbol.png",
-        src "4d-symbol.png",
-        src "5d-symbol.png",
-        src "6d-symbol.png",
-        src "7d-symbol.png",
+        src "dark/1d-symbol.png",
+        src "dark/2d-symbol.png",
+        src "dark/3d-symbol.png",
+        src "dark/4d-symbol.png",
+        src "dark/5d-symbol.png",
+        src "dark/6d-symbol.png",
+        src "dark/7d-symbol.png",
     },
-    -- ascent_group = src"1d-ascent-group.png",
-    -- ascent_triangle = src"1d-ascent-triangle.png",
-    -- descent_group = src"1d-descent-group.png",
-    -- descent_triangle = src"1d-descent-triangle.png",
-    -- ascent_symbol = src"ascent-symbol.png",
-    -- descent_symbol = src"descent-symbol.png",
+    -- ascent_group = src "dark/1d-ascent-group.png",
+    -- ascent_triangle = src "dark/1d-ascent-triangle.png",
+    -- descent_group = src "dark/1d-descent-group.png",
+    -- descent_triangle = src "dark/1d-descent-triangle.png",
+    -- ascent_symbol = src "dark/ascent-symbol.png",
+    -- descent_symbol = src "dark/descent-symbol.png",
 }
 TEX.bright = {} ---@type SSVT.TextureMap
 for k, v in next, TEX.dark do
