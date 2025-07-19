@@ -293,9 +293,8 @@ local gc_translate, gc_scale = gc.translate, gc.scale
 local gc_setColor, gc_setLineWidth = gc.setColor, gc.setLineWidth
 local gc_print, gc_draw, gc_line = gc.print, gc.draw, gc.line
 local gc_rectangle = gc.rectangle
-local gc_setAlpha = GC.setAlpha
-local gc_strokeDraw = GC.strokeDraw
-local gc_mDraw = GC.mDraw
+local gc_setAlpha, gc_setColorMask = GC.setAlpha, GC.setColorMask
+local gc_mDraw, gc_strokeDraw = GC.mDraw, GC.strokeDraw
 
 local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 6, TEX.dark.keyboard)
 TEX.dark.keyboard:setWrap('clampzero', 'repeat')
@@ -377,10 +376,27 @@ function scene.draw()
         gc_setColor(1, 1, 1)
         local drawData = edit.chordList[i].drawData
         local dy = -log(edit.chordList[i].tree.pitch, 2)
-        for j = 1, #drawData do
-            local d = drawData[j]
-            local t = tex[d.texture]
-            gc_draw(t, .1 + d.x, dy + d.y, 0, d.w / t:getWidth(), d.h / t:getHeight())
+
+        if not edit.selMark and i == edit.cursor then
+            local float = .01 + .0042 * sin(love.timer.getTime() * 2.6)
+            for j = 1, #drawData do
+                local d = drawData[j]
+                local t = tex[d.texture]
+                local kx, ky = d.w / t:getWidth(), d.h / t:getHeight()
+                gc_setColorMask(true, false, false, false)
+                gc_draw(t, .1 + d.x, dy + d.y - float, 0, kx, ky)
+                gc_setColorMask(false, true, false, false)
+                gc_draw(t, .1 + d.x, dy + d.y, 0, kx, ky)
+                gc_setColorMask(false, false, true, false)
+                gc_draw(t, .1 + d.x, dy + d.y + float, 0, kx, ky)
+                gc_setColorMask()
+            end
+        else
+            for j = 1, #drawData do
+                local d = drawData[j]
+                local t = tex[d.texture]
+                gc_draw(t, .1 + d.x, dy + d.y, 0, d.w / t:getWidth(), d.h / t:getHeight())
+            end
         end
 
         -- Chord Code
