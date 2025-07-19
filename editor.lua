@@ -24,8 +24,6 @@ local E = {
     curPitch = 1,
     ghostPitch = 1,
 
-    combo = '', ---@type '' | 'C' | 'S' | 'A'
-
     scrX = 0, -- Scroll position
     scrY = 0,
     scrK = 1,
@@ -154,7 +152,7 @@ end
 
 function E:moveCursor(offset)
     local newPos = MATH.clamp(self.cursor + offset, 1, #self.chordList)
-    if self.combo == 'S' then
+    if KBisDown('lshift', 'rshift') then
         if not self.selMark then self.selMark = self.cursor end
     elseif self.selMark then
         if abs(offset) == 1 then
@@ -289,6 +287,26 @@ function E:deleteChord(s, e)
     self.ghostPitch = self.curPitch
 end
 
+function E:switchBase()
+    local chord, curNote = self:getChord(), self:getNote()
+    if curNote.base then
+        curNote.base = nil
+    else
+        for k in next, TABLE.flatten(TABLE.copyAll(chord.tree)) do
+            if k:find('base') then
+                ---@type table
+                local index = STRING.split(k, '.')
+                for i = 1, #index do
+                    index[i] = tonumber(index[i]) or index[i]
+                end
+                TABLE.listIndexSet(chord.tree, index, nil)
+            end
+        end
+        curNote.base = true
+    end
+    self:renderChord(chord)
+end
+
 -- Playback
 
 function E:stopPlaying()
@@ -355,7 +373,7 @@ function E:update(dt)
     self.scrY1 = expApproach(self.scrY1, self.scrY, dt * 20)
     self.scrK1 = expApproach(self.scrK1, self.scrK, dt * 20)
     self.gridStepAnimTimer = max(self.gridStepAnimTimer - dt, 0)
-    if self.combo == 'C' then
+    if KBisDown('lctrl', 'rctrl') then
         if KBisDown('left') then self:scroll(-dt * 6.2, 0) end
         if KBisDown('right') then self:scroll(dt * 6.2, 0) end
         if KBisDown('up') then self:scroll(0, -dt * 6.2) end

@@ -1,202 +1,189 @@
 local themes = require('themes')
 local ssvc = require('chord')
 local audio = require('audio')
-local editor = require('editor')
+local edit = require('editor')
 local converter = require('svg_converter')
 
 local ins = table.insert
-local min = math.min
-local abs, floor = math.abs, math.floor
+local min, floor = math.min, math.floor
 local sin, log = math.sin, math.log
 local tostring = tostring
+local KBisDown = love.keyboard.isDown
 
 ---@type Zenitha.Scene
 local scene = {}
 
 function scene.load()
-    editor:newChord(1)
-    editor:moveCursor(0)
+    edit:newChord(1)
+    edit:moveCursor(0)
 end
 
 function scene.wheelMove(_, dy)
-    if editor.combo == 'S' then
-        editor:scroll(-dy / 2.6, 0)
-    elseif editor.combo == 'C' then
-        editor:scale(1 + dy * .1)
+    if KBisDown('lshift', 'rshift') then
+        edit:scroll(-dy / 2.6, 0)
+    elseif KBisDown('lctrl', 'rctrl') then
+        edit:scale(1 + dy * .1)
     else
-        editor:scroll(0, -dy / 2.6)
+        edit:scroll(0, -dy / 2.6)
     end
 end
 
 function scene.keyDown(key, isRep)
     if key == 'lctrl' or key == 'rctrl' or key == 'lshift' or key == 'rshift' or key == 'lalt' or key == 'ralt' then
-        if editor.combo == '' then editor.combo = key:sub(2, 2):upper() end
         return true
     end
+    local CTRL = KBisDown('lctrl', 'rctrl')
+    local SHIFT = KBisDown('lshift', 'rshift')
+    local ALT = KBisDown('lalt', 'ralt')
 
     if key == 'space' then
         if isRep then return true end
-        if editor.playing then
-            editor:stopPlaying()
-        elseif editor.combo == 'S' then
+        if edit.playing then
+            edit:stopPlaying()
+        elseif SHIFT then
             -- Play selected note
-            audio.playNote(editor.curPitch)
+            audio.playNote(edit.curPitch)
         else
             -- Play selected chords
-            editor.playL, editor.playR = editor:getSelection()
-            editor.playing = editor.playL
+            edit.playL, edit.playR = edit:getSelection()
+            edit.playing = edit.playL
             -- editor.timer0 = .5 + .5 / (editor.playR - editor.playL + 1)
-            editor.timer0 = .62
-            editor:playChord()
+            edit.timer0 = .62
+            edit:playChord()
         end
     elseif key == 'down' or key == 'up' then
-        if editor.combo == 'C' then return true end
-        if editor.combo == 'A' then
+        if CTRL then return true end
+        if ALT then
             -- Move chord
-            local s, e = editor:getSelection()
+            local s, e = edit:getSelection()
             for i = s, e do
-                editor:moveChord(editor.chordList[i], key == 'up' and editor.gridStep or -editor.gridStep)
+                edit:moveChord(edit.chordList[i], key == 'up' and edit.gridStep or -edit.gridStep)
             end
-            editor:focusCursor()
+            edit:focusCursor()
         else
             -- Select note
-            local allInfo = TABLE.flatten(TABLE.copyAll(editor.chordList[editor.cursor].tree))
+            local allInfo = TABLE.flatten(TABLE.copyAll(edit.chordList[edit.cursor].tree))
             local pitchInfo = TABLE.alloc()
             for k, v in next, allInfo do
                 if k:sub(-5) == 'pitch' then
                     ins(pitchInfo, { v, k:sub(1, -7) })
                 end
             end
-            table.sort(pitchInfo, editor._pitchSorter)
+            table.sort(pitchInfo, edit._pitchSorter)
             local curPos
             for i = 1, #pitchInfo do
-                if pitchInfo[i][1] == editor.curPitch then
+                if pitchInfo[i][1] == edit.curPitch then
                     curPos = i; break
                 end
             end
             if not curPos then return end
             if key == 'up' then
-                while curPos < #pitchInfo and (pitchInfo[curPos][1] <= editor.curPitch) do curPos = curPos + 1 end
+                while curPos < #pitchInfo and (pitchInfo[curPos][1] <= edit.curPitch) do curPos = curPos + 1 end
             else
-                while curPos > 1 and (pitchInfo[curPos][1] >= editor.curPitch) do curPos = curPos - 1 end
+                while curPos > 1 and (pitchInfo[curPos][1] >= edit.curPitch) do curPos = curPos - 1 end
             end
-            editor.curPitch = pitchInfo[curPos][1]
-            editor.ghostPitch = editor.curPitch
-            editor.nCur = STRING.split(pitchInfo[curPos][2], ".")
-            for i = 1, #editor.nCur do
-                editor.nCur[i] = tonumber(editor.nCur[i])
+            edit.curPitch = pitchInfo[curPos][1]
+            edit.ghostPitch = edit.curPitch
+            edit.nCur = STRING.split(pitchInfo[curPos][2], ".")
+            for i = 1, #edit.nCur do
+                edit.nCur[i] = tonumber(edit.nCur[i])
             end
-            editor:refreshText()
+            edit:refreshText()
             TABLE.free(pitchInfo)
-            editor:focusCursor()
+            edit:focusCursor()
         end
     elseif key == 'left' or key == 'right' then
-        if editor.combo == 'C' then return true end
-        if editor.combo == 'A' then
+        if CTRL then return true end
+        if ALT then
             -- Bias note
-            if #editor.nCur == 0 then return true end
-            local chord, curNote = editor:getChord(), editor:getNote()
+            if #edit.nCur == 0 then return true end
+            local chord, curNote = edit:getChord(), edit:getNote()
             local tar = key == 'left' and 'l' or 'r'
             if curNote.bias ~= tar then
                 curNote.bias = not curNote.bias and tar or nil
-                editor:renderChord(chord)
+                edit:renderChord(chord)
             end
-            editor:focusCursor()
+            edit:focusCursor()
         else
             -- Move cursor (normally)
-            editor:moveCursor(key == 'left' and -1 or 1)
-            editor:focusCursor()
+            edit:moveCursor(key == 'left' and -1 or 1)
+            edit:focusCursor()
         end
     elseif key == 'pageup' then
         if isRep then return true end
-        editor:moveCursor(-4)
-        editor:focusCursor()
+        edit:moveCursor(-4)
+        edit:focusCursor()
     elseif key == 'pagedown' then
         if isRep then return true end
-        editor:moveCursor(4)
-        editor:focusCursor()
+        edit:moveCursor(4)
+        edit:focusCursor()
     elseif key == 'home' then
         if isRep then return true end
-        editor:moveCursor(-1e99)
-        editor:focusCursor()
+        edit:moveCursor(-1e99)
+        edit:focusCursor()
     elseif key == 'end' then
         if isRep then return true end
-        editor:moveCursor(1e99)
-        editor:focusCursor()
+        edit:moveCursor(1e99)
+        edit:focusCursor()
     elseif key == 'return' then
         if isRep then return true end
-        editor.combo = ''
         -- Create new chord
-        editor:newChord(editor.cursor + 1, true)
-        editor:moveCursor(1)
-        editor:focusCursor()
+        edit:newChord(edit.cursor + 1, not CTRL)
+        edit:moveCursor(1)
+        edit:focusCursor()
     elseif key == 'backspace' then
         if isRep then return true end
-        if editor.combo == 'A' then
-            local chord = editor:getChord()
-            editor:reCalculatePitch(chord.tree, 1)
-            editor.curPitch = 1
-            editor.ghostPitch = editor.curPitch
-            editor:focusCursor()
+        if ALT then
+            edit:reCalculatePitch(edit:getChord().tree, 1)
+            edit.curPitch = 1
+            edit.ghostPitch = edit.curPitch
+            edit:focusCursor()
         else
             -- Delete selected note
-            editor:deleteCursorNote()
-            editor:focusCursor()
+            edit:deleteCursorNote()
+            edit:focusCursor()
         end
     elseif key == 'delete' then
         if isRep then return true end
         -- Delete current chord
-        editor:deleteChord(editor:getSelection())
-        editor.selMark = false
-        editor:focusCursor()
-    elseif key == '.' then
+        edit:deleteChord(edit:getSelection())
+        edit.selMark = false
+        edit:focusCursor()
+    elseif key == 'm' or key == '.' then
         if isRep then return true end
-        -- Mark selected note as fake note
-        local chord, curNote = editor:getChord(), editor:getNote()
-        if curNote.note then
-            curNote.note = nil
-        else
-            curNote.note = abs(curNote.d) == 1 and 'skip' or 'mute'
-        end
-        editor:renderChord(chord)
-        editor:focusCursor()
-    elseif key == '/' then
+        -- Mark selected note as mute note
+        local curNote = edit:getNote()
+        curNote.note = curNote.note ~= 'mute' and 'mute' or nil
+        edit:renderChord(edit:getChord())
+        edit:focusCursor()
+    elseif key == 'n' then
+        if isRep then return true end
+        -- Mark selected note as hidden note
+        local curNote = edit:getNote()
+        curNote.note = curNote.note ~= 'skip' and 'skip' or nil
+        edit:renderChord(edit:getChord())
+        edit:focusCursor()
+    elseif key == 'b' or key == '/' then
         if isRep then return true end
         -- Mark selected note as base
-        local chord, curNote = editor:getChord(), editor:getNote()
-        if curNote.base then
-            curNote.base = nil
-        else
-            for k in next, TABLE.flatten(TABLE.copyAll(chord.tree)) do
-                if k:find('base') then
-                    ---@type table
-                    local index = STRING.split(k, '.')
-                    for i = 1, #index do
-                        index[i] = tonumber(index[i]) or index[i]
-                    end
-                    TABLE.listIndexSet(chord.tree, index, nil)
-                end
-            end
-            curNote.base = true
-        end
-        editor:renderChord(chord)
-        editor:focusCursor()
+        edit:switchBase()
+        edit:focusCursor()
     elseif #key == 1 and MATH.between(tonumber(key) or 0, 1, 7) then
         if isRep then return true end
 
         local keyNum = tonumber(key)
         ---@cast keyNum number
 
-        if editor.combo == 'A' then
+        if ALT then
             -- Set custom grid step
-            editor.gridStep = keyNum
-            editor.gridStepAnimTimer = .42
-            editor:focusCursor()
-        elseif editor.combo == '' or editor.combo == 'S' then
+            edit.gridStep = keyNum
+            edit.gridStepAnimTimer = .42
+            edit:focusCursor()
+        else
             -- Add/Remove note
             local step = keyNum
-            if editor.combo == 'S' then step = -step end
-            local chord, curNote = editor:getChord(), editor:getNote()
+            if SHIFT then step = -step end
+            local curNote = edit:getNote()
             local exist
             for i = 1, #curNote do
                 if curNote[i].d == step then
@@ -205,71 +192,78 @@ function scene.keyDown(key, isRep)
                 end
             end
 
-            local pitch = editor.curPitch * ssvc.dimData[step].freq
+            local pitch = edit.curPitch * ssvc.dimData[step].freq
+            local needRender
             if not exist then
                 ins(curNote, { d = step, pitch = pitch })
-                table.sort(curNote, editor._levelSorter)
-                editor:renderChord(chord)
+                table.sort(curNote, edit._levelSorter)
+                needRender = true
             end
+            if CTRL then
+                curNote.note = 'mute'
+                needRender = true
+            end
+            if needRender then edit:renderChord(edit:getChord()) end
+            edit:focusCursor()
+
             audio.playNote(pitch, nil, .26)
-            editor:focusCursor()
         end
     elseif key == 'tab' then
         if isRep then return true end
-        editor:switchTheme()
+        edit:switchTheme()
     elseif key == 'a' then
-        if editor.combo == 'C' then
+        if CTRL then
             -- Select all
-            editor:moveCursor(-1e99)
-            editor.selMark = #editor.chordList
-            editor:focusCursor()
+            edit:moveCursor(-1e99)
+            edit.selMark = #edit.chordList
+            edit:focusCursor()
         end
     elseif key == 'c' then
         if isRep then return true end
-        if editor.combo == 'C' then
+        if CTRL then
             -- Copy
-            local res = editor:dumpChord(true, editor:getSelection())
+            local res = edit:dumpChord(true, edit:getSelection())
             CLIPBOARD.set(table.concat(res, ' '))
             MSG('check', "Copied " .. #res .. " chords")
         end
     elseif key == 'x' then
         if isRep then return true end
-        if editor.combo == 'C' then
+        if CTRL then
             -- Cut (Copy+Delete)
-            local res = editor:dumpChord(true, editor:getSelection())
+            local res = edit:dumpChord(true, edit:getSelection())
             CLIPBOARD.set(table.concat(res, ' '))
-            editor:deleteChord(editor:getSelection())
-            editor:moveCursor(0)
-            editor.selMark = false
+            edit:deleteChord(edit:getSelection())
+            edit:moveCursor(0)
+            edit.selMark = false
             MSG('check', "Cut " .. #res .. " chords")
-            editor:focusCursor()
+            edit:focusCursor()
         end
     elseif key == 'v' then
         if isRep then return true end
-        if editor.combo == 'C' then
+        if CTRL then
             -- Paste (after)
-            local count = editor:pasteChord(CLIPBOARD.get(), editor.cursor)
+            local count = edit:pasteChord(CLIPBOARD.get(), edit.cursor)
             MSG('check', "Pasted " .. count .. " chords")
-            editor:focusCursor()
-        elseif editor.combo == 'S' then
+            edit:focusCursor()
+        elseif SHIFT then
             -- Paste (before)
-            editor.cursor = editor.cursor - 1
-            local count = editor:pasteChord(CLIPBOARD.get(), editor.cursor)
+            edit.cursor = edit.cursor - 1
+            local count = edit:pasteChord(CLIPBOARD.get(), edit.cursor)
             MSG('check', "Pasted " .. count .. " chords")
-            editor.cursor = editor.cursor + 1
-            editor:focusCursor()
+            edit.cursor = edit.cursor + 1
+            edit:focusCursor()
         end
     elseif key == 'e' then
         if isRep then return true end
-        if editor.combo == 'C' then
+        if CTRL then
             -- Export SVG
             local fileName = os.date("progression_%y%m%d_%H%M%S.svg") ---@cast fileName string
-            local s, e = editor:getSelection()
+            local s, e = edit:getSelection()
             local chordPitches = {}
-            for i = 1, #editor.chordList do
-                chordPitches[i] = log(editor.chordList[i].tree.pitch, 2)
+            for i = 1, #edit.chordList do
+                chordPitches[i] = log(edit.chordList[i].tree.pitch, 2)
             end
-            FILE.save(converter(editor:dumpChord(false, s, e), chordPitches), fileName)
+            FILE.save(converter(edit:dumpChord(false, s, e), chordPitches), fileName)
             MSG('check', ("Exported %d chord%s to file " .. fileName .. ",\nPress Ctrl+D to open the export directory"):format(
                 e - s + 1,
                 e > s and "s" or ""
@@ -277,30 +271,23 @@ function scene.keyDown(key, isRep)
         end
     elseif key == 'd' then
         if isRep then return true end
-        if editor.combo == 'C' then
+        if CTRL then
             -- Open export directory
             UTIL.openSaveDirectory()
         end
     elseif key == 'escape' then
         if isRep then return true end
         -- Clear selection
-        editor.selMark = false
+        edit.selMark = false
     end
     return true
 end
 
-function scene.keyUp(key)
-    if key == 'lctrl' or key == 'rctrl' then
-        if editor.combo == 'C' then editor.combo = '' end
-    elseif key == 'lshift' or key == 'rshift' then
-        if editor.combo == 'S' then editor.combo = '' end
-    elseif key == 'lalt' or key == 'ralt' then
-        if editor.combo == 'A' then editor.combo = '' end
-    end
-end
+-- function scene.keyUp(key)
+-- end
 
 function scene.update(dt)
-    editor:update(dt)
+    edit:update(dt)
     audio.update(dt)
 end
 
@@ -318,9 +305,9 @@ local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 6, TEX.dark.keyboard)
 TEX.dark.keyboard:setWrap('clampzero', 'repeat')
 TEX.bright.keyboard:setWrap('clampzero', 'repeat')
 function scene.draw()
-    local theme = themes[editor.theme]
-    local tex = TEX[editor.theme] ---@type SSVT.TextureMap
-    local X, Y, K = editor.scrX1, editor.scrY1, editor.scrK1
+    local theme = themes[edit.theme]
+    local tex = TEX[edit.theme] ---@type SSVT.TextureMap
+    local X, Y, K = edit.scrX1, edit.scrY1, edit.scrK1
 
     FONT.set(30)
 
@@ -330,10 +317,10 @@ function scene.draw()
     gc_setColor(theme.bg)
     gc_rectangle('fill', 0, 0, SCR.w0, SCR.h0)
 
-    if editor.gridStepAnimTimer > 0 then
+    if edit.gridStepAnimTimer > 0 then
         gc_replaceTransform(SCR.xOy_m)
-        gc_setColor(1, 1, 1, editor.gridStepAnimTimer)
-        GC.mDraw(tex.symbol[editor.gridStep], 0, 0, 0, 2)
+        gc_setColor(1, 1, 1, edit.gridStepAnimTimer)
+        GC.mDraw(tex.symbol[edit.gridStep], 0, 0, 0, 2)
     end
 
     gc_replaceTransform(SCR.xOy_l)
@@ -346,8 +333,8 @@ function scene.draw()
     -- Grid line
     do
         gc_setLineWidth(.01)
-        gc_setColor(theme.dimGridColor[editor.gridStep])
-        local dist = log(ssvc.dimData[editor.gridStep].freq, 2)
+        gc_setColor(theme.dimGridColor[edit.gridStep])
+        local dist = log(ssvc.dimData[edit.gridStep].freq, 2)
         local y = 0
         gc_translate(X, 0)
         while y < 2.6 do
@@ -365,12 +352,12 @@ function scene.draw()
     -- Selection
     do
         ---@type number, number
-        local s, e = editor.cursor1, editor.selMark or editor.cursor1
+        local s, e = edit.cursor1, edit.selMark or edit.cursor1
         if s > e then s, e = e, s end
         s, e = (s - 1) * 1.2, e * 1.2
         gc_setColor(theme.select)
         gc_rectangle('fill', s, topY, e - s, btmY - topY)
-        if editor.selMark then
+        if edit.selMark then
             gc_setColor(theme.cursor)
             gc_draw(TEX.transition, s, 0, 0, .2 / 128, 12, 0, .5)
             gc_draw(TEX.transition, e, 0, 0, -.2 / 128, 12, 0, .5)
@@ -379,7 +366,7 @@ function scene.draw()
 
     -- Chords
     gc_push('transform')
-    for i = 1, #editor.chordList do
+    for i = 1, #edit.chordList do
         -- Separator line
         gc_setColor(theme.sepLine)
         gc_setLineWidth(.01)
@@ -387,8 +374,8 @@ function scene.draw()
 
         -- Chord textures
         gc_setColor(1, 1, 1)
-        local drawData = editor.chordList[i].drawData
-        local dy = -log(editor.chordList[i].tree.pitch, 2)
+        local drawData = edit.chordList[i].drawData
+        local dy = -log(edit.chordList[i].tree.pitch, 2)
         for j = 1, #drawData do
             local d = drawData[j]
             local t = tex[d.texture]
@@ -398,7 +385,7 @@ function scene.draw()
         -- Chord Code
         gc_setColor(theme.text)
         gc_scale(1 / K)
-        local text = editor.chordList[i].textObj
+        local text = edit.chordList[i].textObj
         gc_draw(text, .03, 1.75 + Y * K, 0, min(.004, 1.14 / text:getWidth() * K), .004)
         gc_scale(K)
 
@@ -413,33 +400,33 @@ function scene.draw()
     -- Cursor
     do
         gc_setColor(theme.cursor)
-        local x, y = 1.2 * (editor.cursor1 - 1), -log(editor.curPitch1, 2)
+        local x, y = 1.2 * (edit.cursor1 - 1), -log(edit.curPitch1, 2)
         gc_draw(TEX.transition, X, y, 0, 1 / 128, 2.6 / 128, 128, .5)
-        gc_print(tostring(floor(440 * editor.curPitch)), X - .37, y - .09, 0, .0018)
+        gc_print(tostring(floor(440 * edit.curPitch)), X - .37, y - .09, 0, .0018)
         gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
         gc_setLineWidth(.01)
         gc_rectangle('line', x, y - .03, 1.2, .06)
-        if editor.ghostPitch ~= editor.curPitch then
+        if edit.ghostPitch ~= edit.curPitch then
             gc_setAlpha(.1)
-            gc_rectangle('fill', x, -log(editor.ghostPitch, 2) - .03, 1.2, .06)
+            gc_rectangle('fill', x, -log(edit.ghostPitch, 2) - .03, 1.2, .06)
         end
         gc_setColor(0, 0, 0)
-        gc_strokeDraw('corner', .0042, editor.cursorText, x - .04, y - .16, 0, .0035)
+        gc_strokeDraw('corner', .0042, edit.cursorText, x - .04, y - .16, 0, .0035)
         gc_setColor(theme.cursor)
-        gc_draw(editor.cursorText, x - .04, y - .16, 0, .0035)
+        gc_draw(edit.cursorText, x - .04, y - .16, 0, .0035)
     end
 
     -- Playing selection
-    if editor.playing then
-        local s, e = editor.playL, editor.playR
+    if edit.playing then
+        local s, e = edit.playL, edit.playR
         s, e = (s - 1) * 1.2, e * 1.2
         gc_setColor(theme.preview)
         gc_draw(TEX.transition, s, 0, 0, .2 / 128, 12, 0, .5)
         gc_draw(TEX.transition, e, 0, 0, -.2 / 128, 12, 0, .5)
         gc_setLineWidth(.026)
         gc_setColor(theme.playline)
-        local progress = editor.playing + (1 - editor.timer / editor.timer0)
-        local x = MATH.interpolate(editor.playL, s, editor.playR + 1, e, progress)
+        local progress = edit.playing + (1 - edit.timer / edit.timer0)
+        local x = MATH.interpolate(edit.playL, s, edit.playR + 1, e, progress)
         gc_line(x, topY, x, btmY)
     end
 end
@@ -448,10 +435,11 @@ local hintText1 = [[
 Help (Edit)
 1-7               Add note
 Shift+1-7         Add downwards
-/                 Mark base note
-.                 Mute note
+M or '.'           Mute note
+N                Hide note
+B or '/'           Mark base note
 
-Alt+1-7          Change grid step
+Alt+1-7           Change grid step
 Alt+Up/Down    Move chord
 Alt+Left/Right   Bias note
 
@@ -481,6 +469,8 @@ F11                        Fullscreen
 ]]
 hintText1 = hintText1:gsub(" ", "  ")
 hintText2 = hintText2:gsub(" ", "  ")
+hintText1 = hintText1:gsub("(%S)  (%S)", "%1 %2")
+hintText2 = hintText2:gsub("(%S)  (%S)", "%1 %2")
 scene.widgetList = {
     WIDGET.new {
         type = 'hint', text = "?",
