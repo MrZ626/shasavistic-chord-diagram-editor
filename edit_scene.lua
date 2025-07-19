@@ -434,8 +434,8 @@ end
 
 local aboutText = [[
 Based on Shasavistic Music Theory
-Original Theory & Art Design from LAMPLIGHT
-App Design & Developed by MrZ_26
+Original theory & art design from LAMPLIGHT
+App design & developed by MrZ_26
 ]]
 local hintText1 = [[
 Help (Edit)
