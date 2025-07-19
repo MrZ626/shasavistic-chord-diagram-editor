@@ -451,7 +451,7 @@ end
 
 local aboutText = [[
 Based on Shasavistic Music Theory
-Original theory & art design from LAMPLIGHT
+Original theory & art design from L4MPLIGHT
 App design & developed by MrZ_26
 ]]
 local hintText1 = [[
