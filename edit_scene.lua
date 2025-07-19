@@ -433,13 +433,14 @@ end
 
 local hintText1 = [[
 Help (Edit)
-1-7               Add note
-Shift+1-7         Add downwards
+Num(1-7)        Add note
+Shift+[Num]     Add downwards
 M or '.'           Mute note
 N                Hide note
 B or '/'           Mark base note
+Ctrl+[Num]      Mute & Add note
 
-Alt+1-7           Change grid step
+Alt+[Num]       Change grid step
 Alt+Up/Down    Move chord
 Alt+Left/Right   Bias note
 
