@@ -71,8 +71,8 @@ local function drawBase(mode, x1, x2)
         addShape('base', 99, x2 + 0.12, -.04, -0.07, .08)
     end
 end
-local function drawExtend(x1)
-    addShape('note', -1, x1 + .02, -env.noteW / 6, 1.2 - x1 + .2, env.noteW / 3)
+local function drawExtend(x2)
+    addShape('note_mute', -1, x2 - .02, -env.noteW / 3, 1.2 - x2 + .04, env.noteW / 1.5)
 end
 local function drawNote(mode, x1, x2)
     if mode == 'mute' then
@@ -123,7 +123,7 @@ local function DrawBranch(chord, x1, x2)
     if chord.base then drawBase(chord.bias or 'l', x1, x2) end
 
     -- Extended line
-    if chord.extended then drawExtend(x1) end
+    if chord.extended then drawExtend(x2) end
 
     -- Note
     drawNote(chord.note, x1, x2)
