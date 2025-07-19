@@ -378,17 +378,18 @@ function scene.draw()
         local dy = -log(edit.chordList[i].tree.pitch, 2)
 
         if not edit.selMark and i == edit.cursor then
-            local float = .01 + .0042 * sin(love.timer.getTime() * 2.6)
+            local float = .0126 + .0026 * sin(love.timer.getTime() * 2.6)
             for j = 1, #drawData do
                 local d = drawData[j]
                 local t = tex[d.texture]
+                local x, y = .1 + d.x, dy + d.y
                 local kx, ky = d.w / t:getWidth(), d.h / t:getHeight()
                 gc_setColorMask(true, false, false, false)
-                gc_draw(t, .1 + d.x, dy + d.y - float, 0, kx, ky)
+                gc_draw(t, x, y - float, 0, kx, ky)
                 gc_setColorMask(false, true, false, false)
-                gc_draw(t, .1 + d.x, dy + d.y, 0, kx, ky)
+                gc_draw(t, x, y, 0, kx, ky)
                 gc_setColorMask(false, false, true, false)
-                gc_draw(t, .1 + d.x, dy + d.y + float, 0, kx, ky)
+                gc_draw(t, x, y + float, 0, kx, ky)
                 gc_setColorMask()
             end
         else
