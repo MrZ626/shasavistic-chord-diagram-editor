@@ -14,16 +14,33 @@ do -- Create first sudio source
     local sampleRate = 48000
     local baseFreq = 440
     local period = 1 / baseFreq
-    local loopCount = 62
+    local loopCount = 210 -- 2*3*5*7
     local snd = love.sound.newSoundData(math.floor(sampleRate / baseFreq * loopCount), sampleRate, 16, 1)
+    local harmonicSeries = {
+        { 1,  .25 ^ 0 },
+        { 3,  .25 ^ 1 },
+        { 5,  .25 ^ 2 },
+        { 7,  .25 ^ 3 },
+        { 11, .25 ^ 4 },
+    }
     for i = 0, snd:getSampleCount() - 1 do
         local t = i / sampleRate
 
+        -- Custom Harmonic Series
+        local v = 0
+        for j = 1, #harmonicSeries do
+            local h = harmonicSeries[j]
+            v = v + h[2] * math.sin(6.283185307179586 / (period / h[1]) * t)
+        end
+
         -- Sine Wave ~
-        local v = math.sin(6.283185307179586 / period * t)
+        -- local v = math.sin(6.283185307179586 / period * t)
+
+        -- Sine Wave ~
+        -- local v = math.sin(6.283185307179586 / period * t)
 
         -- Square Wave -_
-        -- local v = t % period < period * .5 and 1 or -1
+        -- local v = t % period < period * .5 and .4 or -.4
 
         -- Triangle Wave ^v
         -- local v = -1 + math.abs((t - period / 4) % period - period / 2) * 2 / (period / 2)
