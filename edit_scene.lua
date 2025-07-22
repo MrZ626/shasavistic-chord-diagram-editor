@@ -297,8 +297,8 @@ local CGD = { -- Chord Graph data
     { a = 0 },
     { a = -1 },
     { a = 1 },
-    { a = -.5 },
     { a = .5 },
+    { a = -.5 },
     { a = -.25 },
     { a = .25 },
 }
@@ -350,7 +350,7 @@ function scene.draw()
     do
         gc_replaceTransform(SCR.xOy_m)
         gc_scale(283)
-        gc_setLineWidth(.042)
+        gc_setLineWidth(.06)
         local len = 26
         gc_setColor(1, 1, 1, .02); gc_line(0, -len, 0, len)
         gc_setColor(1, 1, 1, .06); gc_line(-len, 0, len, 0)
@@ -375,14 +375,16 @@ function scene.draw()
         -- Lines
         drawCGNote(chord.tree, 0, 0, alpha)
         -- Notes
-        gc_setLineWidth(.02)
-        gc_setColor(1, 1, 1, .1 * alpha); for i = 1, #CGNB, 2 do gc_circle('fill', CGNB[i], CGNB[i + 1], .0626, 4) end
+        gc_setLineWidth(.012)
+        gc_setColor(1, 1, 1, .1 * alpha); for i = 1, #CGNB, 2 do gc_circle('fill', CGNB[i], CGNB[i + 1], .07, 4) end
         gc_setColor(0, 0, 0, .1 * alpha); for i = 1, #CGNB, 2 do gc_circle('line', CGNB[i], CGNB[i + 1], .08, 4) end
         TABLE.clear(CGNB)
         -- Root
-        gc_setLineWidth(.01)
-        gc_circle('fill', 0, 0, .07, 4)
-        gc_circle('line', 0, 0, .1, 4)
+        gc_setLineWidth(.016)
+        gc_circle('fill', 0, 0, .08, 4)
+        gc_circle('line', 0, 0, .11, 4)
+        gc_setColor(1, 1, 1, .1 * alpha)
+        gc_circle('line', 0, 0, .09, 4)
     end
 
     -- Grid step icon
