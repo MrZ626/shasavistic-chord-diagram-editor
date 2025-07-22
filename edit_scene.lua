@@ -4,9 +4,9 @@ local audio = require('audio')
 local edit = require('editor')
 local converter = require('svg_converter')
 
-local ins = table.insert
 local min, floor = math.min, math.floor
-local sin, log = math.sin, math.log
+local sin, cos = math.sin, math.cos
+local abs, log = math.abs, math.log
 local tostring = tostring
 local KBisDown = love.keyboard.isDown
 
@@ -282,15 +282,53 @@ local gc_clear, gc_replaceTransform = gc.clear, gc.replaceTransform
 local gc_translate, gc_scale = gc.translate, gc.scale
 local gc_setColor, gc_setLineWidth = gc.setColor, gc.setLineWidth
 local gc_print, gc_draw, gc_line = gc.print, gc.draw, gc.line
-local gc_rectangle = gc.rectangle
+local gc_rectangle, gc_circle = gc.rectangle, gc.circle
 local gc_setAlpha, gc_setColorMask = GC.setAlpha, GC.setColorMask
 local gc_mDraw, gc_strokeDraw = GC.mDraw, GC.strokeDraw
 
 local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 6, TEX.dark.keyboard)
 TEX.dark.keyboard:setWrap('clampzero', 'repeat')
 TEX.bright.keyboard:setWrap('clampzero', 'repeat')
+
+local CGD = { -- Chord Graph data
+    [0] = { a = 0 },
+    { a = 0 },
+    { a = -1 },
+    { a = 1 },
+    { a = -.5 },
+    { a = .5 },
+    { a = -.25 },
+    { a = .25 },
+}
+local spread = math.pi / 4
+for i = 0, #CGD do
+    CGD[i].a = CGD[i].a * spread
+    CGD[i].l = log(ssvc.dimData[i].freq, 2) / cos(CGD[i].a)
+end
+local CGNB = {} -- Chord Graph note buffer
+local function getCGMove(dim, k, x, y)
+    local l, a = CGD[dim].l * (k or 1), CGD[dim].a
+    local dx, dy = l * cos(a), l * sin(a)
+    if x then
+        return x + dx, y + dy
+    else
+        return dx, dy
+    end
+end
+local theme
+local function drawCGNote(note, x, y)
+    for i = 1, #note do
+        local dim = abs(note[i].d)
+        local nx, ny = getCGMove(dim, 1, x, y)
+        gc_setColor(theme.dimGridColor[dim])
+        gc_line(x, y, nx, ny)
+        CGNB[#CGNB + 1] = nx
+        CGNB[#CGNB + 1] = ny
+        drawCGNote(note[i], nx, ny)
+    end
+end
 function scene.draw()
-    local theme = themes[edit.theme]
+    theme = themes[edit.theme]
     ---@diagnostic disable-next-line
     local tex = TEX[edit.theme] ---@type SSVC.TextureMap
     local X, Y, K = edit.scrX1, edit.scrY1, edit.scrK1
@@ -302,6 +340,39 @@ function scene.draw()
     gc_replaceTransform(SCR.xOy)
     gc_setColor(theme.bg)
     gc_rectangle('fill', 0, 0, SCR.w0, SCR.h0)
+
+    -- Chord Graph in background
+    do
+        gc_replaceTransform(SCR.xOy_m)
+        gc_scale(355)
+        gc_setLineWidth(.042)
+        local len = 26
+        gc_setColor(1, 1, 1, .02); gc_line(0, -len, 0, len)
+        gc_setColor(1, 1, 1, .06); gc_line(-len, 0, len, 0)
+        local chord = edit:getChord()
+        -- Base movement
+        for i = 1, 7 do
+            local n = chord.pitchVec[i]
+            if n ~= 0 then
+                local dx, dy = getCGMove(i)
+                gc_setColor(theme.dimGridColor[i])
+                gc_setAlpha(.0626)
+                gc_line(0, 0, dx * n, dy * n)
+                gc_translate(dx * n, dy * n)
+            end
+        end
+        -- Lines
+        drawCGNote(chord.tree, 0, 0)
+        -- Notes
+        gc_setLineWidth(.02)
+        gc_setColor(1, 1, 1, .1); for i = 1, #CGNB, 2 do gc_circle('fill', CGNB[i], CGNB[i + 1], .0626, 4) end
+        gc_setColor(0, 0, 0, .1); for i = 1, #CGNB, 2 do gc_circle('line', CGNB[i], CGNB[i + 1], .08, 4) end
+        TABLE.clear(CGNB)
+        -- Root
+        gc_setLineWidth(.01)
+        gc_circle('fill', 0, 0, .07, 4)
+        gc_circle('line', 0, 0, .1, 4)
+    end
 
     -- Grid step icon
     if edit.gridStepAnimTimer > 0 then
@@ -444,8 +515,9 @@ end
 
 local aboutText = [[
 Based on Shasavistic Music Theory
-Original theory & art design from L4MPLIGHT
-App design & developed by MrZ_26
+Theory & Art designed by L4MPLIGHT
+Chord Graph designed by Hojo Minori
+App designed & developed by MrZ_26
 ]]
 local hintText1 = [[
 Help (Edit)
