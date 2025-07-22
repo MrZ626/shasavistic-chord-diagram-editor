@@ -347,7 +347,7 @@ function scene.draw()
     -- Chord Graph in background
     do
         gc_replaceTransform(SCR.xOy_m)
-        gc_scale(260)
+        gc_scale(283)
         gc_setLineWidth(.042)
         local len = 26
         gc_setColor(1, 1, 1, .02); gc_line(0, -len, 0, len)
@@ -355,7 +355,7 @@ function scene.draw()
         local chord, alpha
         if edit.playing then
             chord = edit.chordList[edit.playing]
-            alpha = 2.6
+            alpha = 4.2
         else
             chord = edit:getChord()
             alpha = 1
@@ -365,8 +365,7 @@ function scene.draw()
             local n = chord.pitchVec[i]
             if n ~= 0 then
                 local dx, dy = getCGMove(i)
-                gc_setColor(theme.dimGridColor[i])
-                gc_setAlpha(.0626 * alpha)
+                gc_setColor(1, 1, 1, .01 * alpha)
                 gc_line(0, 0, dx * n, dy * n)
                 gc_translate(dx * n, dy * n)
             end
