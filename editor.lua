@@ -243,10 +243,14 @@ function E:renderChord(chord)
         local note = TABLE.listIndex(chord.tree, path)
         if note then
             ins(chord.noteList, simpNote(note, path))
-            path[#path + 1] = 1
+            if note[1] then
+                path[#path + 1] = 1
+            else
+                path[#path] = path[#path] + 1
+            end
         else
+            if #path == 1 then break end
             path[#path] = nil
-            if not path[1] then break end
             path[#path] = path[#path] + 1
         end
     end
