@@ -300,10 +300,12 @@ local CGD = { -- Chord Graph data
     { a = -.25 },
     { a = .25 },
 }
-local spread = math.pi / 4
+local spread = 3.141592653589793 / 4
 for i = 0, #CGD do
     CGD[i].a = CGD[i].a * spread
     CGD[i].l = log(ssvc.dimData[i].freq, 2) / cos(CGD[i].a)
+    CGD[-i] = TABLE.copyAll(CGD[i])
+    CGD[-i].l = -CGD[-i].l
 end
 local CGNB = {} -- Chord Graph note buffer
 local function getCGMove(dim, k, x, y)
@@ -318,9 +320,9 @@ end
 local theme
 local function drawCGNote(note, x, y, alpha)
     for i = 1, #note do
-        local dim = abs(note[i].d)
+        local dim = note[i].d
         local nx, ny = getCGMove(dim, 1, x, y)
-        gc_setColor(theme.dimGridColor[dim])
+        gc_setColor(theme.dimGridColor[abs(dim)])
         gc_setAlpha(.0626 * alpha)
         gc_line(x, y, nx, ny)
         CGNB[#CGNB + 1] = nx
@@ -345,7 +347,7 @@ function scene.draw()
     -- Chord Graph in background
     do
         gc_replaceTransform(SCR.xOy_m)
-        gc_scale(355)
+        gc_scale(260)
         gc_setLineWidth(.042)
         local len = 26
         gc_setColor(1, 1, 1, .02); gc_line(0, -len, 0, len)
