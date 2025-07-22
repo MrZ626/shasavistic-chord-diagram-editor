@@ -125,7 +125,9 @@ function scene.keyDown(key, isRep)
     elseif key == 'backspace' then
         if isRep then return true end
         if ALT then
-            edit:reCalculatePitch(edit:getChord().tree, 1)
+            local chord = edit:getChord()
+            chord.pitchVec = TABLE.new(0, 7)
+            edit:reCalculatePitch(chord, 1)
             edit.curPitch = 1
             edit.ghostPitch = edit.curPitch
             edit:focusCursor()

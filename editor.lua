@@ -212,13 +212,18 @@ function E:refreshText()
 end
 
 ---@param note SSVC.Note
-function E:reCalculatePitch(note, curPitch)
+local function reCalculatePitch(note, curPitch)
     for _, v in next, note do
         if type(v) == 'table' then
-            self:reCalculatePitch(v, curPitch * ssvc.dimData[v.d].freq)
+            reCalculatePitch(v, curPitch * ssvc.dimData[v.d].freq)
         end
     end
     note.pitch = curPitch
+end
+---@param chord SSVC.Chord
+function E:reCalculatePitch(chord, curPitch)
+    reCalculatePitch(chord.tree, curPitch)
+    for i = 1, #chord.noteList do chord.noteList[i].pitch = chord.noteList[i].note.pitch end
 end
 
 ---@param note SSVC.Note
@@ -275,8 +280,8 @@ function E:pasteChord(str, after)
     for i = 1, #list do
         local pitch, code = list[i]:match('^(.*)!(.*)$')
         local chord = newChordObj(code, strToVec(pitch))
-        self:reCalculatePitch(chord.tree, vecToPitch(chord.pitchVec))
         self:renderChord(chord)
+        self:reCalculatePitch(chord, vecToPitch(chord.pitchVec))
         count = count + 1
         ins(self.chordList, after + count, chord)
     end
@@ -297,8 +302,8 @@ function E:newChord(pos, useCurPitch)
         end
     end
     local chord = newChordObj(nil, vec)
-    if vec then self:reCalculatePitch(chord.tree, vecToPitch(vec)) end
     self:renderChord(chord)
+    if vec then self:reCalculatePitch(chord, vecToPitch(vec)) end
     ins(self.chordList, MATH.clamp(pos, 1, #self.chordList + 1), chord)
     self.ghostPitch = self.curPitch
 end
@@ -317,12 +322,7 @@ function E:moveChord(chord, step)
     vec[pStep] = MATH.clamp(vec[pStep] + MATH.sign(step), -26, 26)
     if abs(vec[pStep]) == 26 then MSG('warn', "Reached max movement in single dimension!", 1) end
 
-    local oldPitch = chord.tree.pitch
-    self:reCalculatePitch(chord.tree, vecToPitch(vec))
-    local mul = chord.tree.pitch / oldPitch
-    for i = 1, #chord.noteList do
-        chord.noteList[i].pitch = chord.noteList[i].pitch * mul
-    end
+    self:reCalculatePitch(chord, vecToPitch(vec))
     if chord == self.chordList[self.cursor] then
         self.curPitch = chord.tree.pitch
         self.ghostPitch = self.curPitch
