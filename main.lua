@@ -2,6 +2,9 @@ love.mouse.setVisible(false)
 
 require 'Zenitha'
 
+ZENITHA.setMainLoopSpeed(120)
+ZENITHA.setUpdateRate(100)
+ZENITHA.setRenderRate(75)
 ZENITHA.setFirstScene('main')
 ZENITHA.setShowFPS(false)
 ZENITHA.setVersionText("")
