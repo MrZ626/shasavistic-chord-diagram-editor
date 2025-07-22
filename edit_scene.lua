@@ -38,7 +38,7 @@ function scene.keyDown(key, isRep)
 
     if key == 'space' then
         if isRep then return true end
-        if edit.playing then
+        if edit.playing and (edit.playL < edit.playR or edit.cursor ~= edit.selMark) then
             edit:stopPlaying()
         elseif SHIFT then
             -- Play selected note
