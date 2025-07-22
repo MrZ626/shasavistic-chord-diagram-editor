@@ -8,15 +8,23 @@ local ins, rem = table.insert, table.remove
 local expApproach = MATH.expApproach
 local KBisDown = love.keyboard.isDown
 
----@class wrappedChord
+---@class SSVC.NoteInList
+---@field path SSVC.Dim[]
+---@field pitch number
+---@field sound boolean
+---@field base? true
+---@field note SSVC.Note
+
+---@class SSVC.Chord
 ---@field tree SSVC.Note
 ---@field drawData table
 ---@field text string
 ---@field textObj love.Text
 ---@field pitchVec number[]
+---@field noteList SSVC.NoteInList[] read-only, update on E:renderChord, sorted by pitch
 
 local E = {
-    chordList = {}, ---@type wrappedChord[]
+    chordList = {}, ---@type SSVC.Chord[]
     cursor = 0,
     selMark = false,
     nCur = {}, ---@type number[]
@@ -46,13 +54,23 @@ local E = {
     gridStepAnimTimer = 0,
 }
 
-local function pitchSorter(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2]) end
+---@param a SSVC.NoteInList
+---@param b SSVC.NoteInList
+local function pitchSorter(a, b)
+    if a.pitch == b.pitch then
+        for i = 1, max(#a.path, #b.path) do
+            local av, bv = a.path[i] or 0, b.path[i] or 0
+            if av ~= bv then
+                return av < bv
+            end
+        end
+    else
+        return a.pitch < b.pitch
+    end
+end
 local function levelSorter(a, b) return a.d < b.d end
 
-E._pitchSorter = pitchSorter
-E._levelSorter = levelSorter
-
----@return wrappedChord
+---@return SSVC.Chord
 local function newChordObj(text, pitchVec)
     return {
         tree = text and ssvc.decode(text) or { d = 0, pitch = 1 },
@@ -60,6 +78,7 @@ local function newChordObj(text, pitchVec)
         text = text or "0",
         textObj = GC.newText(FONT.get(30), text or "0"),
         pitchVec = pitchVec or TABLE.new(0, 7),
+        noteList = {},
     }
 end
 
@@ -134,20 +153,18 @@ function E:focusCursor()
 end
 
 function E:snapCursor()
-    local allInfo = TABLE.flatten(TABLE.copyAll(self.chordList[self.cursor].tree))
-    local pitchInfo = TABLE.alloc() -- {{pitch, key}, ...}
-    for k, v in next, allInfo do
-        if k:sub(-5) == 'pitch' then
-            ins(pitchInfo, { log(v, 2), k:sub(1, -7) })
-        end
+    local noteList = self.chordList[self.cursor].noteList
+    local pitches = TABLE.alloc()
+    local paths = TABLE.alloc()
+    for _, note in next, noteList do
+        ins(pitches, log(note.pitch, 2))
+        ins(paths, note.path)
     end
-    table.sort(pitchInfo, pitchSorter)
-    TABLE.transpose(pitchInfo) -- {pitches, keys}
-    local curPos = floor(.5 + 1 + MATH.ilLerp(pitchInfo[1], log(self.ghostPitch or self.curPitch, 2)) * (#pitchInfo[1] - 1))
-    self.nCur = STRING.split(pitchInfo[2][curPos], ".")
-    for i = 1, #self.nCur do self.nCur[i] = tonumber(self.nCur[i]) end
+    local curPos = floor(.5 + 1 + MATH.ilLerp(pitches, log(self.ghostPitch or self.curPitch, 2)) * (#pitches - 1))
+    self.nCur = paths[curPos]
     self.curPitch = E:getNote().pitch
-    TABLE.free(pitchInfo)
+    TABLE.free(pitches)
+    TABLE.free(paths)
 end
 
 function E:moveCursor(offset)
@@ -203,11 +220,37 @@ function E:reCalculatePitch(tree, curPitch)
     tree.pitch = curPitch
 end
 
----@param chord wrappedChord
+local function simpNote(note, path)
+    return {
+        path = TABLE.copy(path),
+        pitch = note.pitch,
+        base = note.base,
+        sound = not note.note,
+        note = note,
+    }
+end
+
+---@param chord SSVC.Chord
 function E:renderChord(chord)
     chord.drawData = ssvc.drawChord(chord.tree)
     chord.text = ssvc.encode(chord.tree)
     chord.textObj:set(chord.text)
+    TABLE.clear(chord.noteList)
+    chord.noteList[1] = simpNote(chord.tree, {})
+    local path = { 1 }
+    while true do
+        ---@type SSVC.Note
+        local note = TABLE.listIndex(chord.tree, path)
+        if note then
+            ins(chord.noteList, simpNote(note, path))
+            path[#path + 1] = 1
+        else
+            path[#path] = nil
+            if not path[1] then break end
+            path[#path] = path[#path] + 1
+        end
+    end
+    table.sort(chord.noteList, pitchSorter)
 end
 
 ---@param full boolean include pitchVec information?
@@ -254,7 +297,14 @@ function E:newChord(pos, useCurPitch)
     self.ghostPitch = self.curPitch
 end
 
----@param chord wrappedChord
+---@param note SSVC.Note
+function E:addNote(note)
+    local curNote = self:getNote()
+    ins(curNote, note)
+    table.sort(curNote, levelSorter)
+end
+
+---@param chord SSVC.Chord
 function E:moveChord(chord, step)
     local vec = chord.pitchVec
     local pStep = abs(step)
@@ -332,29 +382,24 @@ function E:playNextChord()
 end
 
 function E:playChord()
-    UTIL.trace()
-
-    self.coun = 0
+    self.count = 0
     self.timer = self.timer0
     local chord = self.chordList[self.playing]
-    local allInfo = TABLE.flatten(TABLE.copyAll(chord.tree))
     local basePitch = -1e99
-    for k in next, allInfo do
-        if k:sub(-4) == 'base' then
-            basePitch = allInfo[k:sub(1, -5) .. 'pitch']
+    for _, note in next, chord.noteList do
+        if note.base then
+            basePitch = note.pitch
             break
         end
     end
 
     local temp = TABLE.alloc()
-    for k, v in next, allInfo do
-        if k:sub(-5) == 'pitch' then
-            if v < basePitch then repeat v = v * 2 until v > basePitch end
-            if not temp['p' .. v] and not allInfo[k:sub(1, -6) .. 'note'] then
-                self.count = self.count + 1
-                temp['p' .. v] = true
-                ins(temp, v)
-            end
+    for _, note in next, chord.noteList do
+        if note.pitch < basePitch then repeat note.pitch = note.pitch * 2 until note.pitch > basePitch end
+        if not temp['p' .. note.pitch] and note.sound then
+            self.count = self.count + 1
+            temp['p' .. note.pitch] = true
+            ins(temp, note.pitch)
         end
     end
     self.count = #temp

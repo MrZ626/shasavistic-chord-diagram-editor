@@ -62,34 +62,25 @@ function scene.keyDown(key, isRep)
             edit:focusCursor()
         else
             -- Select note
-            local allInfo = TABLE.flatten(TABLE.copyAll(edit.chordList[edit.cursor].tree))
-            local pitchInfo = TABLE.alloc()
-            for k, v in next, allInfo do
-                if k:sub(-5) == 'pitch' then
-                    ins(pitchInfo, { v, k:sub(1, -7) })
-                end
-            end
-            table.sort(pitchInfo, edit._pitchSorter)
+            local noteList = edit.chordList[edit.cursor].noteList
             local curPos
-            for i = 1, #pitchInfo do
-                if pitchInfo[i][1] == edit.curPitch then
-                    curPos = i; break
+            for i = 1, #noteList do
+                if noteList[i].pitch == edit.curPitch then
+                    curPos = i
+                    break
                 end
             end
             if not curPos then return end
             if key == 'up' then
-                while curPos < #pitchInfo and (pitchInfo[curPos][1] <= edit.curPitch) do curPos = curPos + 1 end
+                while curPos < #noteList and (noteList[curPos].pitch <= edit.curPitch) do curPos = curPos + 1 end
             else
-                while curPos > 1 and (pitchInfo[curPos][1] >= edit.curPitch) do curPos = curPos - 1 end
+                while curPos > 1 and (noteList[curPos].pitch >= edit.curPitch) do curPos = curPos - 1 end
             end
-            edit.curPitch = pitchInfo[curPos][1]
+
+            edit.curPitch = noteList[curPos].pitch
             edit.ghostPitch = edit.curPitch
-            edit.nCur = STRING.split(pitchInfo[curPos][2], ".")
-            for i = 1, #edit.nCur do
-                edit.nCur[i] = tonumber(edit.nCur[i])
-            end
+            edit.nCur = noteList[curPos].path
             edit:refreshText()
-            TABLE.free(pitchInfo)
             edit:focusCursor()
         end
     elseif key == 'left' or key == 'right' then
@@ -176,8 +167,7 @@ function scene.keyDown(key, isRep)
             local pitch = edit.curPitch * ssvc.dimData[step].freq
             local needRender
             if not exist then
-                ins(curNote, { d = step, pitch = pitch })
-                table.sort(curNote, edit._levelSorter)
+                edit:addNote({ d = step, pitch = pitch })
                 needRender = true
             end
             if CTRL then
@@ -302,27 +292,30 @@ TEX.bright.keyboard:setWrap('clampzero', 'repeat')
 function scene.draw()
     local theme = themes[edit.theme]
     ---@diagnostic disable-next-line
-    local tex = TEX[edit.theme] ---@type SSVT.TextureMap
+    local tex = TEX[edit.theme] ---@type SSVC.TextureMap
     local X, Y, K = edit.scrX1, edit.scrY1, edit.scrK1
 
     FONT.set(30)
 
+    -- Background
     gc_clear(theme.bgbase)
-
     gc_replaceTransform(SCR.xOy)
     gc_setColor(theme.bg)
     gc_rectangle('fill', 0, 0, SCR.w0, SCR.h0)
 
+    -- Grid step icon
     if edit.gridStepAnimTimer > 0 then
         gc_replaceTransform(SCR.xOy_m)
         gc_setColor(1, 1, 1, edit.gridStepAnimTimer)
         gc_mDraw(tex.symbol[edit.gridStep], 0, 0, 0, 2)
     end
 
+    -- L4MPLIGHT
     gc_replaceTransform(SCR.xOy_ur)
     gc_setColor(1, 1, 1, .26)
     gc_mDraw(TEX.lamplight, -40, 40, 0, .16)
 
+    -- Camera
     gc_replaceTransform(SCR.xOy_l)
     gc_translate(100, 0)
     gc_scale(260 * K)

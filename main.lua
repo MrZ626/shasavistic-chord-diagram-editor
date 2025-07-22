@@ -67,7 +67,7 @@ for x = 0, 127 do
 end
 TEX.transition = GC.load(transition)
 
----@class SSVT.TextureMap
+---@class SSVC.TextureMap
 TEX.dark = {
     note = src "dark/pitch-line.png",
     note_mute = src "dark/pitch-line-dotted.png",
@@ -98,7 +98,7 @@ TEX.dark = {
     -- ascent_symbol = src "dark/ascent-symbol.png",
     -- descent_symbol = src "dark/descent-symbol.png",
 }
-TEX.bright = {} ---@type SSVT.TextureMap
+TEX.bright = {} ---@type SSVC.TextureMap
 for k, v in next, TEX.dark do
     if type(v) == 'string' then
         TEX.bright[k] = v:gsub('dark', 'bright')
