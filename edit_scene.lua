@@ -316,15 +316,16 @@ local function getCGMove(dim, k, x, y)
     end
 end
 local theme
-local function drawCGNote(note, x, y)
+local function drawCGNote(note, x, y, alpha)
     for i = 1, #note do
         local dim = abs(note[i].d)
         local nx, ny = getCGMove(dim, 1, x, y)
         gc_setColor(theme.dimGridColor[dim])
+        gc_setAlpha(.0626 * alpha)
         gc_line(x, y, nx, ny)
         CGNB[#CGNB + 1] = nx
         CGNB[#CGNB + 1] = ny
-        drawCGNote(note[i], nx, ny)
+        drawCGNote(note[i], nx, ny, alpha)
     end
 end
 function scene.draw()
@@ -349,24 +350,31 @@ function scene.draw()
         local len = 26
         gc_setColor(1, 1, 1, .02); gc_line(0, -len, 0, len)
         gc_setColor(1, 1, 1, .06); gc_line(-len, 0, len, 0)
-        local chord = edit:getChord()
+        local chord, alpha
+        if edit.playing then
+            chord = edit.chordList[edit.playing]
+            alpha = 2.6
+        else
+            chord = edit:getChord()
+            alpha = 1
+        end
         -- Base movement
         for i = 1, 7 do
             local n = chord.pitchVec[i]
             if n ~= 0 then
                 local dx, dy = getCGMove(i)
                 gc_setColor(theme.dimGridColor[i])
-                gc_setAlpha(.0626)
+                gc_setAlpha(.0626 * alpha)
                 gc_line(0, 0, dx * n, dy * n)
                 gc_translate(dx * n, dy * n)
             end
         end
         -- Lines
-        drawCGNote(chord.tree, 0, 0)
+        drawCGNote(chord.tree, 0, 0, alpha)
         -- Notes
         gc_setLineWidth(.02)
-        gc_setColor(1, 1, 1, .1); for i = 1, #CGNB, 2 do gc_circle('fill', CGNB[i], CGNB[i + 1], .0626, 4) end
-        gc_setColor(0, 0, 0, .1); for i = 1, #CGNB, 2 do gc_circle('line', CGNB[i], CGNB[i + 1], .08, 4) end
+        gc_setColor(1, 1, 1, .1 * alpha); for i = 1, #CGNB, 2 do gc_circle('fill', CGNB[i], CGNB[i + 1], .0626, 4) end
+        gc_setColor(0, 0, 0, .1 * alpha); for i = 1, #CGNB, 2 do gc_circle('line', CGNB[i], CGNB[i + 1], .08, 4) end
         TABLE.clear(CGNB)
         -- Root
         gc_setLineWidth(.01)
