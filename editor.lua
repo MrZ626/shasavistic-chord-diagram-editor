@@ -211,15 +211,17 @@ function E:refreshText()
     self.cursorText:set(buffer)
 end
 
-function E:reCalculatePitch(tree, curPitch)
-    for _, v in next, tree do
+---@param note SSVC.Note
+function E:reCalculatePitch(note, curPitch)
+    for _, v in next, note do
         if type(v) == 'table' then
             self:reCalculatePitch(v, curPitch * ssvc.dimData[v.d].freq)
         end
     end
-    tree.pitch = curPitch
+    note.pitch = curPitch
 end
 
+---@param note SSVC.Note
 local function simpNote(note, path)
     return {
         path = TABLE.copy(path),
@@ -315,7 +317,12 @@ function E:moveChord(chord, step)
     vec[pStep] = MATH.clamp(vec[pStep] + MATH.sign(step), -26, 26)
     if abs(vec[pStep]) == 26 then MSG('warn', "Reached max movement in single dimension!", 1) end
 
+    local oldPitch = chord.tree.pitch
     self:reCalculatePitch(chord.tree, vecToPitch(vec))
+    local mul = chord.tree.pitch / oldPitch
+    for i = 1, #chord.noteList do
+        chord.noteList[i].pitch = chord.noteList[i].pitch * mul
+    end
     if chord == self.chordList[self.cursor] then
         self.curPitch = chord.tree.pitch
         self.ghostPitch = self.curPitch
