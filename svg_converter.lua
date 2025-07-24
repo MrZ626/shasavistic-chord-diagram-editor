@@ -61,7 +61,7 @@ end
 
 ---@class _SSVC.Chord
 ---@field d? _SSVC.Dim
----@field mode? 'skip' | 'dotted'
+---@field mode? 'skip' | 'dotted' | 'tense'
 ---@field bias? 'l' | 'r'
 ---@field bass? true
 ---@field [number] _SSVC.Chord
@@ -135,6 +135,14 @@ local function drawNote(mode, x1, x2)
         -- Short line
         x1, x2 = lerp(x1, x2, .3), lerp(x2, x1, .3)
         addShape('polygon', "808080", 0,
+            x1 + .05, -noteH / 2,
+            x2 - .05, -noteH / 2,
+            x2 - .05, noteH / 2,
+            x1 + .05, noteH / 2
+        )
+    elseif mode == 'tense' then
+        -- Cyan line
+        addShape('polygon', "08F0F0", 0,
             x1 + .05, -noteH / 2,
             x2 - .05, -noteH / 2,
             x2 - .05, noteH / 2,
@@ -279,6 +287,8 @@ local function decode(str)
             else
                 buf.mode = 'dotted'
             end
+        elseif char == '*' then
+            buf.mode = 'tense'
         elseif char == 'l' or char == 'r' then
             buf.bias = char
         elseif char == 'x' then

@@ -213,7 +213,7 @@ local function encode(chord)
     if chord.d then ins(str, chord.d) end
     if chord.base then ins(str, 'x') end
     if chord.bias then ins(str, chord.bias) end
-    if chord.mode then ins(str, '.') end
+    if chord.mode then ins(str, chord.mode == 'tense' and '*' or '.') end
     if chord[1] then
         ins(str, '(')
         for i = 1, #chord do
