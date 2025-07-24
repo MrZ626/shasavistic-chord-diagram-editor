@@ -57,7 +57,7 @@ function scene.keyDown(key, isRep)
             -- Move chord
             local s, e = edit:getSelection()
             for i = s, e do
-                edit:moveChord(edit.chordList[i], key == 'up' and edit.gridStep or -edit.gridStep)
+                edit:moveChord(edit.chordList[i], key == 'up' and edit.gridStep[1] or -edit.gridStep[1])
             end
             edit:focusCursor()
         else
@@ -150,7 +150,9 @@ function scene.keyDown(key, isRep)
 
         if ALT then
             -- Set custom grid step
-            edit.gridStep = keyNum
+            edit.gridStep[2] = nil
+            TABLE.delete(edit.gridStep, keyNum)
+            table.insert(edit.gridStep, 1, keyNum)
             edit.gridStepAnimTimer = .42
             edit:focusCursor()
         else
@@ -398,7 +400,7 @@ function scene.draw()
     if edit.gridStepAnimTimer > 0 then
         gc_replaceTransform(SCR.xOy_m)
         gc_setColor(1, 1, 1, edit.gridStepAnimTimer)
-        gc_mDraw(tex.symbol[edit.gridStep], 0, 0, 0, 2)
+        gc_mDraw(tex.symbol[edit.gridStep[1]], 0, 0, 0, 2)
     end
 
     -- L4MPLIGHT
@@ -415,10 +417,12 @@ function scene.draw()
     local btmY = Y + 2.6 / K
 
     -- Grid line
-    do
-        gc_setLineWidth(.01)
-        gc_setColor(theme.dimGridColor[edit.gridStep])
-        local dist = log(ssvc.dimData[edit.gridStep].freq, 2)
+    gc_setLineWidth(.01)
+    for i = #edit.gridStep, 1, -1 do
+        local step = edit.gridStep[i]
+        gc_setColor(theme.dimGridColor[step])
+        gc_setAlpha(.7 - i * .2)
+        local dist = log(ssvc.dimData[step].freq, 2)
         local y = 0
         gc_translate(X, 0)
         while y < 2.6 do

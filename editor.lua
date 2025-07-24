@@ -37,7 +37,7 @@ local E = {
     scrK = 1,
 
     theme = 'dark',
-    gridStep = 2,
+    gridStep = { 2, 1 },
 
     playing = false,
     playL = false,
