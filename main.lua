@@ -74,6 +74,7 @@ TEX.transition = GC.load(transition)
 TEX.dark = {
     note = src "dark/pitch-line.png",
     note_mute = src "dark/pitch-line-dotted.png",
+    note_tense = src "dark/pitch-line-tense.png",
     -- pitch_canceled = src "dark/pitch-line-canceled.png",
     body_1d = src "dark/1d-ascent-group.png",
     body_2d = src "dark/2d-line.png",

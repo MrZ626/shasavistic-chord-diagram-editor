@@ -61,7 +61,7 @@ end
 
 ---@class _SSVC.Chord
 ---@field d? _SSVC.Dim
----@field note? 'skip' | 'dotted'
+---@field mode? 'skip' | 'dotted'
 ---@field bias? 'l' | 'r'
 ---@field bass? true
 ---@field [number] _SSVC.Chord
@@ -241,7 +241,7 @@ local function DrawBranch(chord, x1, x2)
     end
 
     -- Note
-    drawNote(chord.note, x1, x2)
+    drawNote(chord.mode, x1, x2)
 
     -- Body
     drawBody(nData.color, nData.draw, x1, 0, x2, -nData.yStep)
@@ -275,9 +275,9 @@ local function decode(str)
         local char = str:sub(1, 1)
         if char == '.' then
             if math.abs(buf.d) == 1 then
-                buf.note = 'skip'
+                buf.mode = 'skip'
             else
-                buf.note = 'dotted'
+                buf.mode = 'dotted'
             end
         elseif char == 'l' or char == 'r' then
             buf.bias = char

@@ -25,7 +25,7 @@ local ins = table.insert
 
 ---@class SSVC.Note
 ---@field d? SSVC.Dim
----@field note? 'skip' | 'mute'
+---@field mode? 'skip' | 'mute' | 'tense'
 ---@field bias? 'l' | 'r'
 ---@field base? true
 ---@field extended? true
@@ -76,13 +76,12 @@ local function drawExtend(x2)
 end
 local function drawNote(mode, x1, x2)
     if mode == 'mute' then
-        -- Dotted line
         addShape('note_mute', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
+    elseif mode == 'tense' then
+        addShape('note_tense', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     elseif mode == 'skip' then
-        -- Nothing
         -- addShape('note', 0, (x1 + x2) / 2 - .1, -env.noteW / 2, .2, env.noteW) -- Short line
     else
-        -- Line
         addShape('note', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     end
 end
@@ -110,30 +109,30 @@ local function drawBody(d, x1, y1, x2, y2)
     end
 end
 
----@param chord SSVC.Note
+---@param note SSVC.Note
 ---@param x1 number
 ---@param x2 number
-local function DrawBranch(chord, x1, x2)
-    local nData = dimData[chord.d]
-    if not nData then error("Unknown dimension: " .. chord.d) end
+local function DrawBranch(note, x1, x2)
+    local nData = dimData[note.d]
+    if not nData then error("Unknown dimension: " .. note.d) end
 
     moveOrigin(0, nData.yStep)
 
     -- Base
-    if chord.base then drawBase(chord.bias or 'l', x1, x2) end
+    if note.base then drawBase(note.bias or 'l', x1, x2) end
 
     -- Extended line
-    if chord.extended then drawExtend(x2) end
+    if note.extended then drawExtend(x2) end
 
     -- Note
-    drawNote(chord.note, x1, x2)
+    drawNote(note.mode, x1, x2)
 
     -- Body
-    drawBody(chord.d, x1, 0, x2, -nData.yStep)
+    drawBody(note.d, x1, 0, x2, -nData.yStep)
 
     -- Branches
-    for n = 1, #chord do
-        local nxt = chord[n]
+    for n = 1, #note do
+        local nxt = note[n]
         if nxt.bias == 'l' then
             DrawBranch(nxt, x1, x2 - .16)
         elseif nxt.bias == 'r' then
@@ -168,9 +167,9 @@ local function decode(str)
         local char = str:sub(1, 1)
         if char == '.' then
             if math.abs(buf.d) == 1 then
-                buf.note = 'skip'
+                buf.mode = 'skip'
             else
-                buf.note = 'mute'
+                buf.mode = 'mute'
             end
         elseif char == 'l' or char == 'r' then
             buf.bias = char
@@ -214,7 +213,7 @@ local function encode(chord)
     if chord.d then ins(str, chord.d) end
     if chord.base then ins(str, 'x') end
     if chord.bias then ins(str, chord.bias) end
-    if chord.note then ins(str, '.') end
+    if chord.mode then ins(str, '.') end
     if chord[1] then
         ins(str, '(')
         for i = 1, #chord do

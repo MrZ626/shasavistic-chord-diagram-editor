@@ -173,7 +173,7 @@ function scene.keyDown(key, isRep)
                 needRender = true
             end
             if CTRL then
-                curNote.note = 'mute'
+                curNote.mode = 'mute'
                 needRender = true
             end
             if needRender then edit:renderChord(edit:getChord()) end
@@ -185,14 +185,21 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         -- Mark selected note as mute note
         local curNote = edit:getNote()
-        curNote.note = curNote.note ~= 'mute' and 'mute' or nil
+        curNote.mode = curNote.mode ~= 'mute' and 'mute' or nil
         edit:renderChord(edit:getChord())
         edit:focusCursor()
     elseif ALT and key == 'h' then
         if isRep then return true end
         -- Mark selected note as hidden note
         local curNote = edit:getNote()
-        curNote.note = curNote.note ~= 'skip' and 'skip' or nil
+        curNote.mode = curNote.mode ~= 'skip' and 'skip' or nil
+        edit:renderChord(edit:getChord())
+        edit:focusCursor()
+    elseif ALT and key == 't' then
+        if isRep then return true end
+        -- Switch tension note
+        local curNote = edit:getNote()
+        curNote.mode = curNote.mode ~= 'tense' and 'tense' or nil
         edit:renderChord(edit:getChord())
         edit:focusCursor()
     elseif ALT and key == 'b' then
@@ -200,10 +207,10 @@ function scene.keyDown(key, isRep)
         -- Mark selected note as base
         edit:switchBase()
         edit:focusCursor()
-    elseif ALT and key == 'l' then
+    elseif ALT and key == 'k' then
         if isRep then return true end
         -- Switch extended line
-        edit:switchExtended()
+        edit:switchKey()
         edit:focusCursor()
     elseif CTRL and key == 'a' then
         if isRep then return true end
@@ -455,7 +462,7 @@ function scene.draw()
         local dy = -log(edit.chordList[i].tree.pitch, 2)
 
         if not edit.selMark and i == edit.cursor then
-            local float = .0126 + .0026 * sin(love.timer.getTime() * 2.6)
+            local float = .006 + .002 * sin(love.timer.getTime() * 2.6)
             for j = 1, #drawData do
                 local d = drawData[j]
                 local t = tex[d.texture]
@@ -538,6 +545,7 @@ Num(1-7)        Add note
 Shift+[Num]     Add downwards
 Alt+M           Mute note
 Alt+H            Hide note
+Alt+T            Mark tense note
 Alt+B            Mark base note
 Alt+L            Add extended line
 Ctrl+[Num]      Mute & Add note
