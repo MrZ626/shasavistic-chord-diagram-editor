@@ -290,7 +290,7 @@ end
 local gc = love.graphics
 local gc_push, gc_pop = gc.push, gc.pop
 local gc_clear, gc_replaceTransform = gc.clear, gc.replaceTransform
-local gc_translate, gc_scale = gc.translate, gc.scale
+local gc_translate, gc_rotate, gc_scale = gc.translate, gc.rotate, gc.scale
 local gc_setColor, gc_setLineWidth = gc.setColor, gc.setLineWidth
 local gc_print, gc_draw, gc_line = gc.print, gc.draw, gc.line
 local gc_rectangle, gc_circle = gc.rectangle, gc.circle
@@ -358,7 +358,8 @@ function scene.draw()
     -- Chord Graph in background
     do
         gc_replaceTransform(SCR.xOy_m)
-        gc_scale(283)
+        gc_scale(260)
+        gc_rotate(-1.5708)
         gc_setLineWidth(.06)
         local len = 26
         gc_setColor(1, 1, 1, .02); gc_line(0, -len, 0, len)
