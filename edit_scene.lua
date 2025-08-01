@@ -89,11 +89,9 @@ function scene.keyDown(key, isRep)
             -- Bias note
             if #edit.nCur == 0 then return true end
             local chord, curNote = edit:getChord(), edit:getNote()
-            local tar = key == 'left' and 'l' or 'r'
-            if curNote.bias ~= tar then
-                curNote.bias = not curNote.bias and tar or nil
-                edit:renderChord(chord)
-            end
+            curNote.bias = MATH.clamp((curNote.bias or 0) + (key == 'left' and -1 or 1), -5, 5)
+            if curNote.bias == 0 then curNote.bias = nil end
+            edit:renderChord(chord)
             edit:focusCursor()
         else
             -- Move cursor (normally)

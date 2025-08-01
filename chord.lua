@@ -26,7 +26,7 @@ local ins = table.insert
 ---@class SSVC.Note
 ---@field d? SSVC.Dim
 ---@field mode? 'skip' | 'mute' | 'tense'
----@field bias? 'l' | 'r'
+---@field bias? number
 ---@field base? true
 ---@field extended? true
 ---@field pitch? number GUI use only
@@ -133,12 +133,12 @@ local function DrawBranch(note, x1, x2)
     -- Branches
     for n = 1, #note do
         local nxt = note[n]
-        if nxt.bias == 'l' then
-            DrawBranch(nxt, x1, x2 - .16)
-        elseif nxt.bias == 'r' then
-            DrawBranch(nxt, x1 + .16, x2)
-        else
+        if not nxt.bias then
             DrawBranch(nxt, x1, x2)
+        elseif nxt.bias < 0 then
+            DrawBranch(nxt, x1, x2 + .15 * nxt.bias)
+        elseif nxt.bias > 0 then
+            DrawBranch(nxt, x1 + .15 * nxt.bias, x2)
         end
     end
 
@@ -172,7 +172,7 @@ local function decode(str)
                 buf.mode = 'mute'
             end
         elseif char == 'l' or char == 'r' then
-            buf.bias = char
+            buf.bias = (buf.bias or 0) + (char == 'l' and -1 or 1)
         elseif char == 'x' then
             buf.base = true
         else
@@ -212,7 +212,7 @@ local function encode(chord)
     local str = {}
     if chord.d then ins(str, chord.d) end
     if chord.base then ins(str, 'x') end
-    if chord.bias then ins(str, chord.bias) end
+    if chord.bias then ins(str, string.rep(chord.bias < 0 and 'l' or 'r', abs(chord.bias))) end
     if chord.mode then ins(str, chord.mode == 'tense' and '*' or '.') end
     if chord[1] then
         ins(str, '(')

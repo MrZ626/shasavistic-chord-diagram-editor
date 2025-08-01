@@ -62,7 +62,7 @@ end
 ---@class _SSVC.Chord
 ---@field d? _SSVC.Dim
 ---@field mode? 'skip' | 'dotted' | 'tense'
----@field bias? 'l' | 'r'
+---@field bias? number
 ---@field bass? true
 ---@field [number] _SSVC.Chord
 
@@ -257,12 +257,12 @@ local function DrawBranch(chord, x1, x2)
     -- Branches
     for n = 1, #chord do
         local nxt = chord[n]
-        if nxt.bias == 'l' then
-            DrawBranch(nxt, x1, x2 - .16)
-        elseif nxt.bias == 'r' then
-            DrawBranch(nxt, x1 + .16, x2)
-        else
+        if not nxt.bias then
             DrawBranch(nxt, x1, x2)
+        elseif nxt.bias < 0 then
+            DrawBranch(nxt, x1, x2 + .15 * nxt.bias)
+        elseif nxt.bias > 0 then
+            DrawBranch(nxt, x1 + .15 * nxt.bias, x2)
         end
     end
 
@@ -290,7 +290,7 @@ local function decode(str)
         elseif char == '*' then
             buf.mode = 'tense'
         elseif char == 'l' or char == 'r' then
-            buf.bias = char
+            buf.bias = (buf.bias or 0) + (char == 'l' and -1 or 1)
         elseif char == 'x' then
             buf.bass = true
         else
