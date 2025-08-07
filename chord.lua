@@ -85,7 +85,6 @@ local function drawNote(mode, x1, x2)
         addShape('note', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     end
 end
-
 local function drawBody(d, x1, y1, x2, y2)
     local flip
     if y1 > y2 then flip, y1, y2 = true, y2, y1 end
@@ -108,11 +107,18 @@ local function drawBody(d, x1, y1, x2, y2)
         addShape('body_7d', 4, x2 - .05, y1, .22, y2 - y1)
     end
 end
+local function drawNode(mode, x1, x2)
+    if mode == 'l' then
+        addShape('node', 10, x1 + .02, -.03, .06, .06)
+    elseif mode == 'r' then
+        addShape('node', 10, x2 - .02, -.03, -.06, .06)
+    end
+end
 
 ---@param note SSVC.Note
 ---@param x1 number
 ---@param x2 number
-local function DrawBranch(note, x1, x2)
+local function drawBranch(note, x1, x2)
     local nData = dimData[note.d]
     if not nData then error("Unknown dimension: " .. note.d) end
 
@@ -133,12 +139,15 @@ local function DrawBranch(note, x1, x2)
     -- Branches
     for n = 1, #note do
         local nxt = note[n]
+        if nxt.d == note.d and MATH.between(abs(note.d), 2, 3) then
+            drawNode(abs(note.d) == 2 and 'l' or 'r', x1, x2)
+        end
         if not nxt.bias then
-            DrawBranch(nxt, x1, x2)
+            drawBranch(nxt, x1, x2)
         elseif nxt.bias < 0 then
-            DrawBranch(nxt, x1, x2 + .15 * nxt.bias)
+            drawBranch(nxt, x1, x2 + .15 * nxt.bias)
         elseif nxt.bias > 0 then
-            DrawBranch(nxt, x1 + .15 * nxt.bias, x2)
+            drawBranch(nxt, x1 + .15 * nxt.bias, x2)
         end
     end
 
@@ -148,7 +157,7 @@ end
 ---@param chord SSVC.Note
 local function drawChord(chord)
     drawBuffer = {}
-    DrawBranch(chord, 0, 1)
+    drawBranch(chord, 0, 1)
     table.sort(drawBuffer, function(a, b) return a._layer < b._layer end)
     return drawBuffer
 end
@@ -166,7 +175,7 @@ local function decode(str)
     while true do
         local char = str:sub(1, 1)
         if char == '.' then
-            if math.abs(buf.d) == 1 then
+            if abs(buf.d) == 1 then
                 buf.mode = 'skip'
             else
                 buf.mode = 'mute'

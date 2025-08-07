@@ -58,12 +58,12 @@ end
 
 ---@alias _SSVC.Dim number
 
----@class _SSVC.Chord
+---@class _SSVC.Note
 ---@field d? _SSVC.Dim
 ---@field mode? 'skip' | 'dotted' | 'tense'
 ---@field bias? number
 ---@field bass? true
----@field [number] _SSVC.Chord
+---@field [number] _SSVC.Note
 
 ---@class _SSVC.Shape
 ---@field mode 'polygon' | 'path'
@@ -157,7 +157,6 @@ local function drawNote(mode, x1, x2)
         )
     end
 end
-
 local function drawBody(color, mode, x1, y1, x2, y2)
     if mode == 'none' then return end
     if mode == 'arrow' then
@@ -231,37 +230,47 @@ local function drawBody(color, mode, x1, y1, x2, y2)
         end
     end
 end
+local function drawNode(mode, x1, x2)
+    if mode == 'l' then
+        addShape('node', 10, x1 + .02, -.03, .06, .06)
+    elseif mode == 'r' then
+        addShape('node', 10, x2 - .02, -.03, -.06, .06)
+    end
+end
 
----@param chord _SSVC.Chord
+---@param note _SSVC.Note
 ---@param x1 number
 ---@param x2 number
-local function DrawBranch(chord, x1, x2)
-    local nData = dimData[chord.d]
+local function drawBranch(note, x1, x2)
+    local nData = dimData[note.d]
 
-    assert(nData, "Unknown dimension: " .. tostring(chord.d))
+    assert(nData, "Unknown dimension: " .. tostring(note.d))
 
     moveOrigin(0, nData.yStep)
 
     -- Bass
-    if chord.bass then
-        drawBass(chord.bias or 'l', x1, x2)
+    if note.bass then
+        drawBass(note.bias or 'l', x1, x2)
     end
 
     -- Note
-    drawNote(chord.mode, x1, x2)
+    drawNote(note.mode, x1, x2)
 
     -- Body
     drawBody(nData.color, nData.draw, x1, 0, x2, -nData.yStep)
 
     -- Branches
-    for n = 1, #chord do
-        local nxt = chord[n]
+    for n = 1, #note do
+        local nxt = note[n]
+        if nxt.d == note.d and MATH.between(math.abs(note.d), 2, 3) then
+            drawNode(math.abs(note.d) == 2 and 'l' or 'r', x1, x2)
+        end
         if not nxt.bias then
-            DrawBranch(nxt, x1, x2)
+            drawBranch(nxt, x1, x2)
         elseif nxt.bias < 0 then
-            DrawBranch(nxt, x1, x2 + .15 * nxt.bias)
+            drawBranch(nxt, x1, x2 + .15 * nxt.bias)
         elseif nxt.bias > 0 then
-            DrawBranch(nxt, x1 + .15 * nxt.bias, x2)
+            drawBranch(nxt, x1 + .15 * nxt.bias, x2)
         end
     end
 
@@ -269,9 +278,9 @@ local function DrawBranch(chord, x1, x2)
 end
 
 ---@param str string
----@return _SSVC.Chord
+---@return _SSVC.Note
 local function decode(str)
-    ---@type _SSVC.Chord
+    ---@type _SSVC.Note
     local buf = { d = 0 }
     local note = str:match("^%-?%d+")
     if note then
@@ -336,7 +345,7 @@ return function(chords, biasList, height, bw, nw)
     for i = 1, #chords do
         local d = biasList[i]
         moveOrigin(0, d)
-        DrawBranch(decode(chords[i]), 1.2 * i - 1.1, 1.2 * i - .1)
+        drawBranch(decode(chords[i]), 1.2 * i - 1.1, 1.2 * i - .1)
         moveOrigin(0, -d)
     end
     table.sort(drawBuffer, function(a, b) return a._layer < b._layer end)
