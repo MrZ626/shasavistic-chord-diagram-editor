@@ -209,22 +209,22 @@ end
 ---@param chord SSVC.Note
 ---@return string
 local function encode(chord)
-    local str = {}
-    if chord.d then ins(str, chord.d) end
-    if chord.base then ins(str, 'x') end
-    if chord.bias then ins(str, string.rep(chord.bias < 0 and 'l' or 'r', abs(chord.bias))) end
-    if chord.mode then ins(str, chord.mode == 'tense' and '*' or '.') end
+    local str = STRING.newBuf()
+    if chord.d then str:put(chord.d) end
+    if chord.base then str:put('x') end
+    if chord.bias then str:put(string.rep(chord.bias < 0 and 'l' or 'r', abs(chord.bias))) end
+    if chord.mode then str:put(chord.mode == 'tense' and '*' or '.') end
     if chord[1] then
-        ins(str, '(')
+        str:put('(')
         for i = 1, #chord do
-            ins(str, encode(chord[i]))
+            str:put(encode(chord[i]))
             if i < #chord then
-                ins(str, ',')
+                str:put(',')
             end
         end
-        ins(str, ')')
+        str:put(')')
     end
-    return table.concat(str)
+    return str:tostring()
 end
 
 return {

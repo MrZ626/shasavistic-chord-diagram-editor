@@ -2,7 +2,6 @@
 -- https://github.com/MrZ626/shasavistic-chord-diagram
 -- which is the predecessor of this project.
 
--- These two value could be changed
 local bodyW, noteH
 
 local dimData = {
@@ -409,7 +408,7 @@ return function(chords, biasList, height, bw, nw)
         end
     end
 
-    return ([[<svg width="%d" height="%d" viewBox="0 0 %f %f" xmlns="http://www.w3.org/2000/svg">%s%s%s</svg>]]):format(
+    return ([[<svg width="%d" height="%d" viewBox="0 0 %g %g" xmlns="http://www.w3.org/2000/svg">%s%s%s</svg>]]):format(
         math.ceil(height / maxY * maxX),
         math.ceil(height / maxY * maxY),
         ("%.4g"):format(maxX),
