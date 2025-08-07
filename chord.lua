@@ -33,10 +33,12 @@ local ins = table.insert
 ---@field [number] SSVC.Note
 
 ---@class SSVC.Shape
----@field mode 'polygon' | 'path'
+---@field texture string
 ---@field _layer number
----@field color string
----@field points (string | number)[]
+---@field x number
+---@field y number
+---@field w number
+---@field h number
 
 ---@type SSVC.Shape[]
 local drawBuffer

@@ -82,11 +82,16 @@ end
 
 local function addShape(mode, color, layer, ...)
     local points = { ... }
-    local numCount = 0
-    for i = 1, #points do
-        if type(points[i]) == 'number' then
-            numCount = numCount + 1
-            points[i] = points[i] + (numCount % 2 == 1 and ucs_x or ucs_y)
+    if mode == 'circle' then
+        points[1] = points[1] + ucs_x
+        points[2] = points[2] + ucs_y
+    else
+        local numCount = 0
+        for i = 1, #points do
+            if type(points[i]) == 'number' then
+                numCount = numCount + 1
+                points[i] = points[i] + (numCount % 2 == 1 and ucs_x or ucs_y)
+            end
         end
     end
 
@@ -232,9 +237,9 @@ local function drawBody(color, mode, x1, y1, x2, y2)
 end
 local function drawNode(mode, x1, x2)
     if mode == 'l' then
-        addShape('node', 10, x1 + .02, -.03, .06, .06)
+        addShape('circle', "61607B", 10, x1 + bodyW / 2, 0, bodyW * .3)
     elseif mode == 'r' then
-        addShape('node', 10, x2 - .02, -.03, -.06, .06)
+        addShape('circle', "61607B", 10, x2 - bodyW / 2, 0, bodyW * .3)
     end
 end
 
@@ -353,10 +358,10 @@ return function(chords, biasList, height, bw, nw)
     -- Calculate bounding box
     local minX, maxX, minY, maxY = 999, -999, 999, -999
     for i = 1, #drawBuffer do
-        local shape = drawBuffer[i].points
+        local points = drawBuffer[i].points
         local numCount = 0
-        for j = 1, #shape do
-            local v = shape[j]
+        for j = 1, #points do
+            local v = points[j]
             if type(v) == 'number' then
                 numCount = numCount + 1
                 if numCount % 2 == 1 then
@@ -365,6 +370,7 @@ return function(chords, biasList, height, bw, nw)
                     if v < minY then minY = v elseif v > maxY then maxY = v end
                 end
             end
+            if drawBuffer[i].mode == 'circle' and j == 2 then break end
         end
     end
 
@@ -374,17 +380,18 @@ return function(chords, biasList, height, bw, nw)
     -- Snap to zero & Flip vertically
     maxX, maxY = maxX - minX, maxY - minY
     for i = 1, #drawBuffer do
-        local shape = drawBuffer[i].points
+        local points = drawBuffer[i].points
         local numCount = 0
-        for j = 1, #shape do
-            if type(shape[j]) == 'number' then
+        for j = 1, #points do
+            if type(points[j]) == 'number' then
                 numCount = numCount + 1
                 if numCount % 2 == 1 then
-                    shape[j] = shape[j] - minX
+                    points[j] = points[j] - minX
                 else
-                    shape[j] = maxY - (shape[j] - minY)
+                    points[j] = maxY - (points[j] - minY)
                 end
             end
+            if drawBuffer[i].mode == 'circle' and j == 2 then break end
         end
     end
 
@@ -412,6 +419,12 @@ return function(chords, biasList, height, bw, nw)
             shapeData = shapeData ..
                 ([[<path d="%s" fill="#%s" />]]):format(
                     table.concat(shape.points, " "),
+                    shape.color
+                )
+        elseif shape.mode == 'circle' then
+            shapeData = shapeData ..
+                ([[<circle cx="%s" cy="%s" r="%s" fill="#%s"/>]]):format(
+                    shape.points[1], shape.points[2], shape.points[3],
                     shape.color
                 )
         end
