@@ -207,10 +207,10 @@ function scene.keyDown(key, isRep)
         -- Mark selected note as base
         edit:switchBase()
         edit:focusCursor()
-    elseif ALT and key == 'k' then
+    elseif ALT and key == 'l' then
         if isRep then return true end
         -- Switch extended line
-        edit:switchKey()
+        edit:switchExtended()
         edit:focusCursor()
     elseif CTRL and key == 'a' then
         if isRep then return true end
