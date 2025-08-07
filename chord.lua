@@ -96,9 +96,9 @@ local function drawBody(d, x1, y1, x2, y2)
         if flip then y1, y2 = y2, y1 end
         addShape('body_1d', 1, m - .1, y1, .2, y2 - y1)
     elseif abs(d) == 2 then
-        addShape('body_2d', 2, x1, y1, .1, y2 - y1)
+        addShape('body_2d', 2, x1, y1, env.bodyW, y2 - y1)
     elseif abs(d) == 3 then
-        addShape('body_3d', 2, x2, y1, -.1, y2 - y1)
+        addShape('body_3d', 2, x2, y1, -env.bodyW, y2 - y1)
     elseif abs(d) == 4 then
         addShape('body_4d', 3, x1, y1, x2 - x1, y2 - y1)
     elseif abs(d) == 5 then
@@ -110,10 +110,11 @@ local function drawBody(d, x1, y1, x2, y2)
     end
 end
 local function drawNode(mode, x1, x2)
+    local r = env.bodyW * .3
     if mode == 'l' then
-        addShape('node', 10, x1 + .02, -.03, .06, .06)
+        addShape('node', 10, x1 + env.bodyW / 2 - r, -r, 2 * r, 2 * r)
     elseif mode == 'r' then
-        addShape('node', 10, x2 - .02, -.03, -.06, .06)
+        addShape('node', 10, x2 - env.bodyW / 2 - r, -r, 2 * r, 2 * r)
     end
 end
 
