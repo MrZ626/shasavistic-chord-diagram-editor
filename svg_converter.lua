@@ -162,7 +162,7 @@ local function drawNote(mode, x1, x2)
         )
     end
 end
-local function drawBody(color, mode, x1, y1, x2, y2)
+local function drawBody(color, mode, x1, x2, y1, y2)
     if mode == 'none' then return end
     if mode == 'arrow' then
         local m = (x1 + x2) / 2
@@ -262,7 +262,7 @@ local function drawBranch(note, x1, x2)
     drawNote(note.mode, x1, x2)
 
     -- Body
-    drawBody(nData.color, nData.draw, x1, 0, x2, -nData.yStep)
+    drawBody(nData.color, nData.draw, x1, x2, 0, -nData.yStep)
 
     -- Branches
     for n = 1, #note do

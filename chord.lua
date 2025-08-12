@@ -87,7 +87,7 @@ local function drawNote(mode, x1, x2)
         addShape('note', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     end
 end
-local function drawBody(d, x1, y1, x2, y2)
+local function drawBody(d, x1, x2, y1, y2, ox1, ox2)
     local flip
     if y1 > y2 then flip, y1, y2 = true, y2, y1 end
     y1, y2 = y1 - env.noteW / 2, y2 + env.noteW / 2
@@ -100,8 +100,18 @@ local function drawBody(d, x1, y1, x2, y2)
     elseif abs(d) == 3 then
         addShape('body_3d', 2, x2, y1, -env.bodyW, y2 - y1)
     elseif abs(d) == 4 then
+        if flip then
+            x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
+        else
+            x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
+        end
         addShape('body_4d', 3, x1, y1, x2 - x1, y2 - y1)
     elseif abs(d) == 5 then
+        if flip then
+            x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
+        else
+            x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
+        end
         addShape('body_5d', 3, x1, y1, x2 - x1, y2 - y1)
     elseif abs(d) == 6 then
         addShape('body_6d', 4, x1 - .15, y1, .2, y2 - y1)
@@ -121,7 +131,7 @@ end
 ---@param note SSVC.Note
 ---@param x1 number
 ---@param x2 number
-local function drawBranch(note, x1, x2)
+local function drawBranch(note, x1, x2, ox1, ox2)
     local nData = dimData[note.d]
     if not nData then error("Unknown dimension: " .. note.d) end
 
@@ -137,7 +147,7 @@ local function drawBranch(note, x1, x2)
     drawNote(note.mode, x1, x2)
 
     -- Body
-    drawBody(note.d, x1, 0, x2, -nData.yStep)
+    drawBody(note.d, x1, x2, 0, -nData.yStep, ox1, ox2)
 
     -- Branches
     for n = 1, #note do
@@ -146,11 +156,11 @@ local function drawBranch(note, x1, x2)
             drawNode(abs(note.d) == 2 and 'l' or 'r', x1, x2)
         end
         if not nxt.bias then
-            drawBranch(nxt, x1, x2)
+            drawBranch(nxt, x1, x2, x1, x2)
         elseif nxt.bias < 0 then
-            drawBranch(nxt, x1, x2 + .15 * nxt.bias)
+            drawBranch(nxt, x1, x2 + .15 * nxt.bias, x1, x2)
         elseif nxt.bias > 0 then
-            drawBranch(nxt, x1 + .15 * nxt.bias, x2)
+            drawBranch(nxt, x1 + .15 * nxt.bias, x2, x1, x2)
         end
     end
 
@@ -160,7 +170,7 @@ end
 ---@param chord SSVC.Note
 local function drawChord(chord)
     drawBuffer = {}
-    drawBranch(chord, 0, 1)
+    drawBranch(chord, 0, 1, 0, 1)
     table.sort(drawBuffer, function(a, b) return a._layer < b._layer end)
     return drawBuffer
 end
