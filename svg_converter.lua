@@ -162,7 +162,7 @@ local function drawNote(mode, x1, x2)
         )
     end
 end
-local function drawBody(color, mode, x1, x2, y1, y2)
+local function drawBody(color, mode, x1, x2, y1, y2, ox1, ox2)
     if mode == 'none' then return end
     if mode == 'arrow' then
         local m = (x1 + x2) / 2
@@ -176,7 +176,8 @@ local function drawBody(color, mode, x1, x2, y1, y2)
             m - bodyW * .8, y1 * .9 + y2 * .1
         )
     else
-        if y1 > y2 then y1, y2 = y2, y1 end
+        local flip
+        if y1 > y2 then flip, y1, y2 = true, y2, y1 end
         y1, y2 = y1 - noteH / 2, y2 + noteH / 2
         if mode == 'left' then
             addShape('polygon', color, 2,
@@ -201,6 +202,11 @@ local function drawBody(color, mode, x1, x2, y1, y2)
                 m - bodyW / 4, y2
             )
         elseif mode == 'rise' then
+            if flip then
+                x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
+            else
+                x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
+            end
             addShape('polygon', color, 3,
                 x1, y1,
                 x1 + bodyW * 1.26, y1,
@@ -208,6 +214,11 @@ local function drawBody(color, mode, x1, x2, y1, y2)
                 x2 - bodyW * 1.26, y2
             )
         elseif mode == 'fall' then
+            if flip then
+                x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
+            else
+                x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
+            end
             addShape('polygon', color, 3,
                 x2, y1,
                 x2 - bodyW * 1.1, y1,
@@ -246,7 +257,7 @@ end
 ---@param note _SSVC.Note
 ---@param x1 number
 ---@param x2 number
-local function drawBranch(note, x1, x2)
+local function drawBranch(note, x1, x2, ox1, ox2)
     local nData = dimData[note.d]
 
     assert(nData, "Unknown dimension: " .. tostring(note.d))
@@ -262,7 +273,7 @@ local function drawBranch(note, x1, x2)
     drawNote(note.mode, x1, x2)
 
     -- Body
-    drawBody(nData.color, nData.draw, x1, x2, 0, -nData.yStep)
+    drawBody(nData.color, nData.draw, x1, x2, 0, -nData.yStep, ox1, ox2)
 
     -- Branches
     for n = 1, #note do
@@ -271,11 +282,11 @@ local function drawBranch(note, x1, x2)
             drawNode(math.abs(note.d) == 2 and 'l' or 'r', x1, x2)
         end
         if not nxt.bias then
-            drawBranch(nxt, x1, x2)
+            drawBranch(nxt, x1, x2, x1, x2)
         elseif nxt.bias < 0 then
-            drawBranch(nxt, x1, x2 + .15 * nxt.bias)
+            drawBranch(nxt, x1, x2 + .15 * nxt.bias, x1, x2)
         elseif nxt.bias > 0 then
-            drawBranch(nxt, x1 + .15 * nxt.bias, x2)
+            drawBranch(nxt, x1 + .15 * nxt.bias, x2, x1, x2)
         end
     end
 
@@ -350,7 +361,8 @@ return function(chords, biasList, height, bw, nw)
     for i = 1, #chords do
         local d = biasList[i]
         moveOrigin(0, d)
-        drawBranch(decode(chords[i]), 1.2 * i - 1.1, 1.2 * i - .1)
+        local x1, x2 = 1.2 * i - 1.1, 1.2 * i - .1
+        drawBranch(decode(chords[i]), x1, x2, x1, x2)
         moveOrigin(0, -d)
     end
     table.sort(drawBuffer, function(a, b) return a._layer < b._layer end)
