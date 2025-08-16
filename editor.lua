@@ -280,8 +280,8 @@ function E:pasteChord(str, after)
     for i = 1, #list do
         local pitch, code = list[i]:match('^(.*)!(.*)$')
         local chord = newChordObj(code, strToVec(pitch))
-        self:renderChord(chord)
         self:reCalculatePitch(chord, vecToPitch(chord.pitchVec))
+        self:renderChord(chord)
         count = count + 1
         ins(self.chordList, after + count, chord)
     end
@@ -302,8 +302,8 @@ function E:newChord(pos, useCurPitch)
         end
     end
     local chord = newChordObj(nil, vec)
-    self:renderChord(chord)
     if vec then self:reCalculatePitch(chord, vecToPitch(vec)) end
+    self:renderChord(chord)
     ins(self.chordList, MATH.clamp(pos, 1, #self.chordList + 1), chord)
     self.ghostPitch = self.curPitch
 end
