@@ -292,7 +292,7 @@ local gc_translate, gc_rotate, gc_scale = gc.translate, gc.rotate, gc.scale
 local gc_setColor, gc_setLineWidth = gc.setColor, gc.setLineWidth
 local gc_print, gc_draw, gc_line = gc.print, gc.draw, gc.line
 local gc_rectangle, gc_circle = gc.rectangle, gc.circle
-local gc_setAlpha, gc_setColorMask = GC.setAlpha, GC.setColorMask
+local gc_setAlpha = GC.setAlpha
 local gc_mDraw, gc_strokeDraw = GC.mDraw, GC.strokeDraw
 
 local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 6, TEX.dark.keyboard)
@@ -475,27 +475,26 @@ function scene.draw()
         local drawData = edit.chordList[i].drawData
         local dy = -log(edit.chordList[i].tree.pitch, 2)
 
-        if not edit.selMark and i == edit.cursor then
-            local float = .006 + .002 * sin(love.timer.getTime() * 2.6)
-            for j = 1, #drawData do
-                local d = drawData[j]
-                local t = tex[d.texture]
-                local x, y = .1 + d.x, dy + d.y
-                local kx, ky = d.w / t:getWidth(), d.h / t:getHeight()
-                gc_setColorMask(true, false, false, false)
-                gc_draw(t, x, y - float, 0, kx, ky)
-                gc_setColorMask(false, true, false, false)
-                gc_draw(t, x, y, 0, kx, ky)
-                gc_setColorMask(false, false, true, false)
-                gc_draw(t, x, y + float, 0, kx, ky)
-                gc_setColorMask()
-            end
-        else
-            for j = 1, #drawData do
-                local d = drawData[j]
-                local t = tex[d.texture]
-                gc_draw(t, .1 + d.x, dy + d.y, 0, d.w / t:getWidth(), d.h / t:getHeight())
-            end
+        -- if not edit.selMark and i == edit.cursor then
+        --     local float = .006 + .002 * sin(love.timer.getTime() * 2.6)
+        --     for j = 1, #drawData do
+        --         local d = drawData[j]
+        --         local t = tex[d.texture]
+        --         local x, y = .1 + d.x, dy + d.y
+        --         local kx, ky = d.w / t:getWidth(), d.h / t:getHeight()
+        --         gc_setColorMask(true, false, false, false)
+        --         gc_draw(t, x, y - float, 0, kx, ky)
+        --         gc_setColorMask(false, true, false, false)
+        --         gc_draw(t, x, y, 0, kx, ky)
+        --         gc_setColorMask(false, false, true, false)
+        --         gc_draw(t, x, y + float, 0, kx, ky)
+        --         gc_setColorMask()
+        --     end
+        -- end
+        for j = 1, #drawData do
+            local d = drawData[j]
+            local t = tex[d.texture]
+            gc_draw(t, .1 + d.x, dy + d.y, 0, d.w / t:getWidth(), d.h / t:getHeight())
         end
 
         -- Chord Code
