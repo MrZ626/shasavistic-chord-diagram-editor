@@ -1,5 +1,7 @@
 return {
     dark = {
+        cursorLight1={COLOR.HEX 'FFFFFF12'},
+        cursorLight2={COLOR.HEX 'FFFFFF26'},
         bgbase = { COLOR.HEX '61607BFF' },
         bg = { COLOR.HEX '65647FFF' },
         sepLine = { COLOR.HEX '00000010' },
@@ -7,6 +9,7 @@ return {
         cursor = { COLOR.HEX 'F5C400FF' },
         preview = { COLOR.HEX '00F1F580' },
         playline = { COLOR.HEX 'C0F0FFFF' },
+        pitchText = { COLOR.HEX 'FFFFFFD0' },
         text = { COLOR.HEX 'FFFFFF80' },
         dim = {
             { COLOR.HEX 'AAAAAAFF' },
@@ -28,13 +31,16 @@ return {
         },
     },
     bright = {
+        cursorLight1={COLOR.HEX '00000012'},
+        cursorLight2={COLOR.HEX '00000026'},
         bgbase = { COLOR.HEX 'DCD3C6FF' },
-        bg = { COLOR.HEX 'E0D7CAFF' },
+        bg = { COLOR.HEX 'E8E6E3FF' },
         sepLine = { COLOR.HEX '00000010' },
         select = { COLOR.HEX 'FF312618' },
         cursor = { COLOR.HEX 'FF312680' },
         preview = { COLOR.HEX '2680FF80' },
         playline = { COLOR.HEX '0042D0FF' },
+        pitchText = { COLOR.HEX '000000D0' },
         text = { COLOR.HEX '00000080' },
         dim = {
             { COLOR.HEX 'AAAAAAFF' },

@@ -415,6 +415,17 @@ function scene.draw()
     local topY = Y - 2.6 / K
     local btmY = Y + 2.6 / K
 
+    -- Cursor Light
+    do
+        local y = -log(edit.curPitch1, 2)
+        gc_setColor(theme.cursorLight1)
+        gc_draw(TEX.transition, X - .4, y, 0, 8 / 128, 12 / 128, 0, .5)
+        gc_setColor(theme.cursorLight2)
+        gc_draw(TEX.transition, X - .4, y, 0, 8 / 128, 4 / 128, 0, .5)
+        gc_setColor(theme.text)
+        gc_print(tostring(floor(440 * edit.curPitch)), X - .37, y - .09, 0, .0018)
+    end
+
     -- Grid line
     gc_setLineWidth(.01)
     for i = #edit.gridStep, 1, -1 do
@@ -504,10 +515,8 @@ function scene.draw()
 
     -- Cursor
     do
-        gc_setColor(theme.cursor)
         local x, y = 1.2 * (edit.cursor1 - 1), -log(edit.curPitch1, 2)
-        gc_draw(TEX.transition, X, y, 0, 1 / 128, 2.6 / 128, 128, .5)
-        gc_print(tostring(floor(440 * edit.curPitch)), X - .37, y - .09, 0, .0018)
+        gc_setColor(theme.cursor)
         gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
         gc_setLineWidth(.01)
         gc_rectangle('line', x, y - .03, 1.2, .06)
