@@ -10,6 +10,12 @@ local abs, log = math.abs, math.log
 local tostring = tostring
 local KBisDown = love.keyboard.isDown
 
+local toggles = {
+    chordGraph = true,
+    keyboard = true,
+    cursor = true,
+}
+
 ---@type Zenitha.Scene
 local scene = {}
 
@@ -266,6 +272,12 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         -- Open export directory
         UTIL.openSaveDirectory()
+    elseif key == 'f1' then
+        toggles.chordGraph = not toggles.chordGraph
+    elseif key == 'f2' then
+        toggles.keyboard = not toggles.keyboard
+    elseif key == 'f3' then
+        toggles.cursor = not toggles.cursor
     elseif key == 'tab' then
         if isRep then return true end
         edit:switchTheme()
@@ -354,7 +366,7 @@ function scene.draw()
     gc_rectangle('fill', 0, 0, SCR.w0, SCR.h0)
 
     -- Chord Graph in background
-    do
+    if toggles.chordGraph then
         gc_replaceTransform(SCR.xOy_m)
         gc_scale(260)
         gc_rotate(-1.5708)
@@ -416,7 +428,7 @@ function scene.draw()
     local btmY = Y + 2.6 / K
 
     -- Cursor Light
-    do
+    if toggles.cursor then
         local y = -log(edit.curPitch1, 2)
         gc_setColor(theme.cursorLight1)
         gc_draw(TEX.transition, X - .4, y, 0, 8 / 128, 12 / 128, 0, .5)
@@ -509,11 +521,13 @@ function scene.draw()
     gc_pop()
 
     -- Keyboard
-    gc_setColor(1, 1, 1, MATH.clampInterpolate(.1, 1, .26, .26, X))
-    gc_draw(tex.keyboard, keyboardQuad, X - .36, -3.206, 0, .00184)
+    if toggles.keyboard then
+        gc_setColor(1, 1, 1, MATH.clampInterpolate(.1, 1, .26, .26, X))
+        gc_draw(tex.keyboard, keyboardQuad, X - .36, -3.206, 0, .00184)
+    end
 
     -- Cursor
-    do
+    if toggles.cursor then
         local x, y = 1.2 * (edit.cursor1 - 1), -log(edit.curPitch1, 2)
         gc_setColor(theme.cursor)
         gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
@@ -587,6 +601,9 @@ Ctrl+E                    Export SVG
 Ctrl+D                    Open export directory
 
 Tab                       Switch theme
+F1                        Toggle chord graph
+F2                        Toggle keyboard
+F3                        Toggle cursor
 F11                        Fullscreen
 ]]
 hintText1 = hintText1:gsub(" ", "  ")
