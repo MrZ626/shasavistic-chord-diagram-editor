@@ -38,6 +38,7 @@ local E = {
 
     theme = 'dark',
     gridStep = { 2, 1 },
+    chordDist = 1.2,
 
     playing = false,
     playL = false,
@@ -137,17 +138,17 @@ function E:switchTheme()
 end
 
 function E:scroll(dx, dy)
-    self.scrX = MATH.clamp(self.scrX + dx, 0, max(#self.chordList - 4.8 / self.scrK, 0) * 1.2)
+    self.scrX = MATH.clamp(self.scrX + dx, 0, max(#self.chordList - 2 * self.chordDist / self.scrK, 0) * self.chordDist)
     self.scrY = MATH.clamp(self.scrY + dy, -2, 2)
 end
 
 function E:scale(dk)
     self.scrK = MATH.clamp(self.scrK * dk, .5, 1)
-    self.scrX = MATH.clamp(self.scrX, 0, max(#self.chordList - 4.8 / self.scrK, 0) * 1.2)
+    self.scrX = MATH.clamp(self.scrX, 0, max(#self.chordList - 2 * self.chordDist / self.scrK, 0) * self.chordDist)
 end
 
 function E:focusCursor()
-    self.scrX = MATH.clamp(self.scrX, (self.cursor - 4.8 / self.scrK) * 1.2, (self.cursor - 1) * 1.2)
+    self.scrX = MATH.clamp(self.scrX, (self.cursor - 2 * self.chordDist / self.scrK) * self.chordDist, (self.cursor - 1) * self.chordDist)
     local h = -log(self.curPitch, 2)
     self.scrY = MATH.clamp(self.scrY, h - 1.6, h + 1.6)
 end
@@ -427,7 +428,7 @@ function E:update(dt)
             self:playNextChord()
         end
         if self.playing and self.selMark and abs(self.cursor - self.selMark) + 1 >= 4 then
-            self:scroll((self.playing - self.timer / self.timer0) * 1.2 - .26 - self.scrX, 0)
+            self:scroll((self.playing - self.timer / self.timer0) * self.chordDist - .26 - self.scrX, 0)
         end
     end
     self.cursor1 = expApproach(self.cursor1, self.cursor, dt * 35)

@@ -14,6 +14,7 @@ local toggles = {
     chordGraph = true,
     keyboard = true,
     cursor = true,
+    chordDist = 1.2,
 }
 
 ---@type Zenitha.Scene
@@ -262,7 +263,7 @@ function scene.keyDown(key, isRep)
         for i = 1, #edit.chordList do
             chordPitches[i] = log(edit.chordList[i].tree.pitch, 2)
         end
-        FILE.save(converter(edit:dumpChord(false, s, e), chordPitches), fileName)
+        FILE.save(converter(edit:dumpChord(false, s, e), chordPitches, toggles.chordDist), fileName)
         MSG('check', ("Exported %d chord%s to file " .. fileName .. ",\nPress Ctrl+D to open the export directory"):format(
             e - s + 1,
             e > s and "s" or ""
@@ -277,6 +278,14 @@ function scene.keyDown(key, isRep)
         toggles.keyboard = not toggles.keyboard
     elseif key == 'f3' then
         toggles.cursor = not toggles.cursor
+    elseif key == 'f4' then
+        -- TODO
+    elseif key == 'f5' then
+        toggles.chordDist = MATH.roundUnit(MATH.clamp(toggles.chordDist - .1, 1, 1.5), .1)
+        edit.chordDist = toggles.chordDist
+    elseif key == 'f6' then
+        toggles.chordDist = MATH.roundUnit(MATH.clamp(toggles.chordDist + .1, 1, 1.5), .1)
+        edit.chordDist = toggles.chordDist
     elseif key == 'tab' then
         if isRep then return true end
         edit:switchTheme()
@@ -458,12 +467,14 @@ function scene.draw()
         gc_translate(-X, 0)
     end
 
+    local dist = toggles.chordDist
+
     -- Selection
     do
         ---@type number, number
         local s, e = edit.cursor1, edit.selMark or edit.cursor1
         if s > e then s, e = e, s end
-        s, e = (s - 1) * 1.2, e * 1.2
+        s, e = (s - 1) * dist, e * dist
         gc_setColor(theme.select)
         gc_rectangle('fill', s, topY, e - s, btmY - topY)
         if edit.selMark then
@@ -475,11 +486,12 @@ function scene.draw()
 
     -- Chords
     gc_push('transform')
+    gc_translate((dist - 1) / 2, 0)
     for i = 1, #edit.chordList do
         -- Separator line
         gc_setColor(theme.sepLine)
         gc_setLineWidth(.01)
-        gc_line(1.2, topY, 1.2, btmY)
+        gc_line((dist + 1) / 2, topY, (dist + 1) / 2, btmY)
 
         -- Chord textures
         gc_setColor(1, 1, 1)
@@ -491,7 +503,7 @@ function scene.draw()
         --     for j = 1, #drawData do
         --         local d = drawData[j]
         --         local t = tex[d.texture]
-        --         local x, y = .1 + d.x, dy + d.y
+        --         local x, y = d.x, dy + d.y
         --         local kx, ky = d.w / t:getWidth(), d.h / t:getHeight()
         --         gc_setColorMask(true, false, false, false)
         --         gc_draw(t, x, y - float, 0, kx, ky)
@@ -505,7 +517,7 @@ function scene.draw()
         for j = 1, #drawData do
             local d = drawData[j]
             local t = tex[d.texture]
-            gc_draw(t, .1 + d.x, dy + d.y, 0, d.w / t:getWidth(), d.h / t:getHeight())
+            gc_draw(t, d.x, dy + d.y, 0, d.w / t:getWidth(), d.h / t:getHeight())
         end
 
         -- Chord Code
@@ -515,7 +527,7 @@ function scene.draw()
         gc_draw(text, .03, 1.75 + Y * K, 0, min(.004, 1.14 / text:getWidth() * K), .004)
         gc_scale(K)
 
-        gc_translate(1.2, 0)
+        gc_translate(dist, 0)
     end
     gc_pop()
 
@@ -527,14 +539,14 @@ function scene.draw()
 
     -- Cursor
     if toggles.cursor then
-        local x, y = 1.2 * (edit.cursor1 - 1), -log(edit.curPitch1, 2)
+        local x, y = dist * (edit.cursor1 - 1), -log(edit.curPitch1, 2)
         gc_setColor(theme.cursor)
         gc_setAlpha(.7 + .3 * sin(love.timer.getTime() * 6.2))
         gc_setLineWidth(.01)
-        gc_rectangle('line', x, y - .03, 1.2, .06)
+        gc_rectangle('line', x, y - .03, dist, .06)
         if edit.ghostPitch ~= edit.curPitch then
             gc_setAlpha(.1)
-            gc_rectangle('fill', x, -log(edit.ghostPitch, 2) - .03, 1.2, .06)
+            gc_rectangle('fill', x, -log(edit.ghostPitch, 2) - .03, dist, .06)
         end
         gc_setColor(0, 0, 0)
         gc_strokeDraw('corner', .0042, edit.cursorText, x - .04, y - .16, 0, .0035)
@@ -545,7 +557,7 @@ function scene.draw()
     -- Playing selection
     if edit.playing then
         local s, e = edit.playL, edit.playR
-        s, e = (s - 1) * 1.2, e * 1.2
+        s, e = (s - 1) * dist, e * dist
         gc_setColor(theme.preview)
         gc_draw(TEX.transition, s, 0, 0, .2 / 128, 12, 0, .5)
         gc_draw(TEX.transition, e, 0, 0, -.2 / 128, 12, 0, .5)
@@ -603,6 +615,8 @@ Tab                       Switch theme
 F1                        Toggle chord graph
 F2                        Toggle keyboard
 F3                        Toggle cursor
+F5                        Chord distance--
+F6                        Chord distance++
 F11                        Fullscreen
 ]]
 hintText1 = hintText1:gsub(" ", "  ")

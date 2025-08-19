@@ -352,7 +352,8 @@ end
 ---@param height? number
 ---@param bw? number Body width
 ---@param nw? number Note width
-return function(chords, biasList, height, bw, nw)
+return function(chords, biasList, width, height, bw, nw)
+    width = width or 1.2
     height = height or 128
     bodyW, noteH = bw or .1, nw or .014
     drawBuffer = {}
@@ -361,7 +362,7 @@ return function(chords, biasList, height, bw, nw)
     for i = 1, #chords do
         local d = biasList[i]
         moveOrigin(0, d)
-        local x1, x2 = 1.2 * i - 1.1, 1.2 * i - .1
+        local x1, x2 = width * i - 1.1, width * i - .1
         drawBranch(decode(chords[i]), x1, x2, x1, x2)
         moveOrigin(0, -d)
     end
