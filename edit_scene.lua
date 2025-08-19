@@ -37,7 +37,6 @@ end
 
 function scene.keyDown(key, isRep)
     if key == 'lctrl' or key == 'rctrl' or key == 'lshift' or key == 'rshift' or key == 'lalt' or key == 'ralt' then return true end
-    if not toggles.cursor then toggles.cursor = true end
     local CTRL = KBisDown('lctrl', 'rctrl')
     local SHIFT = KBisDown('lshift', 'rshift')
     local ALT = KBisDown('lalt', 'ralt')
