@@ -566,6 +566,10 @@ function scene.draw()
         local x = MATH.interpolate(edit.playL, s, edit.playR + 1, e, progress)
         gc_line(x, topY, x, btmY)
     end
+
+    -- gc_replaceTransform(SCR.xOy)
+    -- gc_setColor(1,1,1)
+    -- gc_print(edit.scrX,100,0)
 end
 
 local aboutText = [[

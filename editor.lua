@@ -138,17 +138,17 @@ function E:switchTheme()
 end
 
 function E:scroll(dx, dy)
-    self.scrX = MATH.clamp(self.scrX + dx, 0, max(#self.chordList - 2 * self.chordDist / self.scrK, 0) * self.chordDist)
+    self.scrX = MATH.clamp(self.scrX + dx, 0, max(#self.chordList * self.chordDist - (5.8 - .26) / self.scrK, 0))
     self.scrY = MATH.clamp(self.scrY + dy, -2, 2)
 end
 
 function E:scale(dk)
     self.scrK = MATH.clamp(self.scrK * dk, .5, 1)
-    self.scrX = MATH.clamp(self.scrX, 0, max(#self.chordList - 2 * self.chordDist / self.scrK, 0) * self.chordDist)
+    self.scrX = MATH.clamp(self.scrX, 0, max(#self.chordList * self.chordDist - (5.8 - .26) / self.scrK, 0))
 end
 
 function E:focusCursor()
-    self.scrX = MATH.clamp(self.scrX, (self.cursor - 2 * self.chordDist / self.scrK) * self.chordDist, (self.cursor - 1) * self.chordDist)
+    self.scrX = MATH.clamp(self.scrX, self.cursor * self.chordDist - (5.8 - .26) / self.scrK, (self.cursor - 1) * self.chordDist)
     local h = -log(self.curPitch, 2)
     self.scrY = MATH.clamp(self.scrY, h - 1.6, h + 1.6)
 end
