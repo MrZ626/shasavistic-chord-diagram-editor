@@ -270,17 +270,21 @@ function scene.keyDown(key, isRep)
         ))
     elseif CTRL and key == 'd' then
         if isRep then return true end
-        -- Open export directory
         UTIL.openSaveDirectory()
     elseif key == 'f1' then
-        toggles.chordGraph = not toggles.chordGraph
+        if isRep then return true end
+        edit:switchTheme()
     elseif key == 'f2' then
-        toggles.keyboard = not toggles.keyboard
+        if isRep then return true end
+        toggles.chordGraph = not toggles.chordGraph
     elseif key == 'f3' then
-        toggles.cursor = not toggles.cursor
+        if isRep then return true end
+        toggles.keyboard = not toggles.keyboard
     elseif key == 'f4' then
-        -- TODO
+        if isRep then return true end
+        toggles.cursor = not toggles.cursor
     elseif key == 'f5' then
+        if isRep then return true end
         if toggles.chordDist > 1 then
             toggles.chordDist = MATH.roundUnit(MATH.clamp(toggles.chordDist - .1, 1, 1.5), .1)
             edit.chordDist = toggles.chordDist
@@ -289,6 +293,7 @@ function scene.keyDown(key, isRep)
         end
         MSG('info', "Chord distance: " .. (toggles.chordDist * 100) .. "%", 1)
     elseif key == 'f6' then
+        if isRep then return true end
         if toggles.chordDist < 1.5 then
             toggles.chordDist = MATH.roundUnit(MATH.clamp(toggles.chordDist + .1, 1, 1.5), .1)
             edit.chordDist = toggles.chordDist
@@ -297,6 +302,7 @@ function scene.keyDown(key, isRep)
         end
         MSG('info', "Chord distance: " .. (toggles.chordDist * 100) .. "%", 1)
     elseif key == 'f7' then
+        if isRep then return true end
         if toggles.noteWidth > .010 then
             toggles.noteWidth = MATH.roundUnit(MATH.clamp(toggles.noteWidth - .004, .010, .026), .002)
             ssvc.env.noteW = toggles.noteWidth
@@ -304,15 +310,13 @@ function scene.keyDown(key, isRep)
         end
         MSG('info', "Note width: " .. toggles.noteWidth * 1000, 1)
     elseif key == 'f8' then
+        if isRep then return true end
         if toggles.noteWidth < .026 then
             toggles.noteWidth = MATH.roundUnit(MATH.clamp(toggles.noteWidth + .004, .010, .026), .002)
             ssvc.env.noteW = toggles.noteWidth
             edit:reRenderAll()
         end
         MSG('info', "Note width: " .. toggles.noteWidth * 1000, 1)
-    elseif key == 'tab' then
-        if isRep then return true end
-        edit:switchTheme()
     elseif key == 'escape' then
         if isRep then return true end
         -- Clear selection
@@ -616,7 +620,7 @@ Ctrl+[Num]      Mute & Add note
 
 Alt+[Num]       Change grid step
 Alt+Up/Down    Move chord
-Alt+Left/Right   Bias note
+Alt+Left/Right   Nudge note
 
 Bksp             Delete note
 Alt+Bksp         Reset chord pitch
@@ -636,13 +640,13 @@ Shift+[Move]             Create selection
 Ctrl+A                    Select all
 Ctrl+C/V/X               Copy/Paste/Cut
 Shift+V                   Paste before cursor
-Ctrl+E                    Export SVG
+Ctrl+E                    Export selected as SVG
 Ctrl+D                    Open export directory
 
-Tab                       Switch theme
-F1                        Toggle chord graph
-F2                        Toggle keyboard
-F3                        Toggle cursor
+F1                        Switch theme
+F2                        Toggle chord graph
+F3                        Toggle keyboard
+F4                        Toggle cursor
 F5 & F6                  Adjust Chord distance
 F7 & F8                  Adjust Note width
 F11                        Fullscreen
