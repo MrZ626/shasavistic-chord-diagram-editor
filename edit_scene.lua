@@ -314,7 +314,7 @@ local gc_rectangle, gc_circle = gc.rectangle, gc.circle
 local gc_setAlpha = GC.setAlpha
 local gc_mDraw, gc_strokeDraw = GC.mDraw, GC.strokeDraw
 
-local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 6, TEX.dark.keyboard)
+local keyboardQuad = GC.newQuad(0, 0, 137, 543 * 30, TEX.dark.keyboard)
 TEX.dark.keyboard:setWrap('clampzero', 'repeat')
 TEX.bright.keyboard:setWrap('clampzero', 'repeat')
 
@@ -452,12 +452,12 @@ function scene.draw()
         local dist = log(ssvc.dimData[step].freq, 2)
         local y = 0
         gc_translate(X, 0)
-        while y < 2.6 do
+        while y < 14.7 do
             gc_line(-2.6, y, 26, y)
             y = y + dist
         end
         y = -dist
-        while y > -3.5 do
+        while y > -15.2 do
             gc_line(-2.6, y, 26, y)
             y = y - dist
         end
@@ -531,7 +531,7 @@ function scene.draw()
     -- Keyboard
     if toggles.keyboard then
         gc_setColor(1, 1, 1, MATH.clampInterpolate(.1, 1, .26, .26, X))
-        gc_draw(tex.keyboard, keyboardQuad, X - .36, -3.206, 0, .00184)
+        gc_draw(tex.keyboard, keyboardQuad, X - .36, -15.206, 0, .00184)
     end
 
     -- Cursor

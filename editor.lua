@@ -139,7 +139,7 @@ end
 
 function E:scroll(dx, dy)
     self.scrX = MATH.clamp(self.scrX + dx, 0, max(#self.chordList * self.chordDist - (5.8 - .26) / self.scrK, 0))
-    self.scrY = MATH.clamp(self.scrY + dy, -2, 2)
+    self.scrY = MATH.clamp(self.scrY + dy, -12, 12)
 end
 
 function E:scale(dk)
