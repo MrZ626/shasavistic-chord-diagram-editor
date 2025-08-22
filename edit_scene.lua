@@ -274,15 +274,19 @@ function scene.keyDown(key, isRep)
     elseif key == 'f1' then
         if isRep then return true end
         edit:switchTheme()
+        MSG('info', "Theme: " .. (toggles.darkMode and "Dark" or "Light"), .26)
     elseif key == 'f2' then
         if isRep then return true end
-        toggles.chordGraph = not toggles.chordGraph
+        toggles.keyboard = not toggles.keyboard
+        MSG('info', toggles.keyboard and "Show keyboard" or "Hide keyboard", .26)
     elseif key == 'f3' then
         if isRep then return true end
-        toggles.keyboard = not toggles.keyboard
+        toggles.chordGraph = not toggles.chordGraph
+        MSG('info', toggles.chordGraph and "Show chord graph" or "Hide chord graph", .26)
     elseif key == 'f4' then
         if isRep then return true end
         toggles.cursor = not toggles.cursor
+        MSG('info', toggles.cursor and "Show cursor" or "Hide cursor", .26)
     elseif key == 'f5' then
         if isRep then return true end
         if toggles.chordDist > 1 then
@@ -291,7 +295,7 @@ function scene.keyDown(key, isRep)
             ssvc.env.chordDist = toggles.chordDist
             edit:reRenderAll()
         end
-        MSG('info', "Chord distance: " .. (toggles.chordDist * 100) .. "%", 1)
+        MSG('info', "Chord distance: " .. (toggles.chordDist * 100) .. "%", .26)
     elseif key == 'f6' then
         if isRep then return true end
         if toggles.chordDist < 1.5 then
@@ -300,7 +304,7 @@ function scene.keyDown(key, isRep)
             ssvc.env.chordDist = toggles.chordDist
             edit:reRenderAll()
         end
-        MSG('info', "Chord distance: " .. (toggles.chordDist * 100) .. "%", 1)
+        MSG('info', "Chord distance: " .. (toggles.chordDist * 100) .. "%", .26)
     elseif key == 'f7' then
         if isRep then return true end
         if toggles.noteWidth > .010 then
@@ -308,7 +312,7 @@ function scene.keyDown(key, isRep)
             ssvc.env.noteW = toggles.noteWidth
             edit:reRenderAll()
         end
-        MSG('info', "Note width: " .. toggles.noteWidth * 1000, 1)
+        MSG('info', "Note width: " .. toggles.noteWidth * 1000, .26)
     elseif key == 'f8' then
         if isRep then return true end
         if toggles.noteWidth < .026 then
@@ -316,7 +320,7 @@ function scene.keyDown(key, isRep)
             ssvc.env.noteW = toggles.noteWidth
             edit:reRenderAll()
         end
-        MSG('info', "Note width: " .. toggles.noteWidth * 1000, 1)
+        MSG('info', "Note width: " .. toggles.noteWidth * 1000, .26)
     elseif key == 'escape' then
         if isRep then return true end
         -- Clear selection
@@ -644,8 +648,8 @@ Ctrl+E                    Export selected as SVG
 Ctrl+D                    Open export directory
 
 F1                        Switch theme
-F2                        Toggle chord graph
-F3                        Toggle keyboard
+F2                        Toggle keyboard
+F3                        Toggle chord graph
 F4                        Toggle cursor
 F5 & F6                  Adjust Chord distance
 F7 & F8                  Adjust Note width
