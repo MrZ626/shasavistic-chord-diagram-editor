@@ -179,27 +179,27 @@ local function drawBody(color, mode, x1, x2, y1, y2, ox1, ox2)
         local flip
         if y1 > y2 then flip, y1, y2 = true, y2, y1 end
         y1, y2 = y1 - noteH / 2, y2 + noteH / 2
-        if mode == 'left' then
-            addShape('polygon', color, 2,
+        if mode == 'mid' then
+            local m = (x1 + x2) / 2
+            addShape('polygon', color, 1,
+                m - bodyW / 4, y1,
+                m + bodyW / 4, y1,
+                m + bodyW / 4, y2,
+                m - bodyW / 4, y2
+            )
+        elseif mode == 'left' then
+            addShape('polygon', color, 3,
                 x1, y1,
                 x1, y2,
                 x1 + bodyW, y2,
                 x1 + bodyW, y1
             )
         elseif mode == 'right' then
-            addShape('polygon', color, 2,
+            addShape('polygon', color, 3,
                 x2, y1,
                 x2, y2,
                 x2 - bodyW, y2,
                 x2 - bodyW, y1
-            )
-        elseif mode == 'mid' then
-            local m = (x1 + x2) / 2
-            addShape('polygon', color, 2,
-                m - bodyW / 4, y1,
-                m + bodyW / 4, y1,
-                m + bodyW / 4, y2,
-                m - bodyW / 4, y2
             )
         elseif mode == 'rise' then
             if flip then
@@ -207,11 +207,11 @@ local function drawBody(color, mode, x1, x2, y1, y2, ox1, ox2)
             else
                 x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
             end
-            addShape('polygon', color, 3,
+            addShape('polygon', color, 4,
                 x1, y1,
-                x1 + bodyW * 1.26, y1,
+                x1 + bodyW * 1.1, y1,
                 x2, y2,
-                x2 - bodyW * 1.26, y2
+                x2 - bodyW * 1.1, y2
             )
         elseif mode == 'fall' then
             if flip then
@@ -219,14 +219,14 @@ local function drawBody(color, mode, x1, x2, y1, y2, ox1, ox2)
             else
                 x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
             end
-            addShape('polygon', color, 3,
+            addShape('polygon', color, 4,
                 x2, y1,
-                x2 - bodyW * 1.1, y1,
+                x2 - bodyW * 1.05, y1,
                 x1, y2,
-                x1 + bodyW * 1.1, y2
+                x1 + bodyW * 1.05, y2
             )
         elseif mode == 'arcleft' then
-            addShape('path', color, 4,
+            addShape('path', color, 2,
                 "M", x1, y1,
                 "Q", x1 - 2.6 * bodyW, (y1 + y2) / 2, x1, y2,
                 "L", x1 + bodyW, y2,
@@ -234,7 +234,7 @@ local function drawBody(color, mode, x1, x2, y1, y2, ox1, ox2)
                 "Z"
             )
         elseif mode == 'arcright' then
-            addShape('path', color, 4,
+            addShape('path', color, 2,
                 "M", x2, y1,
                 "Q", x2 + 2.6 * bodyW, (y1 + y2) / 2, x2, y2,
                 "L", x2 - bodyW, y2,

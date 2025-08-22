@@ -96,27 +96,27 @@ local function drawBody(d, x1, x2, y1, y2, ox1, ox2)
         if flip then y1, y2 = y2, y1 end
         addShape('body_1d', 1, m - .1, y1, .2, y2 - y1)
     elseif abs(d) == 2 then
-        addShape('body_2d', 2, x1, y1, env.bodyW, y2 - y1)
+        addShape('body_2d', 3, x1, y1, env.bodyW, y2 - y1)
     elseif abs(d) == 3 then
-        addShape('body_3d', 2, x2, y1, -env.bodyW, y2 - y1)
+        addShape('body_3d', 3, x2, y1, -env.bodyW, y2 - y1)
     elseif abs(d) == 4 then
         if flip then
             x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
         else
             x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
         end
-        addShape('body_4d', 3, x1, y1, x2 - x1, y2 - y1)
+        addShape('body_4d', 4, x1, y1, x2 - x1, y2 - y1)
     elseif abs(d) == 5 then
         if flip then
             x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
         else
             x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
         end
-        addShape('body_5d', 3, x1, y1, x2 - x1, y2 - y1)
+        addShape('body_5d', 4, x1, y1, x2 - x1, y2 - y1)
     elseif abs(d) == 6 then
-        addShape('body_6d', 4, x1 - .15, y1, .2, y2 - y1)
+        addShape('body_6d', 2, x1 - .15, y1, .2, y2 - y1)
     elseif abs(d) == 7 then
-        addShape('body_7d', 4, x2 - .05, y1, .22, y2 - y1)
+        addShape('body_7d', 2, x2 - .05, y1, .22, y2 - y1)
     end
 end
 local function drawNode(mode, x1, x2)
