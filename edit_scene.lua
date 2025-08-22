@@ -441,8 +441,6 @@ function scene.draw()
         gc_draw(TEX.transition, X - .4, y, 0, 8 / 128, 12 / 128, 0, .5)
         gc_setColor(theme.cursorLight2)
         gc_draw(TEX.transition, X - .4, y, 0, 8 / 128, 4 / 128, 0, .5)
-        gc_setColor(theme.text)
-        gc_print(tostring(floor(440 * edit.curPitch)), X - .37, y - .09, 0, .0018)
     end
 
     -- Grid line
@@ -551,6 +549,8 @@ function scene.draw()
         gc_strokeDraw('corner', .0042, edit.cursorText, x - .04, y - .16, 0, .0035)
         gc_setColor(theme.cursor)
         gc_draw(edit.cursorText, x - .04, y - .16, 0, .0035)
+        gc_setColor(theme.text)
+        gc_print(tostring(floor(440 * edit.curPitch)), X - .37, y - .09, 0, .0018)
     end
 
     -- Playing selection
