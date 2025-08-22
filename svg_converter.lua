@@ -2,7 +2,7 @@
 -- https://github.com/MrZ626/shasavistic-chord-diagram
 -- which is the predecessor of this project.
 
-local bodyW, noteH
+local bodyW, noteW
 
 local dimData = {
     [0] = { -- 0D
@@ -129,36 +129,36 @@ local function drawNote(mode, x1, x2)
             local x = lerp(x1 + .05, x2 - .05, i / 11)
             local w = (x2 - x1 - .1) / 11
             addShape('polygon', "F0F0F0", 0,
-                x, -noteH / 2,
-                x + w, -noteH / 2,
-                x + w, noteH / 2,
-                x, noteH / 2
+                x, -noteW / 2,
+                x + w, -noteW / 2,
+                x + w, noteW / 2,
+                x, noteW / 2
             )
         end
     elseif mode == 'skip' then
         -- Short line
         x1, x2 = lerp(x1, x2, .3), lerp(x2, x1, .3)
         addShape('polygon', "808080", 0,
-            x1 + .05, -noteH / 2,
-            x2 - .05, -noteH / 2,
-            x2 - .05, noteH / 2,
-            x1 + .05, noteH / 2
+            x1 + .05, -noteW / 2,
+            x2 - .05, -noteW / 2,
+            x2 - .05, noteW / 2,
+            x1 + .05, noteW / 2
         )
     elseif mode == 'tense' then
         -- Cyan line
         addShape('polygon', "08F0F0", 0,
-            x1 + .05, -noteH / 2,
-            x2 - .05, -noteH / 2,
-            x2 - .05, noteH / 2,
-            x1 + .05, noteH / 2
+            x1 + .05, -noteW / 2,
+            x2 - .05, -noteW / 2,
+            x2 - .05, noteW / 2,
+            x1 + .05, noteW / 2
         )
     else
         -- Line
         addShape('polygon', "F0F0F0", 0,
-            x1 + .05, -noteH / 2,
-            x2 - .05, -noteH / 2,
-            x2 - .05, noteH / 2,
-            x1 + .05, noteH / 2
+            x1 + .05, -noteW / 2,
+            x2 - .05, -noteW / 2,
+            x2 - .05, noteW / 2,
+            x1 + .05, noteW / 2
         )
     end
 end
@@ -178,7 +178,7 @@ local function drawBody(color, mode, x1, x2, y1, y2, ox1, ox2)
     else
         local flip
         if y1 > y2 then flip, y1, y2 = true, y2, y1 end
-        y1, y2 = y1 - noteH / 2, y2 + noteH / 2
+        y1, y2 = y1 - noteW / 2, y2 + noteW / 2
         if mode == 'mid' then
             local m = (x1 + x2) / 2
             addShape('polygon', color, 1,
@@ -355,7 +355,7 @@ end
 return function(chords, biasList, width, height, bw, nw)
     width = width or 1.2
     height = height or 128
-    bodyW, noteH = bw or .1, nw or .014
+    bodyW, noteW = bw or .1, nw or .014
     drawBuffer = {}
 
     -- Process input data

@@ -47,6 +47,7 @@ local drawBuffer
 local env = {
     bodyW = .1,   -- body width
     noteW = .014, -- Note width
+    chordDist = 1.2,
 }
 
 local ucs_x, ucs_y = 0, 0
@@ -74,7 +75,7 @@ local function drawBase(mode, x1, x2)
     end
 end
 local function drawExtend(x2)
-    addShape('note_mute', -1, x2 - .02, -env.noteW / 2, 1.2 - x2 + .04, env.noteW)
+    addShape('note_mute', -1, x2 - .02, -env.noteW / 2, env.chordDist - x2 + .04, env.noteW)
 end
 local function drawNote(mode, x1, x2)
     if mode == 'mute' then

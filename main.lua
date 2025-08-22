@@ -22,7 +22,7 @@ function ZENITHA.globalEvent.keyDown(key, isRep)
     if KBisDown('lctrl', 'rctrl') then return end
     if key == 'f11' then
         love.window.setFullscreen(not love.window.getFullscreen())
-    elseif key == 'f8' then
+    elseif key == 'f12' then
         local m = ZENITHA.getDevMode()
         ZENITHA.setDevMode(m == false and 1)
     end

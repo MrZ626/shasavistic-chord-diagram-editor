@@ -265,6 +265,12 @@ function E:renderChord(chord)
     table.sort(chord.noteList, pitchSorter)
 end
 
+function E:reRenderAll()
+    for i = 1, #self.chordList do
+        self:renderChord(self.chordList[i])
+    end
+end
+
 ---@param full boolean include pitchVec information?
 function E:dumpChord(full, s, e)
     local buffer = {}

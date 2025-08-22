@@ -15,6 +15,7 @@ local toggles = {
     keyboard = true,
     cursor = true,
     chordDist = 1.2,
+    noteWidth = .014,
 }
 
 ---@type Zenitha.Scene
@@ -262,7 +263,7 @@ function scene.keyDown(key, isRep)
         for i = 1, #edit.chordList do
             chordPitches[i] = log(edit.chordList[i].tree.pitch, 2)
         end
-        FILE.save(converter(edit:dumpChord(false, s, e), chordPitches, toggles.chordDist), fileName)
+        FILE.save(converter(edit:dumpChord(false, s, e), chordPitches, toggles.chordDist, nil, nil, toggles.noteWidth), fileName)
         MSG('check', ("Exported %d chord%s to file " .. fileName .. ",\nPress Ctrl+D to open the export directory"):format(
             e - s + 1,
             e > s and "s" or ""
@@ -280,11 +281,35 @@ function scene.keyDown(key, isRep)
     elseif key == 'f4' then
         -- TODO
     elseif key == 'f5' then
-        toggles.chordDist = MATH.roundUnit(MATH.clamp(toggles.chordDist - .1, 1, 1.5), .1)
-        edit.chordDist = toggles.chordDist
+        if toggles.chordDist > 1 then
+            toggles.chordDist = MATH.roundUnit(MATH.clamp(toggles.chordDist - .1, 1, 1.5), .1)
+            edit.chordDist = toggles.chordDist
+            ssvc.env.chordDist = toggles.chordDist
+            edit:reRenderAll()
+        end
+        MSG('info', "Chord distance: " .. (toggles.chordDist * 100) .. "%", 1)
     elseif key == 'f6' then
-        toggles.chordDist = MATH.roundUnit(MATH.clamp(toggles.chordDist + .1, 1, 1.5), .1)
-        edit.chordDist = toggles.chordDist
+        if toggles.chordDist < 1.5 then
+            toggles.chordDist = MATH.roundUnit(MATH.clamp(toggles.chordDist + .1, 1, 1.5), .1)
+            edit.chordDist = toggles.chordDist
+            ssvc.env.chordDist = toggles.chordDist
+            edit:reRenderAll()
+        end
+        MSG('info', "Chord distance: " .. (toggles.chordDist * 100) .. "%", 1)
+    elseif key == 'f7' then
+        if toggles.noteWidth > .010 then
+            toggles.noteWidth = MATH.roundUnit(MATH.clamp(toggles.noteWidth - .004, .010, .026), .002)
+            ssvc.env.noteW = toggles.noteWidth
+            edit:reRenderAll()
+        end
+        MSG('info', "Note width: " .. toggles.noteWidth * 1000, 1)
+    elseif key == 'f8' then
+        if toggles.noteWidth < .026 then
+            toggles.noteWidth = MATH.roundUnit(MATH.clamp(toggles.noteWidth + .004, .010, .026), .002)
+            ssvc.env.noteW = toggles.noteWidth
+            edit:reRenderAll()
+        end
+        MSG('info', "Note width: " .. toggles.noteWidth * 1000, 1)
     elseif key == 'tab' then
         if isRep then return true end
         edit:switchTheme()
@@ -618,8 +643,8 @@ Tab                       Switch theme
 F1                        Toggle chord graph
 F2                        Toggle keyboard
 F3                        Toggle cursor
-F5                        Chord distance--
-F6                        Chord distance++
+F5 & F6                  Adjust Chord distance
+F7 & F8                  Adjust Note width
 F11                        Fullscreen
 ]]
 hintText1 = hintText1:gsub(" ", "  ")
