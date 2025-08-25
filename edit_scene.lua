@@ -263,7 +263,15 @@ function scene.keyDown(key, isRep)
         for i = 1, #edit.chordList do
             chordPitches[i] = log(edit.chordList[i].tree.pitch, 2)
         end
-        FILE.save(converter(edit:dumpChord(false, s, e), chordPitches, toggles.chordDist, nil, nil, toggles.noteWidth), fileName)
+        FILE.save(converter(
+            edit:dumpChord(false, s, e),
+            chordPitches,
+            toggles.chordDist,
+            nil,
+            nil,
+            toggles.noteWidth,
+            TABLE.removeDuplicate(edit.gridStep)
+        ), fileName)
         MSG('check', ("Exported %d chord%s to file " .. fileName .. ",\nPress Ctrl+D to open the export directory"):format(
             e - s + 1,
             e > s and "s" or ""

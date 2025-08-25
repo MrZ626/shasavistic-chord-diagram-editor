@@ -80,6 +80,7 @@ local function moveOrigin(dx, dy)
     ucs_y = ucs_y + dy
 end
 
+---@param mode 'polygon' | 'path' | 'circle'
 local function addShape(mode, color, layer, ...)
     local points = { ... }
     if mode == 'circle' then
@@ -349,13 +350,17 @@ local function decode(str)
 end
 
 ---@param chords string[]
+---@param biasList number[]
+---@param width? number
 ---@param height? number
 ---@param bw? number Body width
 ---@param nw? number Note width
-return function(chords, biasList, width, height, bw, nw)
+---@param grids? number[]
+return function(chords, biasList, width, height, bw, nw, grids)
     width = width or 1.2
     height = height or 128
     bodyW, noteW = bw or .1, nw or .014
+    grids = grids or {}
     drawBuffer = {}
 
     -- Process input data
@@ -366,7 +371,6 @@ return function(chords, biasList, width, height, bw, nw)
         drawBranch(decode(chords[i]), x1, x2, x1, x2)
         moveOrigin(0, -d)
     end
-    table.sort(drawBuffer, function(a, b) return a._layer < b._layer end)
 
     -- Calculate bounding box
     local minX, maxX, minY, maxY = 999, -999, 999, -999
@@ -389,6 +393,26 @@ return function(chords, biasList, width, height, bw, nw)
 
     minX, maxX = minX - .1, maxX + .1
     minY, maxY = minY - .1, maxY + .1
+
+    -- Draw grid lines
+    local WW = #chords * width
+    for i = 1, #grids do
+        local v = grids[i]
+        local dy, color = dimData[v].yStep, dimData[v].color .. (i == 1 and "80" or i == 2 and "4D" or "1A")
+        for j = -26, 26 do
+            local y = dy * j
+            if j ~= 0 and MATH.between(y, minY, maxY) then
+                addShape('polygon', color, -99 - i,
+                    00, y + nw, 00, y - nw,
+                    WW, y - nw, WW, y + nw
+                )
+            end
+        end
+    end
+    addShape('polygon', "FFFFFF42", -99,
+        00, 0 + nw, 00, 0 - nw,
+        WW, 0 - nw, WW, 0 + nw
+    )
 
     -- Snap to zero & Flip vertically
     maxX, maxY = maxX - minX, maxY - minY
@@ -417,6 +441,8 @@ return function(chords, biasList, width, height, bw, nw)
             end
         end
     end
+
+    table.sort(drawBuffer, function(a, b) return a._layer < b._layer end)
 
     -- Generate SVG chunks
     local shapeData = ""
