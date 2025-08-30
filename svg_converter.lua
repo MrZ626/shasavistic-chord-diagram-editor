@@ -8,42 +8,42 @@ local dimData = {
     [0] = { -- 0D
         freq = 1,
         draw = 'none',
-        color = 'FFFFFF',
+        color = "FFFFFF",
     },
     { -- 1D Octave
         freq = 8 / 4,
         draw = 'arrow',
-        color = '808080',
+        color = "808080",
     },
     { -- 2D Fifth
         freq = 6 / 4,
         draw = 'left',
-        color = 'F27A93',
+        color = "F27A93",
     },
     { -- 3D Third
         freq = 5 / 4,
         draw = 'right',
-        color = '6DD884',
+        color = "6DD884",
     },
     { -- 4D Minor Seventh
         freq = 7 / 4,
         draw = 'rise',
-        color = 'B498EE',
+        color = "B498EE",
     },
     { -- 5D
         freq = 11 / 4,
         draw = 'fall',
-        color = 'FFC247',
+        color = "FFC247",
     },
     { -- 6D
         freq = 13 / 4,
         draw = 'arcleft',
-        color = 'B5B539',
+        color = "B5B539",
     },
     { -- 7D
         freq = 17 / 4,
         draw = 'arcright',
-        color = 'E19C7D',
+        color = "E19C7D",
     },
 }
 for i = 0, #dimData do
