@@ -233,7 +233,7 @@ local function simpNote(note, path)
         path = TABLE.copy(path),
         pitch = note.pitch,
         base = note.base,
-        sound = not note.mode,
+        sound = not note.mode or note.mode == 'tense',
         note = note,
     }
 end

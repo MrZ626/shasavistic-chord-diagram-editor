@@ -535,7 +535,6 @@ function scene.draw()
         gc_setColor(1, 1, 1)
         local drawData = edit.chordList[i].drawData
         local dy = -log(edit.chordList[i].tree.pitch, 2)
-
         -- if not edit.selMark and i == edit.cursor then
         --     local float = .006 + .002 * sin(love.timer.getTime() * 2.6)
         --     for j = 1, #drawData do
@@ -555,6 +554,7 @@ function scene.draw()
         for j = 1, #drawData do
             local d = drawData[j]
             local t = tex[d.texture]
+            gc_setColor(d.color)
             gc_draw(t, d.x, dy + d.y, 0, d.w / t:getWidth(), d.h / t:getHeight())
         end
 

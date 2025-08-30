@@ -56,9 +56,15 @@ local function moveOrigin(dx, dy)
     ucs_y = ucs_y + dy
 end
 
-local function addShape(texture, layer, x, y, w, h)
+local clr = {
+    normal = { 1, 1, 1 },
+    glass = { 1, 1, 1, .42 },
+}
+
+local function addShape(texture, color, layer, x, y, w, h)
     ins(drawBuffer, {
         texture = texture,
+        color = color or clr.normal,
         _layer = layer,
         x = ucs_x + x,
         y = ucs_y + y,
@@ -69,63 +75,63 @@ end
 
 local function drawBase(mode, x1, x2)
     if mode == 'l' then
-        addShape('base', 99, x1 - 0.12, -.04, 0.07, .08)
+        addShape('base', nil, 99, x1 - 0.12, -.04, 0.07, .08)
     else
-        addShape('base', 99, x2 + 0.12, -.04, -0.07, .08)
+        addShape('base', nil, 99, x2 + 0.12, -.04, -0.07, .08)
     end
 end
 local function drawExtend(x2)
-    addShape('note_mute', -1, x2 - .02, -env.noteW / 2, env.chordDist - x2 + .04, env.noteW)
+    addShape('note_mute', nil, -1, x2 - .02, -env.noteW / 2, env.chordDist - x2 + .04, env.noteW)
 end
 local function drawNote(mode, x1, x2)
     if mode == 'mute' then
-        addShape('note_mute', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
+        addShape('note_mute', nil, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     elseif mode == 'tense' then
-        addShape('note_tense', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
+        addShape('note_tense', nil, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     elseif mode == 'skip' then
-        -- addShape('note', 0, (x1 + x2) / 2 - .1, -env.noteW / 2, .2, env.noteW) -- Short line
+        -- addShape('note',nil, 0, (x1 + x2) / 2 - .1, -env.noteW / 2, .2, env.noteW) -- Short line
     else
-        addShape('note', 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
+        addShape('note', nil, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     end
 end
-local function drawBody(d, x1, x2, y1, y2, ox1, ox2)
+local function drawBody(d, color, x1, x2, y1, y2, ox1, ox2)
     local flip
     if y1 > y2 then flip, y1, y2 = true, y2, y1 end
     y1, y2 = y1 - env.noteW / 2, y2 + env.noteW / 2
     if abs(d) == 1 then
         local m = (x1 + x2) / 2
         if flip then y1, y2 = y2, y1 end
-        addShape('body_1d', 1, m - .1, y1, .2, y2 - y1)
+        addShape('body_1d', color, 1, m - .1, y1, .2, y2 - y1)
     elseif abs(d) == 2 then
-        addShape('body_2d', 3, x1, y1, env.bodyW, y2 - y1)
+        addShape('body_2d', color, 3, x1, y1, env.bodyW, y2 - y1)
     elseif abs(d) == 3 then
-        addShape('body_3d', 3, x2, y1, -env.bodyW, y2 - y1)
+        addShape('body_3d', color, 3, x2, y1, -env.bodyW, y2 - y1)
     elseif abs(d) == 4 then
         if flip then
             x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
         else
             x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
         end
-        addShape('body_4d', 4, x1, y1, x2 - x1, y2 - y1)
+        addShape('body_4d', color, 4, x1, y1, x2 - x1, y2 - y1)
     elseif abs(d) == 5 then
         if flip then
             x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
         else
             x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
         end
-        addShape('body_5d', 4, x1, y1, x2 - x1, y2 - y1)
+        addShape('body_5d', color, 4, x1, y1, x2 - x1, y2 - y1)
     elseif abs(d) == 6 then
-        addShape('body_6d', 2, x1 - .15, y1, .2, y2 - y1)
+        addShape('body_6d', color, 2, x1 - .15, y1, .2, y2 - y1)
     elseif abs(d) == 7 then
-        addShape('body_7d', 2, x2 - .05, y1, .22, y2 - y1)
+        addShape('body_7d', color, 2, x2 - .05, y1, .22, y2 - y1)
     end
 end
 local function drawNode(mode, x1, x2)
     local r = env.bodyW * .3
     if mode == 'l' then
-        addShape('node', 10, x1 + env.bodyW / 2 - r, -r, 2 * r, 2 * r)
+        addShape('node', nil, 10, x1 + env.bodyW / 2 - r, -r, 2 * r, 2 * r)
     elseif mode == 'r' then
-        addShape('node', 10, x2 - env.bodyW / 2 - r, -r, 2 * r, 2 * r)
+        addShape('node', nil, 10, x2 - env.bodyW / 2 - r, -r, 2 * r, 2 * r)
     end
 end
 
@@ -148,7 +154,7 @@ local function drawBranch(note, x1, x2, ox1, ox2)
     drawNote(note.mode, x1, x2)
 
     -- Body
-    drawBody(note.d, x1, x2, 0, -nData.yStep, ox1, ox2)
+    drawBody(note.d, note.mode == 'tense' and clr.glass, x1, x2, 0, -nData.yStep, ox1, ox2)
 
     -- Branches
     for n = 1, #note do

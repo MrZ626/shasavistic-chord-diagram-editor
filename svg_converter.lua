@@ -8,6 +8,7 @@ local dimData = {
     [0] = { -- 0D
         freq = 1,
         draw = 'none',
+        color = 'FFFFFF',
     },
     { -- 1D Octave
         freq = 8 / 4,
@@ -274,7 +275,11 @@ local function drawBranch(note, x1, x2, ox1, ox2)
     drawNote(note.mode, x1, x2)
 
     -- Body
-    drawBody(nData.color, nData.draw, x1, x2, 0, -nData.yStep, ox1, ox2)
+    drawBody(
+        nData.color .. (note.mode == 'tense' and '80' or ''),
+        nData.draw,
+        x1, x2, 0, -nData.yStep, ox1, ox2
+    )
 
     -- Branches
     for n = 1, #note do
