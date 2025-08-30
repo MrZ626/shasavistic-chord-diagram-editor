@@ -72,19 +72,19 @@ TEX.transition = GC.load(transition)
 
 ---@class SSVC.TextureMap
 TEX.dark = {
-    note = src "dark/pitch-line.png",
+    note = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "FFFFFF" } },
     note_mute = src "dark/pitch-line-dotted.png",
-    note_tense = src "dark/pitch-line-tense.png",
+    note_tense = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "00FFFF" } },
     -- pitch_canceled = src "dark/pitch-line-canceled.png",
     body_1d = src "dark/1d-ascent-group.png",
-    body_2d = src "dark/2d-line.png",
-    body_3d = src "dark/3d-line.png",
+    body_2d = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "F27992" } },
+    body_3d = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "6CD985" } },
     body_4d = src "dark/4d-line.png",
     body_5d = src "dark/5d-line.png",
     body_6d = src "dark/6d-line.png",
     body_7d = src "dark/7d-line.png",
     base = src "dark/base-symbol.png",
-    node = src "dark/node.png",
+    node = GC.load { w = 128, h = 128, { 'setCL', COLOR.HEX '65647F' }, { 'fCirc', 64, 64, 64 } },
     keyboard = src "dark/keyboard-segment.png",
     symbol = {
         src "dark/1d-symbol.png",
@@ -102,17 +102,39 @@ TEX.dark = {
     -- ascent_symbol = src "dark/ascent-symbol.png",
     -- descent_symbol = src "dark/descent-symbol.png",
 }
-TEX.bright = {} ---@type SSVC.TextureMap
-for k, v in next, TEX.dark do
-    if type(v) == 'string' then
-        TEX.bright[k] = v:gsub('dark', 'bright')
-    else
-        TEX.bright[k] = {}
-        for k2, v2 in next, v do
-            TEX.bright[k][k2] = v2:gsub('dark', 'bright')
-        end
-    end
-end
+---@class SSVC.TextureMap
+TEX.bright = {
+    note = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "AAAAAA" } },
+    note_mute = src "bright/pitch-line-dotted.png",
+    note_tense = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "00DDDD" } },
+    -- pitch_canceled = src "bright/pitch-line-canceled.png",
+    body_1d = src "bright/1d-ascent-group.png",
+    body_2d = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "F27992" } },
+    body_3d = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "17AB39" } },
+    body_4d = src "bright/4d-line.png",
+    body_5d = src "bright/5d-line.png",
+    body_6d = src "bright/6d-line.png",
+    body_7d = src "bright/7d-line.png",
+    base = src "bright/base-symbol.png",
+    node = GC.load { w = 128, h = 128, { 'setCL', COLOR.HEX 'FFFFFF' }, { 'fCirc', 64, 64, 64 } },
+    keyboard = src "bright/keyboard-segment.png",
+    symbol = {
+        src "bright/1d-symbol.png",
+        src "bright/2d-symbol.png",
+        src "bright/3d-symbol.png",
+        src "bright/4d-symbol.png",
+        src "bright/5d-symbol.png",
+        src "bright/6d-symbol.png",
+        src "bright/7d-symbol.png",
+    },
+    -- ascent_group = src "bright/1d-ascent-group.png",
+    -- ascent_triangle = src "bright/1d-ascent-triangle.png",
+    -- descent_group = src "bright/1d-descent-group.png",
+    -- descent_triangle = src "bright/1d-descent-triangle.png",
+    -- ascent_symbol = src "bright/ascent-symbol.png",
+    -- descent_symbol = src "bright/descent-symbol.png",
+}
+
 TEX = IMG.init(TEX, true)
 
 -- Widget
