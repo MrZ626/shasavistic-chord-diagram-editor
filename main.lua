@@ -73,7 +73,7 @@ TEX.transition = GC.load(transition)
 ---@class SSVC.TextureMap
 TEX.dark = {
     note = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "FFFFFF" } },
-    note_mute = src "dark/pitch-line-dotted.png",
+    note_mute = GC.load { w = 151, h = 1, { 'setCL', COLOR.HEX "FFFFFF" }, { 'fRect', 00, 0, 11, 1 }, { 'fRect', 20, 0, 11, 1 }, { 'fRect', 40, 0, 11, 1 }, { 'fRect', 60, 0, 11, 1 }, { 'fRect', 80, 0, 11, 1 }, { 'fRect', 100, 0, 11, 1 }, { 'fRect', 120, 0, 11, 1 }, { 'fRect', 140, 0, 11, 1 } },
     note_tense = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "00FFFF" } },
     -- pitch_canceled = src "dark/pitch-line-canceled.png",
     body_1d = src "dark/1d-ascent-group.png",
@@ -105,7 +105,7 @@ TEX.dark = {
 ---@class SSVC.TextureMap
 TEX.bright = {
     note = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "AAAAAA" } },
-    note_mute = src "bright/pitch-line-dotted.png",
+    note_mute = GC.load { w = 151, h = 1, { 'setCL', COLOR.HEX "AAAAAA" }, { 'fRect', 00, 0, 11, 1 }, { 'fRect', 20, 0, 11, 1 }, { 'fRect', 40, 0, 11, 1 }, { 'fRect', 60, 0, 11, 1 }, { 'fRect', 80, 0, 11, 1 }, { 'fRect', 100, 0, 11, 1 }, { 'fRect', 120, 0, 11, 1 }, { 'fRect', 140, 0, 11, 1 } },
     note_tense = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "00DDDD" } },
     -- pitch_canceled = src "bright/pitch-line-canceled.png",
     body_1d = src "bright/1d-ascent-group.png",
@@ -134,6 +134,8 @@ TEX.bright = {
     -- ascent_symbol = src "bright/ascent-symbol.png",
     -- descent_symbol = src "bright/descent-symbol.png",
 }
+TEX.dark.note_mute:setFilter('nearest', 'nearest')
+TEX.bright.note_mute:setFilter('nearest', 'nearest')
 
 TEX = IMG.init(TEX, true)
 
