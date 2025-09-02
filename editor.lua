@@ -12,7 +12,7 @@ local KBisDown = love.keyboard.isDown
 ---@field path SSVC.Dim[]
 ---@field pitch number
 ---@field sound boolean
----@field base? true
+---@field base? 'l' | 'r'
 ---@field note SSVC.Note
 
 ---@class SSVC.Chord
@@ -358,7 +358,9 @@ end
 
 function E:switchBase()
     local chord, curNote = self:getChord(), self:getNote()
-    if curNote.base then
+    if curNote.base == 'l' then
+        curNote.base = 'r'
+    elseif curNote.base == 'r' then
         curNote.base = nil
     else
         for k in next, TABLE.flatten(TABLE.copyAll(chord.tree)) do
@@ -371,7 +373,7 @@ function E:switchBase()
                 TABLE.listIndexSet(chord.tree, index, nil)
             end
         end
-        curNote.base = true
+        curNote.base = 'l'
     end
     self:renderChord(chord)
 end

@@ -27,7 +27,7 @@ local ins = table.insert
 ---@field d? SSVC.Dim
 ---@field mode? 'skip' | 'mute' | 'tense'
 ---@field bias? number
----@field base? true
+---@field base? 'l' | 'r'
 ---@field extended? true
 ---@field pitch? number GUI use only
 ---@field [number] SSVC.Note
@@ -145,7 +145,7 @@ local function drawBranch(note, x1, x2, ox1, ox2)
     moveOrigin(0, nData.yStep)
 
     -- Base
-    if note.base then drawBase(note.bias or 'l', x1, x2) end
+    if note.base then drawBase(note.base, x1, x2) end
 
     -- Extended line
     if note.extended then drawExtend(x2) end
@@ -202,8 +202,8 @@ local function decode(str)
             end
         elseif char == 'l' or char == 'r' then
             buf.bias = (buf.bias or 0) + (char == 'l' and -1 or 1)
-        elseif char == 'x' then
-            buf.base = true
+        elseif char == 'x' or char == 'X' then
+            buf.base = char=='x' and 'l' or 'r'
         else
             break
         end
@@ -240,7 +240,7 @@ end
 local function encode(chord)
     local str = STRING.newBuf()
     if chord.d then str:put(chord.d) end
-    if chord.base then str:put('x') end
+    if chord.base then str:put(chord.base=='l' and 'x' or 'X') end
     if chord.bias then str:put(string.rep(chord.bias < 0 and 'l' or 'r', abs(chord.bias))) end
     if chord.mode then str:put(chord.mode == 'tense' and '*' or '.') end
     if chord[1] then

@@ -63,7 +63,7 @@ end
 ---@field d? _SSVC.Dim
 ---@field mode? 'skip' | 'dotted' | 'tense'
 ---@field bias? number
----@field bass? true
+---@field base? 'l' | 'r'
 ---@field [number] _SSVC.Note
 
 ---@class _SSVC.Shape
@@ -117,7 +117,7 @@ local function fadeColor(color, a)
     return COLOR.toHEX(r, g, b)
 end
 
-local function drawBass(mode, x1, x2)
+local function drawBase(mode, x1, x2)
     if mode == 'l' then
         addShape('polygon', "F0F0F0", 99,
             x1 - 0.05, 0,
@@ -274,9 +274,9 @@ local function drawBranch(note, x1, x2, ox1, ox2)
 
     moveOrigin(0, nData.yStep)
 
-    -- Bass
-    if note.bass then
-        drawBass(note.bias or 'l', x1, x2)
+    -- Base
+    if note.base then
+        drawBase(note.base, x1, x2)
     end
 
     -- Note
@@ -329,8 +329,8 @@ local function decode(str)
             buf.mode = 'tense'
         elseif char == 'l' or char == 'r' then
             buf.bias = (buf.bias or 0) + (char == 'l' and -1 or 1)
-        elseif char == 'x' then
-            buf.bass = true
+        elseif char == 'x' or char == 'X' then
+            buf.base = char == 'x' and 'l' or 'r'
         else
             break
         end
