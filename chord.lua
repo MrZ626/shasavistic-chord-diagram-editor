@@ -81,7 +81,7 @@ local function drawBase(mode, x1, x2)
     end
 end
 local function drawExtend(x2)
-    addShape('note_mute', nil, -1, x2 - .02, -env.noteW / 2, env.chordDist - x2 + .04, env.noteW)
+    addShape('note_mute', clr.glass, -1, x2 - .02, -env.noteW / 2, env.chordDist - x2 + .04, env.noteW)
 end
 local function drawNote(mode, x1, x2)
     if mode == 'mute' then
@@ -195,15 +195,17 @@ local function decode(str)
     while true do
         local char = str:sub(1, 1)
         if char == '.' then
-            if abs(buf.d) == 1 then
-                buf.mode = 'skip'
-            else
-                buf.mode = 'mute'
-            end
+            buf.mode = 'skip'
+        elseif char == '-' then
+            buf.mode = 'mute'
+        elseif char == '*' then
+            buf.mode = 'tense'
         elseif char == 'l' or char == 'r' then
             buf.bias = (buf.bias or 0) + (char == 'l' and -1 or 1)
         elseif char == 'x' or char == 'X' then
-            buf.base = char=='x' and 'l' or 'r'
+            buf.base = char == 'x' and 'l' or 'r'
+        elseif char == 'e' then
+            buf.extended = true
         else
             break
         end
@@ -240,9 +242,10 @@ end
 local function encode(chord)
     local str = STRING.newBuf()
     if chord.d then str:put(chord.d) end
-    if chord.base then str:put(chord.base=='l' and 'x' or 'X') end
+    if chord.base then str:put(chord.base == 'l' and 'x' or 'X') end
     if chord.bias then str:put(string.rep(chord.bias < 0 and 'l' or 'r', abs(chord.bias))) end
-    if chord.mode then str:put(chord.mode == 'tense' and '*' or '.') end
+    if chord.mode then str:put(chord.mode == 'tense' and '*' or chord.mode == 'mute' and '-' or chord.mode == 'skip' and '.' or '') end
+    if chord.extended then str:put('e') end
     if chord[1] then
         str:put('(')
         for i = 1, #chord do
