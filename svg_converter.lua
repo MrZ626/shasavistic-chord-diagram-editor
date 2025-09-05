@@ -119,6 +119,18 @@ local function fadeColor(color, a)
     return COLOR.toHEX(r, g, b)
 end
 
+local function drawDottedLine(c, x1, x2, y1, y2)
+    local l, r = x1, x2
+    for i = 0, 14, 2 do
+        local _1, _2 = lerp(l, r, i / 15.1), lerp(l, r, (i + 1.1) / 15.1)
+        addShape('polygon', c, -1,
+            _1, y1,
+            _2, y1,
+            _2, y2,
+            _1, y2
+        )
+    end
+end
 local function drawBase(mode, x1, x2)
     if mode == 'l' then
         addShape('polygon', "F0F0F0", 99,
@@ -134,27 +146,10 @@ local function drawBase(mode, x1, x2)
         )
     end
 end
-local function drawExtend(x2)
-    addShape('polygon', fadeColor("FFFFFF", .4), -1,
-        x2 - .05, -noteW / 2,
-        x2 + (chordD - 1) + .05, -noteW / 2,
-        x2 + (chordD - 1) + .05, noteW / 2,
-        x2 - .05, noteW / 2
-    )
-end
 local function drawNote(mode, x1, x2)
     if mode == 'mute' then
         -- Dotted line
-        for i = 0, 10, 2 do
-            local x = lerp(x1 + .05, x2 - .05, i / 11)
-            local w = (x2 - x1 - .1) / 11
-            addShape('polygon', "F0F0F0", 0,
-                x, -noteW / 2,
-                x + w, -noteW / 2,
-                x + w, noteW / 2,
-                x, noteW / 2
-            )
-        end
+        drawDottedLine("F0F0F0", x1 + .05, x2 - .05, -noteW / 2, noteW / 2)
     elseif mode == 'skip' then
         -- Short line
         x1, x2 = lerp(x1, x2, .3), lerp(x2, x1, .3)
@@ -288,7 +283,9 @@ local function drawBranch(note, x1, x2, ox1, ox2)
     if note.base then drawBase(note.base, x1, x2) end
 
     -- Extended line
-    if note.extended then drawExtend(x2) end
+    if note.extended then
+        drawDottedLine(fadeColor("FFFFFF", .4), x2 - .05, x2 + (chordD - 1) + .05, -noteW / 2, noteW / 2)
+    end
 
     -- Note
     drawNote(note.mode, x1, x2)
