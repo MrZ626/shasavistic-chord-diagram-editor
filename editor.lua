@@ -276,8 +276,9 @@ function E:dumpChord(full, s, e)
     local buffer = {}
     for i = s, e do
         local chord = self.chordList[i]
-        ins(buffer, vecToStr(full and chord.pitchVec or NONE) .. '!' .. chord.text)
+        ins(buffer, (full and vecToStr(chord.pitchVec) .. '!' or '') .. chord.text)
     end
+    -- for k,v in next,buffer do print(k,v)end
     return buffer
 end
 
