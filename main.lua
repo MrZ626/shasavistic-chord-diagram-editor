@@ -73,8 +73,21 @@ TEX.transition = GC.load(transition)
 ---@class SSVC.TextureMap
 TEX.dark = {
     note = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "FFFFFF" } },
-    note_mute = GC.load { w = 151, h = 1, { 'setCL', COLOR.HEX "FFFFFF" }, { 'fRect', 00, 0, 11, 1 }, { 'fRect', 20, 0, 11, 1 }, { 'fRect', 40, 0, 11, 1 }, { 'fRect', 60, 0, 11, 1 }, { 'fRect', 80, 0, 11, 1 }, { 'fRect', 100, 0, 11, 1 }, { 'fRect', 120, 0, 11, 1 }, { 'fRect', 140, 0, 11, 1 } },
+    note_mute = (function()
+        local L = { w = 151, h = 1, { 'setCL', COLOR.HEX "FFFFFF" } }
+        for x = 0, 140, 20 do
+            table.insert(L, { 'fRect', x, 0, 11, 1 })
+        end
+        return GC.load(L)
+    end)(),
     note_tense = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "00FFFF" } },
+    dotted_line = (function()
+        local L = { w = 157, h = 1, { 'setCL', COLOR.HEX "FFFFFF" } }
+        for x = 0, 150, 15 do
+            table.insert(L, { 'fRect', x, 0, 7, 1 })
+        end
+        return GC.load(L)
+    end)(),
     -- pitch_canceled = src "dark/pitch-line-canceled.png",
     body_1d = src "dark/1d-ascent-group.png",
     body_2d = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "F27992" } },

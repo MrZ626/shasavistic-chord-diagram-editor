@@ -58,6 +58,7 @@ end
 
 local clr = {
     normal = { 1, 1, 1 },
+    fade = { 1, 1, 1,.7 },
     glass = { 1, 1, 1, .42 },
 }
 
@@ -81,7 +82,7 @@ local function drawBase(mode, x1, x2)
     end
 end
 local function drawExtend(x2)
-    addShape('note_mute', clr.glass, -1, x2 - .02, -env.noteW / 2, env.chordDist - x2 + .04, env.noteW)
+    addShape('dotted_line', clr.fade, -1, x2 - .02, -env.noteW / 2, env.chordDist - x2 + .04, env.noteW)
 end
 local function drawNote(mode, x1, x2)
     if mode == 'mute' then
