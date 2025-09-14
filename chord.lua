@@ -25,7 +25,7 @@ local ins = table.insert
 
 ---@class SSVC.Note
 ---@field d? SSVC.Dim
----@field mode? 'skip' | 'mute' | 'tense'
+---@field mode? 'skip' | 'mute' | 'tense' | 'pink'
 ---@field bias? number
 ---@field base? 'l' | 'r'
 ---@field extended? true
@@ -89,6 +89,8 @@ local function drawNote(mode, x1, x2)
         addShape('note_mute', nil, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     elseif mode == 'tense' then
         addShape('note_tense', nil, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
+    elseif mode == 'pink' then
+        addShape('note_pink', nil, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     elseif mode == 'skip' then
         -- addShape('note',nil, 0, (x1 + x2) / 2 - .1, -env.noteW / 2, .2, env.noteW) -- Short line
     else
@@ -155,7 +157,7 @@ local function drawBranch(note, x1, x2, ox1, ox2)
     drawNote(note.mode, x1, x2)
 
     -- Body
-    drawBody(note.d, note.mode == 'tense' and clr.glass, x1, x2, 0, -nData.yStep, ox1, ox2)
+    drawBody(note.d, (note.mode == 'tense' or note.mode == 'pink') and clr.glass, x1, x2, 0, -nData.yStep, ox1, ox2)
 
     -- Branches
     for n = 1, #note do
@@ -201,6 +203,8 @@ local function decode(str)
             buf.mode = 'mute'
         elseif char == '*' then
             buf.mode = 'tense'
+        elseif char == 'p' then
+            buf.mode = 'pink'
         elseif char == 'l' or char == 'r' then
             buf.bias = (buf.bias or 0) + (char == 'l' and -1 or 1)
         elseif char == 'x' or char == 'X' then
@@ -245,7 +249,7 @@ local function encode(chord)
     if chord.d then str:put(chord.d) end
     if chord.base then str:put(chord.base == 'l' and 'x' or 'X') end
     if chord.bias then str:put(string.rep(chord.bias < 0 and 'l' or 'r', abs(chord.bias))) end
-    if chord.mode then str:put(chord.mode == 'tense' and '*' or chord.mode == 'mute' and '-' or chord.mode == 'skip' and '.' or '') end
+    if chord.mode then str:put(chord.mode == 'tense' and '*' or chord.mode == 'pink' and 'p' or chord.mode == 'mute' and '-' or chord.mode == 'skip' and '.' or '') end
     if chord.extended then str:put('e') end
     if chord[1] then
         str:put('(')

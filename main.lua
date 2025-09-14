@@ -81,6 +81,7 @@ TEX.dark = {
         return GC.load(L)
     end)(),
     note_tense = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "00FFFF" } },
+    note_pink = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "F0A3F0" } },
     dotted_line = (function()
         local L = { w = 157, h = 1, { 'setCL', COLOR.HEX "FFFFFF" } }
         for x = 0, 150, 15 do

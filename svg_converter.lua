@@ -62,7 +62,7 @@ end
 
 ---@class _SSVC.Note
 ---@field d? _SSVC.Dim
----@field mode? 'skip' | 'mute' | 'tense'
+---@field mode? 'skip' | 'mute' | 'tense' | 'pink'
 ---@field bias? number
 ---@field base? 'l' | 'r'
 ---@field extended? true
@@ -162,6 +162,14 @@ local function drawNote(mode, x1, x2)
     elseif mode == 'tense' then
         -- Cyan line
         addShape('polygon', "08F0F0", 0,
+            x1 + .05, -noteW / 2,
+            x2 - .05, -noteW / 2,
+            x2 - .05, noteW / 2,
+            x1 + .05, noteW / 2
+        )
+    elseif mode == 'pink' then
+        -- Pink line
+        addShape('polygon', "F0A3F0", 0,
             x1 + .05, -noteW / 2,
             x2 - .05, -noteW / 2,
             x2 - .05, noteW / 2,
@@ -292,7 +300,7 @@ local function drawBranch(note, x1, x2, ox1, ox2)
 
     -- Body
     drawBody(
-        note.mode == 'tense' and fadeColor(nData.color, .45) or nData.color,
+        (note.mode == 'tense' or note.mode == 'pink') and fadeColor(nData.color, .45) or nData.color,
         nData.draw,
         x1, x2, 0, -nData.yStep, ox1, ox2
     )
@@ -333,6 +341,8 @@ local function decode(str)
             buf.mode = 'mute'
         elseif char == '*' then
             buf.mode = 'tense'
+        elseif char == 'p' then
+            buf.mode = 'pink'
         elseif char == 'l' or char == 'r' then
             buf.bias = (buf.bias or 0) + (char == 'l' and -1 or 1)
         elseif char == 'x' or char == 'X' then

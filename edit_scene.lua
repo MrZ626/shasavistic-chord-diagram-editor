@@ -208,6 +208,13 @@ function scene.keyDown(key, isRep)
         curNote.mode = curNote.mode ~= 'tense' and 'tense' or nil
         edit:renderChord(edit:getChord())
         edit:focusCursor()
+    elseif ALT and key == 'p' then
+        if isRep then return true end
+        -- Switch pink note
+        local curNote = edit:getNote()
+        curNote.mode = curNote.mode ~= 'pink' and 'pink' or nil
+        edit:renderChord(edit:getChord())
+        edit:focusCursor()
     elseif ALT and key == 'b' then
         if isRep then return true end
         -- Mark selected note as base
@@ -626,6 +633,7 @@ Shift+[Num]     Add downwards
 Alt+M           Mute note
 Alt+H            Hide note
 Alt+T            Mark tense note
+Alt+P            Mark pink(?) note
 Alt+B            Mark base note
 Alt+L            Add extended line
 Ctrl+[Num]      Mute & Add note
