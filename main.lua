@@ -121,6 +121,7 @@ TEX.bright = {
     note = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "AAAAAA" } },
     note_mute = GC.load { w = 151, h = 1, { 'setCL', COLOR.HEX "AAAAAA" }, { 'fRect', 00, 0, 11, 1 }, { 'fRect', 20, 0, 11, 1 }, { 'fRect', 40, 0, 11, 1 }, { 'fRect', 60, 0, 11, 1 }, { 'fRect', 80, 0, 11, 1 }, { 'fRect', 100, 0, 11, 1 }, { 'fRect', 120, 0, 11, 1 }, { 'fRect', 140, 0, 11, 1 } },
     note_tense = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "00DDDD" } },
+    note_pink = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "DE70B6" } },
     -- pitch_canceled = src "bright/pitch-line-canceled.png",
     body_1d = src "bright/1d-ascent-group.png",
     body_2d = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "F27992" } },
