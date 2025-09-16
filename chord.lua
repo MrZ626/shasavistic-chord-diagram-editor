@@ -129,6 +129,16 @@ local function drawBody(d, color, x1, x2, y1, y2, ox1, ox2)
         addShape('body_7d', color, 2, x2 - .05, y1, .22, y2 - y1)
     end
 end
+local function needNode(n1,n2)
+    if n1.d == n2.d then
+        local t1=n1.mode == 'tense' or n1.mode == 'pink'
+        local t2=n2.mode == 'tense' or n2.mode == 'pink'
+        if t1==t2 and MATH.between(abs(n1.d), 2, 3) then
+            return true
+        end
+    end
+    return false
+end
 local function drawNode(mode, x1, x2)
     local r = env.bodyW * .3
     if mode == 'l' then
@@ -162,7 +172,7 @@ local function drawBranch(note, x1, x2, ox1, ox2)
     -- Branches
     for n = 1, #note do
         local nxt = note[n]
-        if nxt.d == note.d and MATH.between(abs(note.d), 2, 3) then
+        if needNode(note,nxt) then
             drawNode(abs(note.d) == 2 and 'l' or 'r', x1, x2)
         end
         if not nxt.bias then
