@@ -290,6 +290,8 @@ function scene.keyDown(key, isRep)
     elseif key == 'f1' then
         if isRep then return true end
         toggles.theme = toggles.theme == 'dark' and 'bright' or 'dark'
+        ssvc.env.theme = toggles.theme
+        edit:reRenderAll()
         MSG('info', "Theme: " .. (toggles.theme == 'dark' and "Dark" or "Light"), .26)
     elseif key == 'f2' then
         if isRep then return true end

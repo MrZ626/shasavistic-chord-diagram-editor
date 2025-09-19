@@ -74,16 +74,14 @@ TEX.transition = GC.load(transition)
 TEX.dark = {
     note = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "FFFFFF" } },
     note_mute = (function()
-        local L = { w = 151, h = 1}
+        local L = { w = 151, h = 1 }
         for x = 0, 140, 20 do
             table.insert(L, { 'fRect', x, 0, 11, 1 })
         end
         return GC.load(L)
     end)(),
-    note_tense = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "00FFFF" } },
-    note_pink = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "F0A3F0" } },
     dotted_line = (function()
-        local L = { w = 157, h = 1}
+        local L = { w = 157, h = 1 }
         for x = 0, 150, 15 do
             table.insert(L, { 'fRect', x, 0, 7, 1 })
         end
@@ -98,7 +96,7 @@ TEX.dark = {
     body_6d = src "dark/6d-line.png",
     body_7d = src "dark/7d-line.png",
     base = src "dark/base-symbol.png",
-    node = GC.load { w = 128, h = 128, { 'setCL', COLOR.HEX '65647F' }, { 'fCirc', 64, 64, 64 } },
+    node = GC.load { w = 128, h = 128, { 'setCL', themes.dark.bg }, { 'fCirc', 64, 64, 64 } },
     keyboard = src "dark/keyboard-segment.png",
     symbol = {
         src "dark/1d-symbol.png",
@@ -118,10 +116,8 @@ TEX.dark = {
 }
 ---@class SSVC.TextureMap
 TEX.bright = {
-    note = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "AAAAAA" } },
+    -- note = ...,
     note_mute = GC.load { w = 151, h = 1, { 'setCL', COLOR.HEX "AAAAAA" }, { 'fRect', 00, 0, 11, 1 }, { 'fRect', 20, 0, 11, 1 }, { 'fRect', 40, 0, 11, 1 }, { 'fRect', 60, 0, 11, 1 }, { 'fRect', 80, 0, 11, 1 }, { 'fRect', 100, 0, 11, 1 }, { 'fRect', 120, 0, 11, 1 }, { 'fRect', 140, 0, 11, 1 } },
-    note_tense = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "00DDDD" } },
-    note_pink = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "DE70B6" } },
     -- pitch_canceled = src "bright/pitch-line-canceled.png",
     body_1d = src "bright/1d-ascent-group.png",
     -- body_2d = ...,
@@ -131,7 +127,7 @@ TEX.bright = {
     body_6d = src "bright/6d-line.png",
     body_7d = src "bright/7d-line.png",
     base = src "bright/base-symbol.png",
-    node = GC.load { w = 128, h = 128, { 'fCirc', 64, 64, 64 } },
+    node = GC.load { w = 128, h = 128, { 'setCL', themes.bright.bg }, { 'fCirc', 64, 64, 64 } },
     keyboard = src "bright/keyboard-segment.png",
     symbol = {
         src "bright/1d-symbol.png",
@@ -151,10 +147,12 @@ TEX.bright = {
 }
 TEX.dark.note_mute:setFilter('nearest', 'nearest')
 TEX.bright.note_mute:setFilter('nearest', 'nearest')
-TEX.bright.body_2d = TEX.dark.body_2d
-TEX.bright.body_3d = TEX.dark.body_3d
-TEX.bright.body_4d = TEX.dark.body_4d
-TEX.bright.body_5d = TEX.dark.body_5d
+-- TEX.bright.note = TEX.dark.note
+-- TEX.bright.body_2d = TEX.dark.body_2d
+-- TEX.bright.body_3d = TEX.dark.body_3d
+-- TEX.bright.body_4d = TEX.dark.body_4d
+-- TEX.bright.body_5d = TEX.dark.body_5d
+TABLE.updateMissing(TEX.bright, TEX.dark)
 
 TEX = IMG.init(TEX, true)
 

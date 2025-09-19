@@ -87,11 +87,11 @@ local function drawExtend(x2)
 end
 local function drawNote(mode, x1, x2)
     if mode == 'mute' then
-        addShape('note_mute', nil, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
+        addShape('note', themes[env.theme].note.normal, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     elseif mode == 'tense' then
-        addShape('note_tense', nil, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
+        addShape('note', themes[env.theme].note.tense, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     elseif mode == 'pink' then
-        addShape('note_pink', nil, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
+        addShape('note', themes[env.theme].note.pink, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     elseif mode == 'skip' then
         -- addShape('note',nil, 0, (x1 + x2) / 2 - .1, -env.noteW / 2, .2, env.noteW) -- Short line
     else

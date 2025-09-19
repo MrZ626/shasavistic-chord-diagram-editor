@@ -11,6 +11,11 @@ local themes = {
         playline = { COLOR.HEX 'C0F0FFFF' },
         pitchText = { COLOR.HEX 'FFFFFFD0' },
         text = { COLOR.HEX 'FFFFFF80' },
+        note = {
+            normal = { COLOR.HEX 'FFFFFFFF' },
+            tense = { COLOR.HEX '00FFFFFF' },
+            pink = { COLOR.HEX 'F0A3F0FF' },
+        },
         dim = {
             { COLOR.HEX 'FFFFFFFF' },
             { COLOR.HEX 'F27992FF' },
@@ -42,6 +47,11 @@ local themes = {
         playline = { COLOR.HEX '0042D0FF' },
         pitchText = { COLOR.HEX '000000D0' },
         text = { COLOR.HEX '00000080' },
+        note = {
+            normal = { COLOR.HEX 'AAAAAAFF' },
+            tense = { COLOR.HEX '00DDDDFF' },
+            pink = { COLOR.HEX 'DE70B6FF' },
+        },
         dim = {
             { COLOR.HEX 'FFFFFFFF' },
             { COLOR.HEX 'F27992FF' },
