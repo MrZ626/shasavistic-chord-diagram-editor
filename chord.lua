@@ -168,7 +168,7 @@ local function drawBranch(note, x1, x2, ox1, ox2)
     drawNote(note.mode, x1, x2)
 
     -- Body
-    drawBody(note.d, themes[env.theme].dim[abs(note.d)], x1, x2, 0, -nData.yStep, ox1, ox2)
+    drawBody(note.d, themes[env.theme][(note.mode == 'tense' or note.mode == 'pink') and 'dimFade' or 'dim'][abs(note.d)], x1, x2, 0, -nData.yStep, ox1, ox2)
 
     -- Branches
     for n = 1, #note do

@@ -1,7 +1,7 @@
-return {
+local themes = {
     dark = {
-        cursorLight1={COLOR.HEX 'FFFFFF12'},
-        cursorLight2={COLOR.HEX 'FFFFFF26'},
+        cursorLight1 = { COLOR.HEX 'FFFFFF12' },
+        cursorLight2 = { COLOR.HEX 'FFFFFF26' },
         bgbase = { COLOR.HEX '61607BFF' },
         bg = { COLOR.HEX '65647FFF' },
         sepLine = { COLOR.HEX '00000010' },
@@ -31,8 +31,8 @@ return {
         },
     },
     bright = {
-        cursorLight1={COLOR.HEX '00000012'},
-        cursorLight2={COLOR.HEX '00000026'},
+        cursorLight1 = { COLOR.HEX '00000012' },
+        cursorLight2 = { COLOR.HEX '00000026' },
         bgbase = { COLOR.HEX 'DCD3C6FF' },
         bg = { COLOR.HEX 'E8E6E3FF' },
         sepLine = { COLOR.HEX '00000010' },
@@ -62,3 +62,17 @@ return {
         },
     },
 }
+
+local function fadeColor(back, fore, a)
+    return {
+        fore[1] * a + back[1] * (1 - a),
+        fore[2] * a + back[2] * (1 - a),
+        fore[3] * a + back[3] * (1 - a)
+    }
+end
+themes.dark.dimFade = {}
+for i = 1, #themes.dark.dim do themes.dark.dimFade[i] = fadeColor(themes.dark.bg, themes.dark.dim[i], .42) end
+themes.bright.dimFade = {}
+for i = 1, #themes.bright.dim do themes.bright.dimFade[i] = fadeColor(themes.bright.bg, themes.bright.dim[i], .42) end
+
+return themes
