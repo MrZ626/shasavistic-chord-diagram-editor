@@ -11,6 +11,7 @@ local tostring = tostring
 local KBisDown = love.keyboard.isDown
 
 local toggles = {
+    theme = 'dark',
     chordGraph = true,
     keyboard = true,
     cursor = true,
@@ -288,8 +289,8 @@ function scene.keyDown(key, isRep)
         UTIL.openSaveDirectory()
     elseif key == 'f1' then
         if isRep then return true end
-        edit:switchTheme()
-        MSG('info', "Theme: " .. (toggles.darkMode and "Dark" or "Light"), .26)
+        toggles.theme = toggles.theme == 'dark' and 'bright' or 'dark'
+        MSG('info', "Theme: " .. (toggles.theme == 'dark' and "Dark" or "Light"), .26)
     elseif key == 'f2' then
         if isRep then return true end
         toggles.keyboard = not toggles.keyboard
@@ -407,9 +408,8 @@ local function drawCGNote(note, x, y, alpha)
     end
 end
 function scene.draw()
-    theme = themes[edit.theme]
-    ---@diagnostic disable-next-line
-    local tex = TEX[edit.theme] ---@type SSVC.TextureMap
+    theme = themes[toggles.theme]
+    local tex = TEX[toggles.theme] ---@type SSVC.TextureMap
     local X, Y, K = edit.scrX1, edit.scrY1, edit.scrK1
 
     FONT.set(30)

@@ -48,6 +48,7 @@ local env = {
     bodyW = .1,   -- body width
     noteW = .014, -- Note width
     chordDist = 1.2,
+    theme = 'dark',
 }
 
 local ucs_x, ucs_y = 0, 0
@@ -56,16 +57,16 @@ local function moveOrigin(dx, dy)
     ucs_y = ucs_y + dy
 end
 
-local clr = {
+local palette = {
     normal = { 1, 1, 1 },
-    fade = { 1, 1, 1,.7 },
-    glass = { 1, 1, 1, .42 },
+    fade = { 1, 1, 1, .7 },
 }
+local themes = require('themes')
 
 local function addShape(texture, color, layer, x, y, w, h)
     ins(drawBuffer, {
         texture = texture,
-        color = color or clr.normal,
+        color = color or palette.normal,
         _layer = layer,
         x = ucs_x + x,
         y = ucs_y + y,
@@ -82,7 +83,7 @@ local function drawBase(mode, x1, x2)
     end
 end
 local function drawExtend(x2)
-    addShape('dotted_line', clr.fade, -1, x2 - .02, -env.noteW / 2, env.chordDist - x2 + .04, env.noteW)
+    addShape('dotted_line', palette.fade, -1, x2 - .02, -env.noteW / 2, env.chordDist - x2 + .04, env.noteW)
 end
 local function drawNote(mode, x1, x2)
     if mode == 'mute' then
@@ -129,11 +130,11 @@ local function drawBody(d, color, x1, x2, y1, y2, ox1, ox2)
         addShape('body_7d', color, 2, x2 - .05, y1, .22, y2 - y1)
     end
 end
-local function needNode(n1,n2)
+local function needNode(n1, n2)
     if n1.d == n2.d then
-        local t1=n1.mode == 'tense' or n1.mode == 'pink'
-        local t2=n2.mode == 'tense' or n2.mode == 'pink'
-        if t1==t2 and MATH.between(abs(n1.d), 2, 3) then
+        local t1 = n1.mode == 'tense' or n1.mode == 'pink'
+        local t2 = n2.mode == 'tense' or n2.mode == 'pink'
+        if t1 == t2 and MATH.between(abs(n1.d), 2, 3) then
             return true
         end
     end
@@ -167,12 +168,12 @@ local function drawBranch(note, x1, x2, ox1, ox2)
     drawNote(note.mode, x1, x2)
 
     -- Body
-    drawBody(note.d, (note.mode == 'tense' or note.mode == 'pink') and clr.glass, x1, x2, 0, -nData.yStep, ox1, ox2)
+    drawBody(note.d, themes[env.theme].dim[abs(note.d)], x1, x2, 0, -nData.yStep, ox1, ox2)
 
     -- Branches
     for n = 1, #note do
         local nxt = note[n]
-        if needNode(note,nxt) then
+        if needNode(note, nxt) then
             drawNode(abs(note.d) == 2 and 'l' or 'r', x1, x2)
         end
         if not nxt.bias then

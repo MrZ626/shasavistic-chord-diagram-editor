@@ -12,7 +12,7 @@ return {
         pitchText = { COLOR.HEX 'FFFFFFD0' },
         text = { COLOR.HEX 'FFFFFF80' },
         dim = {
-            { COLOR.HEX 'AAAAAAFF' },
+            { COLOR.HEX 'FFFFFFFF' },
             { COLOR.HEX 'F27992FF' },
             { COLOR.HEX '6CD985FF' },
             { COLOR.HEX 'B598EEFF' },
@@ -43,7 +43,7 @@ return {
         pitchText = { COLOR.HEX '000000D0' },
         text = { COLOR.HEX '00000080' },
         dim = {
-            { COLOR.HEX 'AAAAAAFF' },
+            { COLOR.HEX 'FFFFFFFF' },
             { COLOR.HEX 'F27992FF' },
             { COLOR.HEX '17AB39FF' },
             { COLOR.HEX 'AA88EEFF' },

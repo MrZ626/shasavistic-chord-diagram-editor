@@ -91,10 +91,10 @@ TEX.dark = {
     end)(),
     -- pitch_canceled = src "dark/pitch-line-canceled.png",
     body_1d = src "dark/1d-ascent-group.png",
-    body_2d = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "F27992" } },
-    body_3d = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "6CD985" } },
-    body_4d = src "dark/4d-line.png",
-    body_5d = src "dark/5d-line.png",
+    body_2d = GC.load { w = 1, h = 1, { 'clear', COLOR.LL } },
+    body_3d = GC.load { w = 1, h = 1, { 'clear', COLOR.LL } },
+    body_4d = GC.load { w = 512, h = 1536, { 'scale', 512, 1536 }, { 'fPoly', 1, 0, .89, 0, 0, 1, .11, 1 } },
+    body_5d = GC.load { w = 512, h = 1536, { 'scale', 512, 1536 }, { 'fPoly', 0, 0, .10, 0, 1, 1, .90, 1 } },
     body_6d = src "dark/6d-line.png",
     body_7d = src "dark/7d-line.png",
     base = src "dark/base-symbol.png",
@@ -124,10 +124,10 @@ TEX.bright = {
     note_pink = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "DE70B6" } },
     -- pitch_canceled = src "bright/pitch-line-canceled.png",
     body_1d = src "bright/1d-ascent-group.png",
-    body_2d = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "F27992" } },
-    body_3d = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "17AB39" } },
-    body_4d = src "bright/4d-line.png",
-    body_5d = src "bright/5d-line.png",
+    -- body_2d = ...,
+    -- body_3d = ...,
+    -- body_4d = ...,
+    -- body_5d = ...,
     body_6d = src "bright/6d-line.png",
     body_7d = src "bright/7d-line.png",
     base = src "bright/base-symbol.png",
@@ -151,6 +151,10 @@ TEX.bright = {
 }
 TEX.dark.note_mute:setFilter('nearest', 'nearest')
 TEX.bright.note_mute:setFilter('nearest', 'nearest')
+TEX.bright.body_2d = TEX.dark.body_2d
+TEX.bright.body_3d = TEX.dark.body_3d
+TEX.bright.body_4d = TEX.dark.body_4d
+TEX.bright.body_5d = TEX.dark.body_5d
 
 TEX = IMG.init(TEX, true)
 

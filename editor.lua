@@ -36,7 +36,6 @@ local E = {
     scrY = 0,
     scrK = 1,
 
-    theme = 'dark',
     gridStep = { 2, 1 },
     chordDist = 1.2,
 
@@ -132,10 +131,6 @@ local function strToVec(str)
 end
 
 -- View & Appearance
-
-function E:switchTheme()
-    self.theme = self.theme == 'bright' and 'dark' or 'bright'
-end
 
 function E:scroll(dx, dy)
     self.scrX = MATH.clamp(self.scrX + dx, 0, max(#self.chordList * self.chordDist - (5.8 - .26) / self.scrK, 0))
