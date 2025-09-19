@@ -74,7 +74,7 @@ TEX.transition = GC.load(transition)
 TEX.dark = {
     note = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "FFFFFF" } },
     note_mute = (function()
-        local L = { w = 151, h = 1, { 'setCL', COLOR.HEX "FFFFFF" } }
+        local L = { w = 151, h = 1}
         for x = 0, 140, 20 do
             table.insert(L, { 'fRect', x, 0, 11, 1 })
         end
@@ -83,7 +83,7 @@ TEX.dark = {
     note_tense = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "00FFFF" } },
     note_pink = GC.load { w = 1, h = 1, { 'clear', COLOR.HEX "F0A3F0" } },
     dotted_line = (function()
-        local L = { w = 157, h = 1, { 'setCL', COLOR.HEX "FFFFFF" } }
+        local L = { w = 157, h = 1}
         for x = 0, 150, 15 do
             table.insert(L, { 'fRect', x, 0, 7, 1 })
         end
@@ -131,7 +131,7 @@ TEX.bright = {
     body_6d = src "bright/6d-line.png",
     body_7d = src "bright/7d-line.png",
     base = src "bright/base-symbol.png",
-    node = GC.load { w = 128, h = 128, { 'setCL', COLOR.HEX 'FFFFFF' }, { 'fCirc', 64, 64, 64 } },
+    node = GC.load { w = 128, h = 128, { 'fCirc', 64, 64, 64 } },
     keyboard = src "bright/keyboard-segment.png",
     symbol = {
         src "bright/1d-symbol.png",
