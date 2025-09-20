@@ -22,7 +22,7 @@ local themes = {
             { COLOR.HEX '6CD985FF' },
             { COLOR.HEX 'B598EEFF' },
             { COLOR.HEX 'FFC247FF' },
-            { COLOR.HEX '3C3D12FF' },
+            { COLOR.HEX 'B5B539FF' },
             { COLOR.HEX 'ED9877FF' },
         },
         dimGridColor = {

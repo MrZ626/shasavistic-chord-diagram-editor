@@ -6,8 +6,6 @@ ZENITHA.setMainLoopSpeed(120)
 ZENITHA.setUpdateRate(100)
 ZENITHA.setRenderRate(75)
 ZENITHA.setFirstScene('main')
-ZENITHA.setShowFPS(false)
-ZENITHA.setVersionText("")
 
 -- globalEvent
 local MSisDown, KBisDown = love.mouse.isDown, love.keyboard.isDown
@@ -93,8 +91,26 @@ TEX.dark = {
     body_3d = GC.load { w = 1, h = 1, { 'clear', COLOR.LL } },
     body_4d = GC.load { w = 512, h = 1536, { 'scale', 512, 1536 }, { 'fPoly', 1, 0, .89, 0, 0, 1, .11, 1 } },
     body_5d = GC.load { w = 512, h = 1536, { 'scale', 512, 1536 }, { 'fPoly', 0, 0, .10, 0, 1, 1, .90, 1 } },
-    body_6d = src "dark/6d-line.png",
-    body_7d = src "dark/7d-line.png",
+    body_6d = GC.load { w = 256, h = 2048, { 'scale', 256, 2048 }, { function()
+        local w = .2
+        local res = TABLE.append(
+            GC.newBezier({ { 1 - w, 0 }, { 0, .5, true }, { 1 - w, 1 } }):render(42),
+            GC.newBezier({ { 1, 1 }, { w, .5, true }, { 1, 0 } }):render(42)
+        )
+        res = TABLE.append(TABLE.sub(res, 43), TABLE.sub(res, 1, 42))
+        GC.setColor(1,1,1)
+        GC.polygon('fill', res)
+    end } },
+    body_7d = GC.load { w = 256, h = 2048, { 'scale', 256, 2048 }, { function()
+        local w = .2
+        local res = TABLE.append(
+            GC.newBezier({ { w, 0 }, { 1, .5, true }, { w, 1 } }):render(42),
+            GC.newBezier({ { 0, 1 }, { 1 - w, .5, true }, { 0, 0 } }):render(42)
+        )
+        res = TABLE.append(TABLE.sub(res, 43), TABLE.sub(res, 1, 42))
+        GC.setColor(1,1,1)
+        GC.polygon('fill', res)
+    end } },
     base = src "dark/base-symbol.png",
     node = GC.load { w = 128, h = 128, { 'setCL', themes.dark.bg }, { 'fCirc', 64, 64, 64 } },
     keyboard = src "dark/keyboard-segment.png",
@@ -124,8 +140,8 @@ TEX.bright = {
     -- body_3d = ...,
     -- body_4d = ...,
     -- body_5d = ...,
-    body_6d = src "bright/6d-line.png",
-    body_7d = src "bright/7d-line.png",
+    -- body_6d = ...,
+    -- body_7d = ...,
     base = src "bright/base-symbol.png",
     node = GC.load { w = 128, h = 128, { 'setCL', themes.bright.bg }, { 'fCirc', 64, 64, 64 } },
     keyboard = src "bright/keyboard-segment.png",

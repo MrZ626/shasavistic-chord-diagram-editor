@@ -125,9 +125,9 @@ local function drawBody(d, color, x1, x2, y1, y2, ox1, ox2)
         end
         addShape('body_5d', color, 4, x1, y1, x2 - x1, y2 - y1)
     elseif abs(d) == 6 then
-        addShape('body_6d', color, 2, x1 - .15, y1, .2, y2 - y1)
+        addShape('body_6d', color, 2, x1 - .25, y1, .3, y2 - y1)
     elseif abs(d) == 7 then
-        addShape('body_7d', color, 2, x2 - .05, y1, .22, y2 - y1)
+        addShape('body_7d', color, 2, x2 - .05, y1, .32, y2 - y1)
     end
 end
 local function needNode(n1, n2)
