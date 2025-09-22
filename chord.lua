@@ -87,7 +87,7 @@ local function drawExtend(x2)
 end
 local function drawNote(mode, x1, x2)
     if mode == 'mute' then
-        addShape('note', themes[env.theme].note.normal, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
+        addShape('dotted_line', themes[env.theme].note.normal, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     elseif mode == 'tense' then
         addShape('note', themes[env.theme].note.tense, 0, x1 + .02, -env.noteW / 2, x2 - x1 - .04, env.noteW)
     elseif mode == 'pink' then
