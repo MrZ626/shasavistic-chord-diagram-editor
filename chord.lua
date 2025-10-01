@@ -2,15 +2,15 @@ local abs = math.abs
 
 local dimData = {
     [0] = { freq = 1 }, -- 0D
-    { freq = 8 / 4 },   -- 1D Octave
-    { freq = 6 / 4 },   -- 2D Fifth
+    { freq = 2 / 1 },   -- 1D Octave
+    { freq = 3 / 2 },   -- 2D Fifth
     { freq = 5 / 4 },   -- 3D Third
     { freq = 7 / 4 },   -- 4D Minor Seventh
     { freq = 11 / 4 },  -- 5D N/A
     { freq = 13 / 4 },  -- 6D N/A
     { freq = 17 / 4 },  -- 7D N/A
-    { freq = 19 / 8 },  -- 8D N/A
-    { freq = 23 / 8 },  -- 9D N/A
+    { freq = 19 / 4 },  -- 8D N/A
+    { freq = 23 / 4 },  -- 9D N/A
 }
 for i = 0, #dimData do
     local dim = dimData[i]

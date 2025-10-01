@@ -12,12 +12,12 @@ local dimData = {
         color = "FFFFFF",
     },
     { -- 1D Octave
-        freq = 8 / 4,
+        freq = 2 / 1,
         draw = 'arrow',
         color = "808080",
     },
     { -- 2D Fifth
-        freq = 6 / 4,
+        freq = 3 / 2,
         draw = 'left',
         color = "F27A93",
     },
@@ -47,12 +47,12 @@ local dimData = {
         color = "E19C7D",
     },
     { -- 8D
-        freq = 19 / 8,
+        freq = 19 / 4,
         draw = 'midleft',
         color = "E8AABC",
     },
     { -- 9D
-        freq = 23 / 8,
+        freq = 23 / 4,
         draw = 'midright',
         color = "EC9CE0",
     },
