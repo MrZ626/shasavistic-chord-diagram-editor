@@ -46,6 +46,16 @@ local dimData = {
         draw = 'arcright',
         color = "E19C7D",
     },
+    { -- 8D
+        freq = 19 / 8,
+        draw = 'midleft',
+        color = "E8AABC",
+    },
+    { -- 9D
+        freq = 23 / 8,
+        draw = 'midright',
+        color = "EC9CE0",
+    },
 }
 for i = 0, #dimData do
     local dim = dimData[i]
@@ -263,6 +273,22 @@ local function drawBody(color, mode, x1, x2, y1, y2, ox1, ox2)
                 "L", x2 - bodyW, y2,
                 "Q", x2 - bodyW + 2.6 * bodyW, (y1 + y2) / 2, x2 - bodyW, y1,
                 "Z"
+            )
+        elseif mode == 'midleft' then
+            local x=MATH.lerp(x1,x2,.2)
+            addShape('polygon', color, 3,
+                x, y1,
+                x, y2,
+                x + bodyW, y2,
+                x + bodyW, y1
+            )
+        elseif mode == 'midright' then
+            local x=MATH.lerp(x1,x2,.8)
+            addShape('polygon', color, 3,
+                x, y1,
+                x, y2,
+                x - bodyW, y2,
+                x - bodyW, y1
             )
         else
             error("Unknown body style: " .. mode)

@@ -131,7 +131,7 @@ function scene.keyDown(key, isRep)
         if isRep then return true end
         if ALT then
             local chord = edit:getChord()
-            chord.pitchVec = TABLE.new(0, 7)
+            chord.pitchVec = TABLE.new(0, 9)
             edit:reCalculatePitch(chord, 1)
             edit.curPitch = 1
             edit.ghostPitch = edit.curPitch
@@ -147,7 +147,7 @@ function scene.keyDown(key, isRep)
         edit:deleteChord(edit:getSelection())
         edit.selMark = false
         edit:focusCursor()
-    elseif #key == 1 and MATH.between(tonumber(key) or 0, 1, 7) then
+    elseif #key == 1 and MATH.between(tonumber(key) or 0, 1, 9) then
         if isRep then return true end
 
         local keyNum = tonumber(key)
@@ -378,6 +378,8 @@ local CGD = { -- Chord Graph data
     { a = .5 },
     { a = -.25 },
     { a = .25 },
+    { a = -.75 },
+    { a = .75 },
 }
 local spread = 3.141592653589793 / 4
 for i = 0, #CGD do
@@ -630,7 +632,7 @@ App designed & developed by MrZ_26
 ]]
 local hintText1 = [[
 Help (Edit)
-Num(1-7)        Add note
+Num(1-9)        Add note
 Shift+[Num]     Add downwards
 Alt+M           Mute note
 Alt+H            Hide note

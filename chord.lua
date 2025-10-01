@@ -9,6 +9,8 @@ local dimData = {
     { freq = 11 / 4 },  -- 5D N/A
     { freq = 13 / 4 },  -- 6D N/A
     { freq = 17 / 4 },  -- 7D N/A
+    { freq = 19 / 8 },  -- 8D N/A
+    { freq = 23 / 8 },  -- 9D N/A
 }
 for i = 0, #dimData do
     local dim = dimData[i]
@@ -128,6 +130,10 @@ local function drawBody(d, color, x1, x2, y1, y2, ox1, ox2)
         addShape('body_6d', color, 2, x1 - .25, y1, .3, y2 - y1)
     elseif abs(d) == 7 then
         addShape('body_7d', color, 2, x2 - .05, y1, .32, y2 - y1)
+    elseif abs(d) == 8 then
+        addShape('body_8d', color, 3, MATH.lerp(x1,x2,.2), y1, env.bodyW*.8, y2 - y1)
+    elseif abs(d) == 9 then
+        addShape('body_9d', color, 3, MATH.lerp(x1,x2,.8), y1, -env.bodyW*.8, y2 - y1)
     end
 end
 local function needNode(n1, n2)

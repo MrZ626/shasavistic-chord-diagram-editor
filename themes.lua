@@ -24,6 +24,10 @@ local themes = {
             { COLOR.HEX 'FFC247FF' },
             { COLOR.HEX 'B5B539FF' },
             { COLOR.HEX 'ED9877FF' },
+            { COLOR.HEX 'E8AABCFF' },
+            { COLOR.HEX 'EC9CE0FF' },
+            -- { COLOR.HEX '7C89EEFF' },
+            -- { COLOR.HEX 'D4EC7AFF' },
         },
         dimGridColor = {
             { COLOR.HEX 'AAAAAA42' },
@@ -33,6 +37,10 @@ local themes = {
             { COLOR.HEX 'FFAA0126' },
             { COLOR.HEX 'B5B50026' },
             { COLOR.HEX 'ED987726' },
+            { COLOR.HEX 'E8AABC26' },
+            { COLOR.HEX 'EC9CE026' },
+            -- { COLOR.HEX '7C89EE26' },
+            -- { COLOR.HEX 'D4EC7A26' },
         },
     },
     bright = {
@@ -60,6 +68,10 @@ local themes = {
             { COLOR.HEX 'EA9C02FF' },
             { COLOR.HEX 'B5B500FF' },
             { COLOR.HEX 'ED9877FF' },
+            { COLOR.HEX 'EE8CA8FF' },
+            { COLOR.HEX 'F188E1FF' },
+            -- { COLOR.HEX '7C89EEFF' },
+            -- { COLOR.HEX 'C2DD63FF' },
         },
         dimGridColor = {
             { COLOR.HEX 'AAAAAA62' },
@@ -69,6 +81,10 @@ local themes = {
             { COLOR.HEX 'FFC24762' },
             { COLOR.HEX 'B5B50062' },
             { COLOR.HEX 'ED987762' },
+            { COLOR.HEX 'EE8CA862' },
+            { COLOR.HEX 'F188E162' },
+            -- { COLOR.HEX '7C89EE62' },
+            -- { COLOR.HEX 'C2DD6362' },
         },
     },
 }

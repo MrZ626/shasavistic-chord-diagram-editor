@@ -111,6 +111,8 @@ TEX.dark = {
         GC.setColor(1,1,1)
         GC.polygon('fill', res)
     end } },
+    body_8d = GC.load { w = 1, h = 1, { 'clear', COLOR.LL } },
+    body_9d = GC.load { w = 1, h = 1, { 'clear', COLOR.LL } },
     base = src "dark/base-symbol.png",
     node = GC.load { w = 128, h = 128, { 'setCL', themes.dark.bg }, { 'fCirc', 64, 64, 64 } },
     keyboard = src "dark/keyboard-segment.png",
