@@ -148,14 +148,13 @@ function scene.keyDown(key, isRep)
         edit:deleteChord(edit:getSelection())
         edit.selMark = false
         edit:focusCursor()
-    elseif key == '\\' then
+    elseif key == 'q' then
         toggles.charge = toggles.charge + 1
     elseif #key == 1 and MATH.between(key, '0', '9') then
         if isRep then return true end
 
         local keyNum = (key == '0' and 10 or key) + toggles.charge * 10
         toggles.charge = 0
-        if keyNum == 0 then keyNum = 10 end
         if not ssvc.dimData[keyNum] then return end
         ---@cast keyNum number
 
@@ -640,7 +639,7 @@ App designed & developed by MrZ_26
 ]]
 local hintText1 = [[
 Help (Edit)
-Num(1-9,\)      Add note
+Num(1-9,0,Q)    Add note
 Shift+[Num]     Add downwards
 Alt+M           Mute note
 Alt+H            Hide note
