@@ -17,30 +17,54 @@ local themes = {
             pink = { COLOR.HEX 'F0A3F0FF' },
         },
         dim = {
-            { COLOR.HEX 'FFFFFFFF' },
-            { COLOR.HEX 'F27992FF' },
-            { COLOR.HEX '6CD985FF' },
-            { COLOR.HEX 'B598EEFF' },
-            { COLOR.HEX 'FFC247FF' },
-            { COLOR.HEX 'EA6FC9FF' },
-            { COLOR.HEX '93F6B8FF' },
-            { COLOR.HEX '72AFE8FF' },
-            { COLOR.HEX '72E0D5FF' },
-            { COLOR.HEX 'FF7DD2FF' },
-            { COLOR.HEX 'FEB3FFFF' },
+            { COLOR.HEX 'FFFFFFFF' }, -- 1
+            { COLOR.HEX 'F27992FF' }, -- 2
+            { COLOR.HEX '6CD985FF' }, -- 3
+            { COLOR.HEX 'B598EEFF' }, -- 4
+            { COLOR.HEX 'FFC247FF' }, -- 5
+            { COLOR.HEX 'EA6FC9FF' }, -- 6
+            { COLOR.HEX '93F6B8FF' }, -- 7
+            { COLOR.HEX '72AFE8FF' }, -- 8
+            { COLOR.HEX '72E0D5FF' }, -- 9
+            { COLOR.HEX 'FF7DD2FF' }, -- 10
+            { COLOR.HEX 'FEB3FFFF' }, -- 11
+            { COLOR.HEX '90F196FF' }, -- 12 unofficial from here
+            { COLOR.HEX 'ABCC5AFF' }, -- 13
+            { COLOR.HEX 'D4CC57FF' }, -- 14
+            { COLOR.HEX 'F09E65FF' }, -- 15
+            { COLOR.HEX 'E075DAFF' }, -- 16
+            { COLOR.HEX '9192F6FF' }, -- 17
+            { COLOR.HEX '84B1F8FF' }, -- 18
+            { COLOR.HEX '8FF3D7FF' }, -- 19
+            { COLOR.HEX '91F7BAFF' }, -- 20
+            { COLOR.HEX '91F39EFF' }, -- 21
+            { COLOR.HEX '92D973FF' }, -- 22
+            { COLOR.HEX 'A9CD5CFF' }, -- 23
         },
         dimGridColor = {
-            { COLOR.HEX 'AAAAAA42' },
-            { COLOR.HEX 'F2799226' },
-            { COLOR.HEX '2FD65626' },
-            { COLOR.HEX 'AA88EE26' },
-            { COLOR.HEX 'FFAA0126' },
-            { COLOR.HEX 'EA6FC926' },
-            { COLOR.HEX '93F6B826' },
-            { COLOR.HEX '72AFE826' },
-            { COLOR.HEX '72E0D526' },
-            { COLOR.HEX 'FF7DD226' },
-            { COLOR.HEX 'FEB3FF26' },
+            { COLOR.HEX 'AAAAAA42' }, -- 1
+            { COLOR.HEX 'F2799226' }, -- 2
+            { COLOR.HEX '2FD65626' }, -- 3
+            { COLOR.HEX 'AA88EE26' }, -- 4
+            { COLOR.HEX 'FFAA0126' }, -- 5
+            { COLOR.HEX 'EA6FC926' }, -- 6
+            { COLOR.HEX '93F6B826' }, -- 7
+            { COLOR.HEX '72AFE826' }, -- 8
+            { COLOR.HEX '72E0D526' }, -- 9
+            { COLOR.HEX 'FF7DD226' }, -- 10
+            { COLOR.HEX 'FEB3FF26' }, -- 11
+            { COLOR.HEX '90F19626' }, -- 12 unofficial from here
+            { COLOR.HEX 'ABCC5A26' }, -- 13
+            { COLOR.HEX 'D4CC5726' }, -- 14
+            { COLOR.HEX 'F09E6526' }, -- 15
+            { COLOR.HEX 'E075DA26' }, -- 16
+            { COLOR.HEX '9192F626' }, -- 17
+            { COLOR.HEX '84B1F826' }, -- 18
+            { COLOR.HEX '8FF3D726' }, -- 19
+            { COLOR.HEX '91F7BA26' }, -- 20
+            { COLOR.HEX '91F39E26' }, -- 21
+            { COLOR.HEX '92D97326' }, -- 22
+            { COLOR.HEX 'A9CD5C26' }, -- 23
         },
     },
     bright = {
@@ -61,30 +85,54 @@ local themes = {
             pink = { COLOR.HEX 'DE70B6FF' },
         },
         dim = {
-            { COLOR.HEX 'FFFFFFFF' },
-            { COLOR.HEX 'F27992FF' },
-            { COLOR.HEX '17AB39FF' },
-            { COLOR.HEX 'AA88EEFF' },
-            { COLOR.HEX 'EA9C02FF' },
-            { COLOR.HEX 'EA6FC9FF' },
-            { COLOR.HEX '75DB9AFF' },
-            { COLOR.HEX '5E9FDBFF' },
-            { COLOR.HEX '59C0B5FF' },
-            { COLOR.HEX 'DB66B2FF' },
-            { COLOR.HEX 'DA7FDBFF' },
+            { COLOR.HEX 'FFFFFFFF' }, -- 1
+            { COLOR.HEX 'F27992FF' }, -- 2
+            { COLOR.HEX '17AB39FF' }, -- 3
+            { COLOR.HEX 'AA88EEFF' }, -- 4
+            { COLOR.HEX 'EA9C02FF' }, -- 5
+            { COLOR.HEX 'EA6FC9FF' }, -- 6
+            { COLOR.HEX '75DB9AFF' }, -- 7
+            { COLOR.HEX '5E9FDBFF' }, -- 8
+            { COLOR.HEX '59C0B5FF' }, -- 9
+            { COLOR.HEX 'DB66B2FF' }, -- 10
+            { COLOR.HEX 'DA7FDBFF' }, -- 11
+            { COLOR.HEX '90F196FF' }, -- 12 unofficial from here
+            { COLOR.HEX 'ABCC5AFF' }, -- 13
+            { COLOR.HEX 'D4CC57FF' }, -- 14
+            { COLOR.HEX 'F09E65FF' }, -- 15
+            { COLOR.HEX 'E075DAFF' }, -- 16
+            { COLOR.HEX '9192F6FF' }, -- 17
+            { COLOR.HEX '84B1F8FF' }, -- 18
+            { COLOR.HEX '8FF3D7FF' }, -- 19
+            { COLOR.HEX '91F7BAFF' }, -- 20
+            { COLOR.HEX '91F39EFF' }, -- 21
+            { COLOR.HEX '92D973FF' }, -- 22
+            { COLOR.HEX 'A9CD5CFF' }, -- 23
         },
         dimGridColor = {
-            { COLOR.HEX 'AAAAAA62' },
-            { COLOR.HEX 'F2799262' },
-            { COLOR.HEX '6CD98562' },
-            { COLOR.HEX 'B598EE62' },
-            { COLOR.HEX 'FFC24762' },
-            { COLOR.HEX 'EA6FC962' },
-            { COLOR.HEX '75DB9A62' },
-            { COLOR.HEX '5E9FDB62' },
-            { COLOR.HEX '59C0B562' },
-            { COLOR.HEX 'DB66B262' },
-            { COLOR.HEX 'DA7FDB62' },
+            { COLOR.HEX 'AAAAAA62' }, -- 1
+            { COLOR.HEX 'F2799262' }, -- 2
+            { COLOR.HEX '6CD98562' }, -- 3
+            { COLOR.HEX 'B598EE62' }, -- 4
+            { COLOR.HEX 'FFC24762' }, -- 5
+            { COLOR.HEX 'EA6FC962' }, -- 6
+            { COLOR.HEX '75DB9A62' }, -- 7
+            { COLOR.HEX '5E9FDB62' }, -- 8
+            { COLOR.HEX '59C0B562' }, -- 9
+            { COLOR.HEX 'DB66B262' }, -- 10
+            { COLOR.HEX 'DA7FDB62' }, -- 11
+            { COLOR.HEX '90F19626' }, -- 12 unofficial from here
+            { COLOR.HEX 'ABCC5A26' }, -- 13
+            { COLOR.HEX 'D4CC5726' }, -- 14
+            { COLOR.HEX 'F09E6526' }, -- 15
+            { COLOR.HEX 'E075DA26' }, -- 16
+            { COLOR.HEX '9192F626' }, -- 17
+            { COLOR.HEX '84B1F826' }, -- 18
+            { COLOR.HEX '8FF3D726' }, -- 19
+            { COLOR.HEX '91F7BA26' }, -- 20
+            { COLOR.HEX '91F39E26' }, -- 21
+            { COLOR.HEX '92D97326' }, -- 22
+            { COLOR.HEX 'A9CD5C26' }, -- 23
         },
     },
 }

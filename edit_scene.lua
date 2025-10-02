@@ -385,8 +385,6 @@ local CGD = { -- Chord Graph data
     { a = .25 },
     { a = -.75 },
     { a = .75 },
-    { a = -.85 },
-    { a = .85 },
 }
 local spread = 3.141592653589793 / 4
 for i = 0, #CGD do
@@ -397,7 +395,9 @@ for i = 0, #CGD do
 end
 local CGNB = {} -- Chord Graph note buffer
 local function getCGMove(dim, k, x, y)
-    local l, a = CGD[dim].l * (k or 1), CGD[dim].a
+    local D = CGD[dim]
+    if not D then return end
+    local l, a = D.l * (k or 1), D.a
     local dx, dy = l * cos(a), l * sin(a)
     if x then
         return x + dx, y + dy
@@ -410,12 +410,14 @@ local function drawCGNote(note, x, y, alpha)
     for i = 1, #note do
         local dim = note[i].d
         local nx, ny = getCGMove(dim, 1, x, y)
-        gc_setColor(theme.dimGridColor[abs(dim)])
-        gc_setAlpha(.0626 * alpha)
-        gc_line(x, y, nx, ny)
-        CGNB[#CGNB + 1] = nx
-        CGNB[#CGNB + 1] = ny
-        drawCGNote(note[i], nx, ny, alpha)
+        if nx then
+            gc_setColor(theme.dimGridColor[abs(dim)])
+            gc_setAlpha(.0626 * alpha)
+            gc_line(x, y, nx, ny)
+            CGNB[#CGNB + 1] = nx
+            CGNB[#CGNB + 1] = ny
+            drawCGNote(note[i], nx, ny, alpha)
+        end
     end
 end
 function scene.draw()

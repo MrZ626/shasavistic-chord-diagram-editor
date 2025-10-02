@@ -13,6 +13,18 @@ local dimData = {
     { freq = 23 / 4 },  -- 9D
     { freq = 29 / 4 },  -- 10D
     { freq = 31 / 4 },  -- 11D
+    { freq = 37 / 8 },  -- 12D
+    { freq = 41 / 8 },  -- 13D
+    { freq = 43 / 8 },  -- 14D
+    { freq = 47 / 8 },  -- 15D
+    { freq = 53 / 8 },  -- 16D
+    { freq = 59 / 8 },  -- 17D
+    { freq = 61 / 8 },  -- 18D
+    { freq = 67 / 16 }, -- 19D
+    { freq = 71 / 16 }, -- 20D
+    { freq = 73 / 16 }, -- 21D
+    { freq = 79 / 16 }, -- 22D
+    { freq = 83 / 16 }, -- 23D
 }
 for i = 0, #dimData do
     local dim = dimData[i]
@@ -103,53 +115,40 @@ local function drawNote(mode, x1, x2)
     end
 end
 local function drawBody(d, color, x1, x2, y1, y2, ox1, ox2)
+    if d == 0 then return end
     local flip
     if y1 > y2 then flip, y1, y2 = true, y2, y1 end
     y1, y2 = y1 - env.noteW / 2, y2 + env.noteW / 2
-    if abs(d) == 1 then
+    d = abs(d)
+    if d == 1 then
         local m = (x1 + x2) / 2
         if flip then y1, y2 = y2, y1 end
         addShape('body_1d', color, 1, m - .1, y1, .2, y2 - y1)
-    elseif abs(d) == 2 then
+    elseif d == 2 then
         addShape('body_2d', color, 3, x1, y1, env.bodyW, y2 - y1)
-    elseif abs(d) == 3 then
+    elseif d == 3 then
         addShape('body_3d', color, 3, x2, y1, -env.bodyW, y2 - y1)
-    elseif abs(d) == 4 then
+    elseif d == 4 then
         if flip then
             x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
         else
             x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
         end
-        addShape('body_4d', color, 5, x1, y1, x2 - x1, y2 - y1)
-    elseif abs(d) == 5 then
+        addShape('body_4d', color, 4, x1, y1, x2 - x1, y2 - y1)
+    elseif d == 5 then
         if flip then
             x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
         else
             x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
         end
-        addShape('body_5d', color, 5, x1, y1, x2 - x1, y2 - y1)
-    elseif abs(d) == 6 then
+        addShape('body_5d', color, 4, x1, y1, x2 - x1, y2 - y1)
+    elseif d == 6 then
         addShape('body_6d', color, 2, x1 - .25, y1, .3, y2 - y1)
-    elseif abs(d) == 7 then
+    elseif d == 7 then
         addShape('body_7d', color, 2, x2 - .05, y1, .32, y2 - y1)
-    elseif abs(d) == 8 then
-        addShape('body_8d', color, 3, MATH.lerp(x1, x2, .2), y1, env.bodyW * .6, y2 - y1)
-    elseif abs(d) == 9 then
-        addShape('body_9d', color, 3, MATH.lerp(x1, x2, .8), y1, -env.bodyW * .6, y2 - y1)
-    elseif abs(d) == 10 then
-        if flip then
-            x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
-        else
-            x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
-        end
-        addShape('body_10d', color, 4, MATH.lerp(x1, x2, .2), y1, (x2 - x1) * .6, y2 - y1)
-    elseif abs(d) == 11 then
-        if flip then
-            x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
-        else
-            x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
-        end
-        addShape('body_11d', color, 4, MATH.lerp(x1, x2, .2), y1, (x2 - x1) * .6, y2 - y1)
+    else
+        local x = MATH.lerp(x1, x2, MATH.interpolate(8, .15, 23, .85, d)) - env.bodyW / 6
+        addShape('body_other', color, 3, x, y1, env.bodyW / 3, y2 - y1)
     end
 end
 local function needNode(n1, n2)
@@ -277,7 +276,7 @@ end
 
 local chordChar = {}
 for i = 0, 9 do chordChar[i] = tostring(i) end
-for i = 10, 11 do chordChar[i] = string.char(65 + i - 10) end
+for i = 10, 23 do chordChar[i] = string.char(65 + i - 10) end
 for k, v in next, chordChar do if k > 0 then chordChar[-k] = '-' .. v end end
 
 ---@param chord SSVC.Note

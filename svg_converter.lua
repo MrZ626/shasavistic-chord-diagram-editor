@@ -48,24 +48,85 @@ local dimData = {
     },
     { -- 8D
         freq = 19 / 4,
-        draw = 'midleft',
+        draw = 'dim8',
         color = "72AFE8",
     },
     { -- 9D
         freq = 23 / 4,
-        draw = 'midright',
+        draw = 'dim9',
         color = "72E0D5",
     },
     { -- 10D
         freq = 29 / 4,
-        draw = 'midrise',
+        draw = 'dim10',
         color = "FF7DD2",
     },
     { -- 11D
         freq = 31 / 4,
-        draw = 'midfall',
+        draw = 'dim11',
         color = "FEB3FF",
     },
+    { -- 12D
+        freq = 37 / 8,
+        draw = 'dim12',
+        color = '90F196'
+    },
+    { -- 13D
+        freq = 41 / 8,
+        draw = 'dim13',
+        color = 'ABCC5A'
+    },
+    { -- 14D
+        freq = 43 / 8,
+        draw = 'dim14',
+        color = 'D4CC57'
+    },
+    { -- 15D
+        freq = 47 / 8,
+        draw = 'dim15',
+        color = 'F09E65'
+    },
+    { -- 16D
+        freq = 53 / 8,
+        draw = 'dim16',
+        color = 'E075DA'
+    },
+    { -- 17D
+        freq = 59 / 8,
+        draw = 'dim17',
+        color = '9192F6'
+    },
+    { -- 18D
+        freq = 61 / 8,
+        draw = 'dim18',
+        color = '84B1F8'
+    },
+    { -- 19D
+        freq = 67 / 16,
+        draw = 'dim19',
+        color = '8FF3D7'
+    },
+    { -- 20D
+        freq = 71 / 16,
+        draw = 'dim20',
+        color = '91F7BA'
+    },
+    { -- 21D
+        freq = 73 / 16,
+        draw = 'dim21',
+        color = '91F39E'
+    },
+    { -- 22D
+        freq = 79 / 16,
+        draw = 'dim22',
+        color = '92D973'
+    },
+    { -- 23D
+        freq = 83 / 16,
+        draw = 'dim23',
+        color = 'A9CD5C'
+    },
+
 }
 for i = 0, #dimData do
     local dim = dimData[i]
@@ -284,47 +345,15 @@ local function drawBody(color, mode, x1, x2, y1, y2, ox1, ox2)
                 "Q", x2 - bodyW + 2.6 * bodyW, (y1 + y2) / 2, x2 - bodyW, y1,
                 "Z"
             )
-        elseif mode == 'midleft' then
-            local x=MATH.lerp(x1,x2,.2)
+        elseif mode:sub(1, 3) == 'dim' then
+            local d = tonumber(mode:sub(4))
+            ---@cast d number
+            local x = MATH.lerp(x1, x2, MATH.interpolate(8, .15, 23, .85, d)) - bodyW / 6
             addShape('polygon', color, 3,
                 x, y1,
                 x, y2,
-                x + bodyW, y2,
-                x + bodyW, y1
-            )
-        elseif mode == 'midright' then
-            local x=MATH.lerp(x1,x2,.8)
-            addShape('polygon', color, 3,
-                x, y1,
-                x, y2,
-                x - bodyW, y2,
-                x - bodyW, y1
-            )
-        elseif mode == 'midrise' then
-            if flip then
-                x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
-            else
-                x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
-            end
-            x1,x2=MATH.lerp(x1,x2,.2),MATH.lerp(x1,x2,.8)
-            addShape('polygon', color, 4,
-                x1, y1,
-                x1 + bodyW * 1.1, y1,
-                x2, y2,
-                x2 - bodyW * 1.1, y2
-            )
-        elseif mode == 'midfall' then
-            if flip then
-                x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
-            else
-                x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
-            end
-            x1,x2=MATH.lerp(x1,x2,.2),MATH.lerp(x1,x2,.8)
-            addShape('polygon', color, 4,
-                x2, y1,
-                x2 - bodyW * 1.05, y1,
-                x1, y2,
-                x1 + bodyW * 1.05, y2
+                x + bodyW / 3, y2,
+                x + bodyW / 3, y1
             )
         else
             error("Unknown body style: " .. mode)
@@ -392,7 +421,7 @@ local function decode(str)
     local buf = { d = 0 }
     local note = str:match("^%-?%w+")
     if note then
-        buf.d = tonumber(note:match("%-?%w+"),36)
+        buf.d = tonumber(note:match("%-?%w+"), 36)
         str = str:sub(#note + 1)
     end
     while true do

@@ -87,8 +87,8 @@ TEX.dark = {
     end)(),
     -- pitch_canceled = src "dark/pitch-line-canceled.png",
     body_1d = src "dark/1d-ascent-group.png",
-    body_2d = GC.load { w = 1, h = 1, { 'clear', COLOR.LL } },
-    body_3d = GC.load { w = 1, h = 1, { 'clear', COLOR.LL } },
+    -- body_2d = ...,
+    -- body_3d = ...,
     body_4d = GC.load { w = 512, h = 1536, { 'scale', 512, 1536 }, { 'fPoly', 1, 0, .89, 0, 0, 1, .11, 1 } },
     body_5d = GC.load { w = 512, h = 1536, { 'scale', 512, 1536 }, { 'fPoly', 0, 0, .10, 0, 1, 1, .90, 1 } },
     body_6d = GC.load { w = 256, h = 2048, { 'scale', 256, 2048 }, { function()
@@ -98,7 +98,7 @@ TEX.dark = {
             GC.newBezier({ { 1, 1 }, { w, .5, true }, { 1, 0 } }):render(42)
         )
         res = TABLE.append(TABLE.sub(res, 43), TABLE.sub(res, 1, 42))
-        GC.setColor(1,1,1)
+        GC.setColor(1, 1, 1)
         GC.polygon('fill', res)
     end } },
     body_7d = GC.load { w = 256, h = 2048, { 'scale', 256, 2048 }, { function()
@@ -108,11 +108,13 @@ TEX.dark = {
             GC.newBezier({ { 0, 1 }, { 1 - w, .5, true }, { 0, 0 } }):render(42)
         )
         res = TABLE.append(TABLE.sub(res, 43), TABLE.sub(res, 1, 42))
-        GC.setColor(1,1,1)
+        GC.setColor(1, 1, 1)
         GC.polygon('fill', res)
     end } },
-    body_8d = GC.load { w = 1, h = 1, { 'clear', COLOR.LL } },
-    body_9d = GC.load { w = 1, h = 1, { 'clear', COLOR.LL } },
+    -- body_8d = ...,
+    -- body_9d = ...,
+    -- body_10d = ...,
+    -- body_11d = ...,
     base = src "dark/base-symbol.png",
     node = GC.load { w = 128, h = 128, { 'setCL', themes.dark.bg }, { 'fCirc', 64, 64, 64 } },
     keyboard = src "dark/keyboard-segment.png",
@@ -163,15 +165,13 @@ TEX.bright = {
     -- ascent_symbol = src "bright/ascent-symbol.png",
     -- descent_symbol = src "bright/descent-symbol.png",
 }
-TEX.dark.body_10d=TEX.dark.body_4d
-TEX.dark.body_11d=TEX.dark.body_5d
+TEX.dark.body_2d = TEX.dark.note
+TEX.dark.body_3d = TEX.dark.note
+TEX.dark.body_8d = TEX.dark.note
+TEX.dark.body_9d = TEX.dark.note
+TEX.dark.body_other = TEX.dark.note
 TEX.dark.note_mute:setFilter('nearest', 'nearest')
 TEX.bright.note_mute:setFilter('nearest', 'nearest')
--- TEX.bright.note = TEX.dark.note
--- TEX.bright.body_2d = TEX.dark.body_2d
--- TEX.bright.body_3d = TEX.dark.body_3d
--- TEX.bright.body_4d = TEX.dark.body_4d
--- TEX.bright.body_5d = TEX.dark.body_5d
 TABLE.updateMissing(TEX.bright, TEX.dark)
 
 TEX = IMG.init(TEX, true)
