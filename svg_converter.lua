@@ -19,17 +19,17 @@ local dimData = {
     { -- 2D Fifth
         freq = 3 / 2,
         draw = 'left',
-        color = "F27A93",
+        color = "F27992",
     },
     { -- 3D Third
         freq = 5 / 4,
         draw = 'right',
-        color = "6DD884",
+        color = "6CD985",
     },
     { -- 4D Minor Seventh
         freq = 7 / 4,
         draw = 'rise',
-        color = "B498EE",
+        color = "B598EE",
     },
     { -- 5D
         freq = 11 / 4,
@@ -39,22 +39,22 @@ local dimData = {
     { -- 6D
         freq = 13 / 4,
         draw = 'arcleft',
-        color = "B5B539",
+        color = "EA6FC9",
     },
     { -- 7D
         freq = 17 / 4,
         draw = 'arcright',
-        color = "E19C7D",
+        color = "93F6B8",
     },
     { -- 8D
         freq = 19 / 4,
         draw = 'midleft',
-        color = "E8AABC",
+        color = "72AFE8",
     },
     { -- 9D
         freq = 23 / 4,
         draw = 'midright',
-        color = "EC9CE0",
+        color = "72E0D5",
     },
 }
 for i = 0, #dimData do
