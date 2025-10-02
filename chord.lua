@@ -278,6 +278,7 @@ end
 local chordChar = {}
 for i = 0, 9 do chordChar[i] = tostring(i) end
 for i = 10, 11 do chordChar[i] = string.char(65 + i - 10) end
+for k, v in next, chordChar do if k > 0 then chordChar[-k] = '-' .. v end end
 
 ---@param chord SSVC.Note
 ---@return string
