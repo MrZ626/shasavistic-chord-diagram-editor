@@ -434,7 +434,7 @@ function scene.draw()
     -- Chord Graph in background
     if toggles.chordGraph then
         gc_replaceTransform(SCR.xOy_m)
-        gc_scale(260)
+        gc_scale(260 * edit.scrK1)
         gc_rotate(-1.5708)
         gc_setLineWidth(.06)
         local len = 26
