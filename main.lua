@@ -163,6 +163,8 @@ TEX.bright = {
     -- ascent_symbol = src "bright/ascent-symbol.png",
     -- descent_symbol = src "bright/descent-symbol.png",
 }
+TEX.dark.body_10d=TEX.dark.body_4d
+TEX.dark.body_11d=TEX.dark.body_5d
 TEX.dark.note_mute:setFilter('nearest', 'nearest')
 TEX.bright.note_mute:setFilter('nearest', 'nearest')
 -- TEX.bright.note = TEX.dark.note

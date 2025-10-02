@@ -11,6 +11,7 @@ local tostring = tostring
 local KBisDown = love.keyboard.isDown
 
 local toggles = {
+    charge = 0,
     theme = 'dark',
     chordGraph = true,
     keyboard = true,
@@ -147,10 +148,15 @@ function scene.keyDown(key, isRep)
         edit:deleteChord(edit:getSelection())
         edit.selMark = false
         edit:focusCursor()
-    elseif #key == 1 and MATH.between(tonumber(key) or 0, 1, 9) then
+    elseif key == '\\' then
+        toggles.charge = toggles.charge + 1
+    elseif #key == 1 and MATH.between(key, '0', '9') then
         if isRep then return true end
 
-        local keyNum = tonumber(key)
+        local keyNum = (key == '0' and 10 or key) + toggles.charge * 10
+        toggles.charge = 0
+        if keyNum == 0 then keyNum = 10 end
+        if not ssvc.dimData[keyNum] then return end
         ---@cast keyNum number
 
         if ALT then
@@ -380,6 +386,8 @@ local CGD = { -- Chord Graph data
     { a = .25 },
     { a = -.75 },
     { a = .75 },
+    { a = -.85 },
+    { a = .85 },
 }
 local spread = 3.141592653589793 / 4
 for i = 0, #CGD do
@@ -470,7 +478,7 @@ function scene.draw()
     if edit.gridStepAnimTimer > 0 then
         gc_replaceTransform(SCR.xOy_m)
         gc_setColor(1, 1, 1, edit.gridStepAnimTimer)
-        gc_mDraw(tex.symbol[edit.gridStep[1]], 0, 0, 0, 2)
+        gc_mDraw(tex.symbol[edit.gridStep[1]] or tex.symbol[1], 0, 0, 0, 2)
     end
 
     -- L4MPLIGHT
@@ -632,7 +640,7 @@ App designed & developed by MrZ_26
 ]]
 local hintText1 = [[
 Help (Edit)
-Num(1-9)        Add note
+Num(1-9,\)      Add note
 Shift+[Num]     Add downwards
 Alt+M           Mute note
 Alt+H            Hide note

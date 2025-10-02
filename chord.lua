@@ -6,11 +6,13 @@ local dimData = {
     { freq = 3 / 2 },   -- 2D Fifth
     { freq = 5 / 4 },   -- 3D Third
     { freq = 7 / 4 },   -- 4D Minor Seventh
-    { freq = 11 / 4 },  -- 5D N/A
-    { freq = 13 / 4 },  -- 6D N/A
-    { freq = 17 / 4 },  -- 7D N/A
-    { freq = 19 / 4 },  -- 8D N/A
-    { freq = 23 / 4 },  -- 9D N/A
+    { freq = 11 / 4 },  -- 5D
+    { freq = 13 / 4 },  -- 6D
+    { freq = 17 / 4 },  -- 7D
+    { freq = 19 / 4 },  -- 8D
+    { freq = 23 / 4 },  -- 9D
+    { freq = 29 / 4 },  -- 10D
+    { freq = 31 / 4 },  -- 11D
 }
 for i = 0, #dimData do
     local dim = dimData[i]
@@ -118,22 +120,36 @@ local function drawBody(d, color, x1, x2, y1, y2, ox1, ox2)
         else
             x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
         end
-        addShape('body_4d', color, 4, x1, y1, x2 - x1, y2 - y1)
+        addShape('body_4d', color, 5, x1, y1, x2 - x1, y2 - y1)
     elseif abs(d) == 5 then
         if flip then
             x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
         else
             x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
         end
-        addShape('body_5d', color, 4, x1, y1, x2 - x1, y2 - y1)
+        addShape('body_5d', color, 5, x1, y1, x2 - x1, y2 - y1)
     elseif abs(d) == 6 then
         addShape('body_6d', color, 2, x1 - .25, y1, .3, y2 - y1)
     elseif abs(d) == 7 then
         addShape('body_7d', color, 2, x2 - .05, y1, .32, y2 - y1)
     elseif abs(d) == 8 then
-        addShape('body_8d', color, 3, MATH.lerp(x1,x2,.2), y1, env.bodyW*.8, y2 - y1)
+        addShape('body_8d', color, 3, MATH.lerp(x1, x2, .2), y1, env.bodyW * .6, y2 - y1)
     elseif abs(d) == 9 then
-        addShape('body_9d', color, 3, MATH.lerp(x1,x2,.8), y1, -env.bodyW*.8, y2 - y1)
+        addShape('body_9d', color, 3, MATH.lerp(x1, x2, .8), y1, -env.bodyW * .6, y2 - y1)
+    elseif abs(d) == 10 then
+        if flip then
+            x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
+        else
+            x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
+        end
+        addShape('body_10d', color, 4, MATH.lerp(x1, x2, .2), y1, (x2 - x1) * .6, y2 - y1)
+    elseif abs(d) == 11 then
+        if flip then
+            x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
+        else
+            x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
+        end
+        addShape('body_11d', color, 4, MATH.lerp(x1, x2, .2), y1, (x2 - x1) * .6, y2 - y1)
     end
 end
 local function needNode(n1, n2)
@@ -207,9 +223,9 @@ end
 local function decode(str)
     ---@type SSVC.Note
     local buf = { d = 0 }
-    local note = str:match('^%-?%d+')
+    local note = str:match('^%-?%w+')
     if note then
-        buf.d = tonumber(note:match('%-?%d+'))
+        buf.d = tonumber(note:match('%-?%w+'), 36)
         str = str:sub(#note + 1)
     end
     while true do
@@ -259,11 +275,15 @@ local function decode(str)
     return buf
 end
 
+local chordChar = {}
+for i = 0, 9 do chordChar[i] = tostring(i) end
+for i = 10, 11 do chordChar[i] = string.char(65 + i - 10) end
+
 ---@param chord SSVC.Note
 ---@return string
 local function encode(chord)
     local str = STRING.newBuf()
-    if chord.d then str:put(chord.d) end
+    if chord.d then str:put(chordChar[chord.d]) end
     if chord.base then str:put(chord.base == 'l' and 'x' or 'X') end
     if chord.bias then str:put(string.rep(chord.bias < 0 and 'l' or 'r', abs(chord.bias))) end
     if chord.mode then str:put(chord.mode == 'tense' and '*' or chord.mode == 'pink' and 'p' or chord.mode == 'mute' and '-' or chord.mode == 'skip' and '.' or '') end

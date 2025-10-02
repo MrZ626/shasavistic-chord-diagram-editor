@@ -81,6 +81,7 @@ function audio.playNote(freq, volume, duration)
             S.timer = S.duration
             S.volume = volume or .26
             S.src:setVolume(S.volume)
+            if freq==7.75 then freq=7.7499 end
             S.src:setPitch(freq)
             S.src:play()
             return

@@ -56,6 +56,16 @@ local dimData = {
         draw = 'midright',
         color = "72E0D5",
     },
+    { -- 10D
+        freq = 29 / 4,
+        draw = 'midrise',
+        color = "FF7DD2",
+    },
+    { -- 11D
+        freq = 31 / 4,
+        draw = 'midfall',
+        color = "FEB3FF",
+    },
 }
 for i = 0, #dimData do
     local dim = dimData[i]
@@ -290,6 +300,32 @@ local function drawBody(color, mode, x1, x2, y1, y2, ox1, ox2)
                 x - bodyW, y2,
                 x - bodyW, y1
             )
+        elseif mode == 'midrise' then
+            if flip then
+                x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
+            else
+                x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
+            end
+            x1,x2=MATH.lerp(x1,x2,.2),MATH.lerp(x1,x2,.8)
+            addShape('polygon', color, 4,
+                x1, y1,
+                x1 + bodyW * 1.1, y1,
+                x2, y2,
+                x2 - bodyW * 1.1, y2
+            )
+        elseif mode == 'midfall' then
+            if flip then
+                x1, x2 = math.max(x1, ox1), math.max(x2, ox2)
+            else
+                x1, x2 = math.min(x1, ox1), math.min(x2, ox2)
+            end
+            x1,x2=MATH.lerp(x1,x2,.2),MATH.lerp(x1,x2,.8)
+            addShape('polygon', color, 4,
+                x2, y1,
+                x2 - bodyW * 1.05, y1,
+                x1, y2,
+                x1 + bodyW * 1.05, y2
+            )
         else
             error("Unknown body style: " .. mode)
         end
@@ -354,9 +390,9 @@ end
 local function decode(str)
     ---@type _SSVC.Note
     local buf = { d = 0 }
-    local note = str:match("^%-?%d+")
+    local note = str:match("^%-?%w+")
     if note then
-        buf.d = tonumber(note:match("%-?%d+"))
+        buf.d = tonumber(note:match("%-?%w+"),36)
         str = str:sub(#note + 1)
     end
     while true do
