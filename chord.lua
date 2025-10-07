@@ -222,9 +222,9 @@ end
 local function decode(str)
     ---@type SSVC.Note
     local buf = { d = 0 }
-    local note = str:match('^%-?%w+')
+    local note = str:match('^%-?%w')
     if note then
-        buf.d = tonumber(note:match('%-?%w+'), 36)
+        buf.d = tonumber(note:match('%-?%w'), 36)
         str = str:sub(#note + 1)
     end
     while true do
