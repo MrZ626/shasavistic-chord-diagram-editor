@@ -68,6 +68,7 @@ function scene.keyDown(key, isRep)
                 edit:moveChord(edit.chordList[i], key == 'up' and edit.gridStep[1] or -edit.gridStep[1])
             end
             edit:focusCursor()
+            edit:step()
         else
             -- Select note
             local noteList = edit.chordList[edit.cursor].noteList
@@ -101,6 +102,7 @@ function scene.keyDown(key, isRep)
             if curNote.bias == 0 then curNote.bias = nil end
             edit:renderChord(chord)
             edit:focusCursor()
+            edit:step()
         else
             -- Move cursor (normally)
             edit:moveCursor(key == 'left' and -1 or 1)
@@ -131,16 +133,19 @@ function scene.keyDown(key, isRep)
     elseif key == 'backspace' then
         if isRep then return true end
         if ALT then
+            -- Reset current chord's pitch
             local chord = edit:getChord()
             chord.pitchVec = TABLE.new(0, 9)
             edit:reCalculatePitch(chord, 1)
             edit.curPitch = 1
             edit.ghostPitch = edit.curPitch
             edit:focusCursor()
+            edit:step()
         else
             -- Delete selected note
             edit:deleteCursorNote()
             edit:focusCursor()
+            edit:step()
         end
     elseif key == 'delete' then
         if isRep then return true end
@@ -148,6 +153,7 @@ function scene.keyDown(key, isRep)
         edit:deleteChord(edit:getSelection())
         edit.selMark = false
         edit:focusCursor()
+        edit:step()
     elseif key == 'q' then
         toggles.charge = toggles.charge + 1
     elseif #key == 1 and MATH.between(key, '0', '9') then
@@ -190,6 +196,7 @@ function scene.keyDown(key, isRep)
             end
             if needRender then edit:renderChord(edit:getChord()) end
             edit:focusCursor()
+            edit:step()
 
             audio.playNote(pitch, nil, .26)
         end
@@ -200,6 +207,7 @@ function scene.keyDown(key, isRep)
         curNote.mode = curNote.mode ~= 'mute' and 'mute' or nil
         edit:renderChord(edit:getChord())
         edit:focusCursor()
+        edit:step()
     elseif ALT and key == 'h' then
         if isRep then return true end
         -- Mark selected note as hidden note
@@ -207,6 +215,7 @@ function scene.keyDown(key, isRep)
         curNote.mode = curNote.mode ~= 'skip' and 'skip' or nil
         edit:renderChord(edit:getChord())
         edit:focusCursor()
+        edit:step()
     elseif ALT and key == 't' then
         if isRep then return true end
         -- Switch tension note
@@ -214,6 +223,7 @@ function scene.keyDown(key, isRep)
         curNote.mode = curNote.mode ~= 'tense' and 'tense' or nil
         edit:renderChord(edit:getChord())
         edit:focusCursor()
+        edit:step()
     elseif ALT and key == 'p' then
         if isRep then return true end
         -- Switch pink note
@@ -221,16 +231,19 @@ function scene.keyDown(key, isRep)
         curNote.mode = curNote.mode ~= 'pink' and 'pink' or nil
         edit:renderChord(edit:getChord())
         edit:focusCursor()
+        edit:step()
     elseif ALT and key == 'b' then
         if isRep then return true end
         -- Mark selected note as base
         edit:switchBase()
         edit:focusCursor()
+        edit:step()
     elseif ALT and key == 'l' then
         if isRep then return true end
         -- Switch extended line
         edit:switchExtended()
         edit:focusCursor()
+        edit:step()
     elseif CTRL and key == 'a' then
         if isRep then return true end
         -- Select all
@@ -253,12 +266,14 @@ function scene.keyDown(key, isRep)
         edit.selMark = false
         MSG('check', "Cut " .. #res .. " chords")
         edit:focusCursor()
+        edit:step()
     elseif CTRL and key == 'v' then
         if isRep then return true end
         -- Paste (after)
         local count = edit:pasteChord(CLIPBOARD.get(), edit.cursor)
         MSG('check', "Pasted " .. count .. " chords")
         edit:focusCursor()
+        edit:step()
     elseif SHIFT and key == 'v' then
         if isRep then return true end
         -- Paste (before)
@@ -267,6 +282,7 @@ function scene.keyDown(key, isRep)
         MSG('check', "Pasted " .. count .. " chords")
         edit.cursor = edit.cursor + 1
         edit:focusCursor()
+        edit:step()
     elseif CTRL and key == 'e' then
         if isRep then return true end
         -- Export SVG
@@ -292,6 +308,10 @@ function scene.keyDown(key, isRep)
     elseif CTRL and key == 'd' then
         if isRep then return true end
         UTIL.openSaveDirectory()
+    elseif CTRL and key == 'z' then
+        edit:undo()
+    elseif CTRL and key == 'y' then
+        edit:redo()
     elseif key == 'f1' then
         if isRep then return true end
         toggles.theme = toggles.theme == 'dark' and 'bright' or 'dark'
@@ -675,6 +695,7 @@ Ctrl+C/V/X               Copy/Paste/Cut
 Shift+V                   Paste before cursor
 Ctrl+E                    Export selected as SVG
 Ctrl+D                    Open export directory
+Ctrl+Z/Y                  Undo/Redo
 
 F1                        Switch theme
 F2                        Toggle keyboard

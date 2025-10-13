@@ -5,7 +5,7 @@ local max, min = math.max, math.min
 local floor, abs = math.floor, math.abs
 local log = math.log
 local ins, rem = table.insert, table.remove
-local expApproach = MATH.expApproach
+local clamp, expApproach = MATH.clamp, MATH.expApproach
 local KBisDown = love.keyboard.isDown
 
 ---@class SSVC.NoteInList
@@ -44,6 +44,9 @@ local E = {
     playR = false,
     count = 0,
     timer = 0,
+
+    history = { '!0' },
+    hisPtr = 1,
 
     -- Animation variables
     cursor1 = 0,
@@ -133,19 +136,19 @@ end
 -- View & Appearance
 
 function E:scroll(dx, dy)
-    self.scrX = MATH.clamp(self.scrX + dx, 0, max(#self.chordList * self.chordDist - (5.8 - .26) / self.scrK, 0))
-    self.scrY = MATH.clamp(self.scrY + dy, -12, 12)
+    self.scrX = clamp(self.scrX + dx, 0, max(#self.chordList * self.chordDist - (5.8 - .26) / self.scrK, 0))
+    self.scrY = clamp(self.scrY + dy, -12, 12)
 end
 
 function E:scale(dk)
-    self.scrK = MATH.clamp(self.scrK * dk, .5, 1)
-    self.scrX = MATH.clamp(self.scrX, 0, max(#self.chordList * self.chordDist - (5.8 - .26) / self.scrK, 0))
+    self.scrK = clamp(self.scrK * dk, .5, 1)
+    self.scrX = clamp(self.scrX, 0, max(#self.chordList * self.chordDist - (5.8 - .26) / self.scrK, 0))
 end
 
 function E:focusCursor()
-    self.scrX = MATH.clamp(self.scrX, self.cursor * self.chordDist - (5.8 - .26) / self.scrK, (self.cursor - 1) * self.chordDist)
+    self.scrX = clamp(self.scrX, self.cursor * self.chordDist - (5.8 - .26) / self.scrK, (self.cursor - 1) * self.chordDist)
     local h = -log(self.curPitch, 2)
-    self.scrY = MATH.clamp(self.scrY, h - 1.6, h + 1.6)
+    self.scrY = clamp(self.scrY, h - 1.6, h + 1.6)
 end
 
 function E:snapCursor()
@@ -164,7 +167,7 @@ function E:snapCursor()
 end
 
 function E:moveCursor(offset)
-    local newPos = MATH.clamp(self.cursor + offset, 1, #self.chordList)
+    local newPos = clamp(self.cursor + offset, 1, #self.chordList)
     if KBisDown('lshift', 'rshift') then
         if not self.selMark then self.selMark = self.cursor end
     elseif self.selMark then
@@ -307,7 +310,7 @@ function E:newChord(pos, useCurPitch)
     local chord = newChordObj(nil, vec)
     if vec then self:reCalculatePitch(chord, vecToPitch(vec)) end
     self:renderChord(chord)
-    ins(self.chordList, MATH.clamp(pos, 1, #self.chordList + 1), chord)
+    ins(self.chordList, clamp(pos, 1, #self.chordList + 1), chord)
     self.ghostPitch = self.curPitch
 end
 
@@ -322,7 +325,7 @@ end
 function E:moveChord(chord, step)
     local vec = chord.pitchVec
     local pStep = abs(step)
-    vec[pStep] = MATH.clamp(vec[pStep] + MATH.sign(step), -26, 26)
+    vec[pStep] = clamp(vec[pStep] + MATH.sign(step), -26, 26)
     if abs(vec[pStep]) == 26 then MSG('warn', "Reached max movement in single dimension!", 1) end
 
     self:reCalculatePitch(chord, vecToPitch(vec))
@@ -378,6 +381,38 @@ function E:switchExtended()
     local curNote = self:getNote()
     curNote.extended = not curNote.extended or nil
     self:renderChord(self:getChord())
+end
+
+-- Undo & Redo
+
+function E:step()
+    while #self.history > self.hisPtr do rem(self.history) end
+    table.insert(self.history, table.concat(self:dumpChord(true, 1, #self.chordList), ' '))
+    self.hisPtr = #self.history
+end
+
+function E:undo()
+    if self.hisPtr > 1 then
+        self.hisPtr = self.hisPtr - 1
+        TABLE.clear(self.chordList)
+        self:pasteChord(self.history[self.hisPtr], 0)
+        self.cursor = clamp(self.cursor, 1, #self.chordList)
+        self:snapCursor()
+    else
+        MSG('warn', "No more undo steps!", 1)
+    end
+end
+
+function E:redo()
+    if self.hisPtr < #self.history then
+        self.hisPtr = self.hisPtr + 1
+        TABLE.clear(self.chordList)
+        self:pasteChord(self.history[self.hisPtr], 0)
+        self.cursor = clamp(self.cursor, 1, #self.chordList)
+        self:snapCursor()
+    else
+        MSG('warn', "No more redo steps!", 1)
+    end
 end
 
 -- Playback
