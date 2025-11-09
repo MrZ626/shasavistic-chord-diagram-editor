@@ -11,7 +11,7 @@ local KBisDown = love.keyboard.isDown
 ---@class SSVC.NoteInList
 ---@field path SSVC.Dim[]
 ---@field pitch number
----@field sound boolean
+---@field volume number
 ---@field base? 'l' | 'r'
 ---@field note SSVC.Note
 
@@ -42,7 +42,6 @@ local E = {
     playing = false,
     playL = false,
     playR = false,
-    count = 0,
     timer = 0,
     timer0 = 1,
 
@@ -232,7 +231,7 @@ local function simpNote(note, path)
         path = TABLE.copy(path),
         pitch = note.pitch,
         base = note.base,
-        sound = not note.mode or note.mode == 'tense' or note.mode == 'pink',
+        volume = not note.mode and 1 or (note.mode == 'tense' or note.mode == 'pink' and .62),
         note = note,
     }
 end
@@ -434,7 +433,6 @@ function E:playNextChord()
 end
 
 function E:playChord()
-    self.count = 0
     self.timer = self.timer0
     local chord = self.chordList[self.playing]
     local basePitch = -1e99
@@ -448,22 +446,21 @@ function E:playChord()
     local temp = TABLE.alloc()
     for _, note in next, chord.noteList do
         if note.pitch < basePitch then repeat note.pitch = note.pitch * 2 until note.pitch > basePitch end
-        if not temp['p' .. note.pitch] and note.sound then
-            self.count = self.count + 1
-            temp['p' .. note.pitch] = true
-            ins(temp, note.pitch)
+        local hash = 'p' .. note.pitch
+        if not temp[hash] then
+            ins(temp, { note.pitch, note.volume })
+            temp[hash] = temp[#temp]
+        else
+            temp[hash][2] = max(temp[hash][2], note.volume)
         end
     end
-    self.count = #temp
-    for i = 1, #temp do
-        local waitT = (i - 1) * .026
-        local note, vol = temp[i], 1 / (#temp + 1.6)
-        TASK.new(function()
-            TASK.yieldT(waitT)
-            audio.playNote(note, vol)
-        end)
-    end
-    TABLE.free(temp)
+    TASK.new(function()
+        for i = 1, #temp do
+            audio.playNote(temp[i][1], temp[i][2] / (#temp + 1.6))
+            TASK.yieldT(.026)
+        end
+        TABLE.free(temp)
+    end)
 end
 
 function E:update(dt)
