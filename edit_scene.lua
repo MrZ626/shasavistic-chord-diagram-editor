@@ -129,6 +129,7 @@ function scene.keyDown(key, isRep)
         edit:newChord(edit.cursor + 1, not CTRL)
         edit:moveCursor(1)
         edit:focusCursor()
+        edit:step()
     elseif key == 'backspace' then
         if isRep then return true end
         if ALT then
