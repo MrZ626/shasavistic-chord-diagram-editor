@@ -231,7 +231,7 @@ local function simpNote(note, path)
         path = TABLE.copy(path),
         pitch = note.pitch,
         base = note.base,
-        volume = not note.mode and 1 or (note.mode == 'tense' or note.mode == 'pink' and .62),
+        volume = not note.mode and 1 or (note.mode == 'tense' or note.mode == 'pink') and .62,
         note = note,
     }
 end
@@ -446,12 +446,15 @@ function E:playChord()
     local temp = TABLE.alloc()
     for _, note in next, chord.noteList do
         if note.pitch < basePitch then repeat note.pitch = note.pitch * 2 until note.pitch > basePitch end
-        local hash = 'p' .. note.pitch
-        if not temp[hash] then
-            ins(temp, { note.pitch, note.volume })
-            temp[hash] = temp[#temp]
-        else
-            temp[hash][2] = max(temp[hash][2], note.volume)
+        print(note.volume)
+        if note.volume then
+            local hash = 'p' .. note.pitch
+            if not temp[hash] then
+                ins(temp, { note.pitch, note.volume })
+                temp[hash] = temp[#temp]
+            else
+                temp[hash][2] = max(temp[hash][2], note.volume)
+            end
         end
     end
     TASK.new(function()
