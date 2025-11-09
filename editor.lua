@@ -432,31 +432,31 @@ function E:playNextChord()
     end
 end
 
+local function simpPitchSorter(a, b) return a[1] < b[1] end
 function E:playChord()
     self.timer = self.timer0
     local chord = self.chordList[self.playing]
-    local basePitch = -1e99
+    local lowest = 1e99
     for _, note in next, chord.noteList do
-        if note.base then
-            basePitch = note.pitch
-            break
-        end
+        lowest = min(lowest, note.pitch)
     end
 
     local temp = TABLE.alloc()
     for _, note in next, chord.noteList do
-        if note.pitch < basePitch then repeat note.pitch = note.pitch * 2 until note.pitch > basePitch end
-        print(note.volume)
         if note.volume then
-            local hash = 'p' .. note.pitch
+            local pitch = note.pitch
+            while note.base and pitch > lowest do pitch = pitch / 2 end
+
+            local hash = 'p' .. pitch
             if not temp[hash] then
-                ins(temp, { note.pitch, note.volume })
+                ins(temp, { pitch, note.volume })
                 temp[hash] = temp[#temp]
             else
                 temp[hash][2] = max(temp[hash][2], note.volume)
             end
         end
     end
+    table.sort(temp, simpPitchSorter)
     TASK.new(function()
         for i = 1, #temp do
             audio.playNote(temp[i][1], temp[i][2] / (#temp + 1.6))
