@@ -455,7 +455,12 @@ function E:playChord()
     end
     self.count = #temp
     for i = 1, #temp do
-        audio.playNote(temp[i], 1 / (#temp + 1.6))
+        local waitT = (i - 1) * .026
+        local note, vol = temp[i], 1 / (#temp + 1.6)
+        TASK.new(function()
+            TASK.yieldT(waitT)
+            audio.playNote(note, vol)
+        end)
     end
     TABLE.free(temp)
 end
