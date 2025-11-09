@@ -56,7 +56,6 @@ function scene.keyDown(key, isRep)
             edit.playL, edit.playR = edit:getSelection()
             edit.playing = edit.playL
             -- editor.timer0 = .5 + .5 / (editor.playR - editor.playL + 1)
-            edit.timer0 = .62
             edit:playChord()
         end
     elseif key == 'down' or key == 'up' then

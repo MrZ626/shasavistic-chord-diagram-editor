@@ -44,6 +44,7 @@ local E = {
     playR = false,
     count = 0,
     timer = 0,
+    timer0 = 1,
 
     history = { '!0' },
     hisPtr = 1,
