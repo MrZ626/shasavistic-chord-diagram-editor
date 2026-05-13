@@ -458,6 +458,11 @@ local function drawCGNote(note, x, y, alpha)
         end
     end
 end
+local cheatSheet = {
+    ctrl = GC.newText(FONT.get(30), "Num: Mute&Add note\nA: Select all\nC/V/X: CopyPaste\nZ/Y: UndoRedo\nE/D: Export/OpenDir\nArrow: Move"),
+    shift = GC.newText(FONT.get(30), "Num: Add note down\nV: Paste before\nArrow: Select area"),
+    alt = GC.newText(FONT.get(30), "M: Mute\nH: Hide\nT: Tense\nP: Pink\nB: Base\nL: Line"),
+}
 function scene.draw()
     theme = themes[toggles.theme]
     local tex = TEX[toggles.theme] ---@type SSVC.TextureMap
@@ -664,6 +669,15 @@ function scene.draw()
         local progress = edit.playing + (1 - edit.timer / edit.timer0)
         local x = MATH.interpolate(edit.playL, s, edit.playR + 1, e, progress)
         gc_line(x, topY, x, btmY)
+    end
+
+    local CTRL, SHIFT, ALT = KBisDown('lctrl', 'rctrl'), KBisDown('lshift', 'rshift'), KBisDown('lalt', 'ralt')
+    local t = CTRL ~= SHIFT ~= ALT and not (CTRL and SHIFT)
+    if t then
+        t = CTRL and cheatSheet.ctrl or SHIFT and cheatSheet.shift or cheatSheet.alt
+        gc_setColor(1, 1, 1, .1)
+        gc_replaceTransform(SCR.xOy_dr)
+        gc_draw(t, -26, -26, 0, 1.26, nil, t:getDimensions())
     end
 
     -- gc_replaceTransform(SCR.xOy)
