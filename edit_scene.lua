@@ -160,27 +160,27 @@ function scene.keyDown(key, isRep)
         toggles.customDimBuffer = ""
     elseif #key == 1 and MATH.between(key, '0', '9') or #key == 3 and MATH.between(key, 'kp0', 'kp9') then
         if isRep then return true end
-        key = key:match('%d')
+        key = tonumber(key:match('%d'))
 
         if KBisDown('tab') then
             toggles.customDimBuffer = toggles.customDimBuffer .. key
             return
         end
 
-        local keyNum = key == '0' and toggles.customDim or tonumber(key)
-        if not ssvc.dimData[keyNum] then return end
-        ---@cast keyNum number
+        if key == 0 then key = toggles.customDim end
+
+        if not ssvc.dimData[key] then return end
 
         if ALT then
             -- Set custom grid step
             edit.gridStep[2] = nil
-            TABLE.delete(edit.gridStep, keyNum)
-            table.insert(edit.gridStep, 1, keyNum)
+            TABLE.delete(edit.gridStep, key)
+            table.insert(edit.gridStep, 1, key)
             edit.gridStepAnimTimer = .42
             edit:focusCursor()
         else
             -- Add/Remove note
-            local step = keyNum
+            local step = key
             if SHIFT then step = -step end
             local curNote = edit:getNote()
             local exist
