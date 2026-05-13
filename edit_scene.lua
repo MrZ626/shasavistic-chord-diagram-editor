@@ -156,9 +156,11 @@ function scene.keyDown(key, isRep)
         edit:focusCursor()
         edit:step()
     elseif key == 'tab' then
-        toggles.customDimBuffer = ""
-    elseif #key == 1 and MATH.between(key, '0', '9') then
         if isRep then return true end
+        toggles.customDimBuffer = ""
+    elseif #key == 1 and MATH.between(key, '0', '9') or #key == 3 and MATH.between(key, 'kp0', 'kp9') then
+        if isRep then return true end
+        key = key:match('%d')
 
         if KBisDown('tab') then
             toggles.customDimBuffer = toggles.customDimBuffer .. key
