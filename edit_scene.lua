@@ -11,7 +11,8 @@ local tostring = tostring
 local KBisDown = love.keyboard.isDown
 
 local toggles = {
-    charge = 0,
+    customDimBuffer = "",
+    customDim = 10,
     theme = 'dark',
     chordGraph = true,
     keyboard = true,
@@ -154,13 +155,17 @@ function scene.keyDown(key, isRep)
         edit.selMark = false
         edit:focusCursor()
         edit:step()
-    elseif key == 'q' then
-        toggles.charge = toggles.charge + 1
+    elseif key == 'tab' then
+        toggles.customDimBuffer = ""
     elseif #key == 1 and MATH.between(key, '0', '9') then
         if isRep then return true end
 
-        local keyNum = (key == '0' and 10 or key) + toggles.charge * 10
-        toggles.charge = 0
+        if KBisDown('tab') then
+            toggles.customDimBuffer = toggles.customDimBuffer .. key
+            return
+        end
+
+        local keyNum = key == '0' and toggles.customDim or tonumber(key)
         if not ssvc.dimData[keyNum] then return end
         ---@cast keyNum number
 
@@ -372,8 +377,19 @@ function scene.keyDown(key, isRep)
     return true
 end
 
--- function scene.keyUp(key)
--- end
+function scene.keyUp(key)
+    if key == 'tab' then
+        local num = tonumber(toggles.customDimBuffer)
+        if num then
+            if ssvc.dimData[num] then
+                toggles.customDim = num
+                MSG('info', "Custom dimension set to " .. num, 1)
+            else
+                MSG('warn', "Invalid dimension: " .. num, 2)
+            end
+        end
+    end
+end
 
 function scene.update(dt)
     edit:update(dt)
@@ -661,9 +677,10 @@ App designed & developed by MrZ_26
 ]]
 local hintText1 = [[
 Help (Edit)
-Num(1-9,0,Q)    Add note
+Num(1-9,0)      Add note
+HoldTab+Num   Set customDim (0)
 Shift+[Num]     Add downwards
-Alt+M           Mute note
+Alt+M            Mute note
 Alt+H            Hide note
 Alt+T            Mark tense note
 Alt+P            Mark pink(?) note
