@@ -126,7 +126,7 @@ local dimData = {
         draw = 'dim23',
         color = 'A9CD5C'
     },
-
+    -- Add more dimensions here
 }
 for i = 0, #dimData do
     local dim = dimData[i]

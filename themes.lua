@@ -40,6 +40,7 @@ local themes = {
             { COLOR.HEX '91F39EFF' }, -- 21
             { COLOR.HEX '92D973FF' }, -- 22
             { COLOR.HEX 'A9CD5CFF' }, -- 23
+            -- Add more dimensions here
         },
         dimGridColor = {
             { COLOR.HEX 'AAAAAA42' }, -- 1
@@ -65,6 +66,7 @@ local themes = {
             { COLOR.HEX '91F39E26' }, -- 21
             { COLOR.HEX '92D97326' }, -- 22
             { COLOR.HEX 'A9CD5C26' }, -- 23
+            -- Add more dimensions here
         },
     },
     bright = {
@@ -108,6 +110,7 @@ local themes = {
             { COLOR.HEX '91F39EFF' }, -- 21
             { COLOR.HEX '92D973FF' }, -- 22
             { COLOR.HEX 'A9CD5CFF' }, -- 23
+            -- Add more dimensions here
         },
         dimGridColor = {
             { COLOR.HEX 'AAAAAA62' }, -- 1
@@ -133,6 +136,7 @@ local themes = {
             { COLOR.HEX '91F39E26' }, -- 21
             { COLOR.HEX '92D97326' }, -- 22
             { COLOR.HEX 'A9CD5C26' }, -- 23
+            -- Add more dimensions here
         },
     },
 }

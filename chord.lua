@@ -25,6 +25,7 @@ local dimData = {
     { freq = 73 / 16 }, -- 21D
     { freq = 79 / 16 }, -- 22D
     { freq = 83 / 16 }, -- 23D
+    -- Add more dimensions here
 }
 for i = 0, #dimData do
     local dim = dimData[i]
