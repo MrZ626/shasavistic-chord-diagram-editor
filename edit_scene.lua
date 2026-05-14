@@ -462,6 +462,7 @@ local cheatSheet = {
     ctrl = GC.newText(FONT.get(30), "Num: Mute&Add note\nA: Select all\nC/V/X: CopyPaste\nZ/Y: UndoRedo\nE/D: Export/OpenDir\nArrow: Move"),
     shift = GC.newText(FONT.get(30), "Num: Add note down\nV: Paste before\nArrow: Select area"),
     alt = GC.newText(FONT.get(30), "M: Mute\nH: Hide\nT: Tense\nP: Pink\nB: Base\nL: Line"),
+    tab = GC.newText(FONT.get(30), "Input a number then release: Set custom dim (key 0)"),
 }
 function scene.draw()
     theme = themes[toggles.theme]
@@ -671,14 +672,27 @@ function scene.draw()
         gc_line(x, topY, x, btmY)
     end
 
-    local CTRL, SHIFT, ALT = KBisDown('lctrl', 'rctrl'), KBisDown('lshift', 'rshift'), KBisDown('lalt', 'ralt')
-    local t = CTRL ~= SHIFT ~= ALT and not (CTRL and SHIFT)
-    if t then
-        t = CTRL and cheatSheet.ctrl or SHIFT and cheatSheet.shift or cheatSheet.alt
-        gc_setColor(1, 1, 1, .1)
-        gc_replaceTransform(SCR.xOy_dr)
-        gc_draw(t, -26, -26, 0, 1.26, nil, t:getDimensions())
-    end
+    repeat
+        local m = KBisDown('lctrl', 'rctrl') and 'ctrl'
+        if KBisDown('lshift', 'rshift') then
+            if m then break end
+            m = 'shift'
+        end
+        if KBisDown('lalt', 'ralt') then
+            if m then break end
+            m = 'alt'
+        end
+        if KBisDown('tab') then
+            if m then break end
+            m = 'tab'
+        end
+        if m then
+            local t = cheatSheet[m]
+            gc_setColor(1, 1, 1, .16)
+            gc_replaceTransform(SCR.xOy_dr)
+            gc_draw(t, -26, -26, 0, 1.26, nil, t:getDimensions())
+        end
+    until true
 
     -- gc_replaceTransform(SCR.xOy)
     -- gc_setColor(1,1,1)
