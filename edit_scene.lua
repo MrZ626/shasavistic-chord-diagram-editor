@@ -494,7 +494,7 @@ function scene.draw()
             chord = edit:getChord()
             alpha = 1
         end
-        if chord == nil then
+        if chord then
             chord = edit:getChord()
             alpha = 4.2
         end
