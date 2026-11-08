@@ -494,6 +494,10 @@ function scene.draw()
             chord = edit:getChord()
             alpha = 1
         end
+        if chord then
+            chord = edit:getChord()
+            alpha = 4.2
+        end
         -- Base movement
         for i = 1, 7 do
             local n = chord.pitchVec[i]
