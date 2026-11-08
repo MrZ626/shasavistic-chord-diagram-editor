@@ -437,6 +437,9 @@ function E:playChord()
     self.timer = self.timer0
     local chord = self.chordList[self.playing]
     local lowest = 1e99
+    if chord then
+        return
+    end
     for _, note in next, chord.noteList do
         lowest = min(lowest, note.pitch)
     end
